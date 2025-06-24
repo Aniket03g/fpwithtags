@@ -42,7 +42,7 @@ const ProjectBoardPage = () => {
       <div className={styles.projectHeader}>
         <h1>{project.name} Board</h1>
       </div>
-      <FeatureBoard projectId={projectId} project={project} onFeatureUpdated={fetchProject} />
+      <FeatureBoard project={project} onFeatureUpdated={fetchProject} />
     </div>
   );
 };

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import API from '@/api/api';
-import type { Project } from '@/types/project';
+import type { Project } from '@/app/types/project';
 import ProjectCard from './ProjectCard';
 import styles from './Projects.module.css';
 import { useRouter } from 'next/navigation';

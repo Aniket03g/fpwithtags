@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import styles from './FeatureCard.module.css';
-import { Feature } from '@/app/types';
+import { Feature } from '@/app/types/feature';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 interface FeatureCardProps {

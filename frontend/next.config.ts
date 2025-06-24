@@ -1,6 +1,7 @@
-import type { NextConfig } from "next";
+import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   /* config options here */
   webpack(config) {
     config.module.rules.push({

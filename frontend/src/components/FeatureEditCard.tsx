@@ -5,7 +5,8 @@ import { Modal } from "./ui/modal";
 import Button from "./ui/button/Button";
 import Input from "./form/input/InputField";
 import Label from "./form/Label";
-import { Feature, User } from "@/app/types";
+import { Feature } from "@/app/types/feature";
+import { User } from "@/app/types/user";
 import styles from "./FeatureEditCard.module.css";
 
 
@@ -14,7 +15,7 @@ interface FeatureModalProps {
   isOpen: boolean;
   users: User[];
   onClose: () => void;
-  onSave: (feature: Feature) => void;
+  onSave: (feature: any) => void;
 }
 
 export const FeatureModal = ({ feature, users, onClose, onSave }: FeatureModalProps) => {

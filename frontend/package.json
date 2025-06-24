@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "mkdir ..\\backend\\public_html && xcopy .next\\static ..\\backend\\public_html\\_next\\static /E /I /Y && copy .next\\server\\pages\\_app.js ..\\backend\\public_html\\index.html && xcopy public\\*.* ..\\backend\\public_html /E /I /Y",
     "start": "next start",
     "lint": "next lint"
   },

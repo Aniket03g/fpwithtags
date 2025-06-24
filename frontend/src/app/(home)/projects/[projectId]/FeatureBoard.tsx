@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import styles from './FeatureBoard.module.css';
 import FeatureCard from './FeatureCard';
-import { Feature, User, Project } from '@/app/types';
+import { Feature } from '@/app/types/feature';
+import { User } from '@/app/types/user';
+import { Project } from '@/app/types/project';
 import API from '@/api/api';
 
 interface FeatureBoardProps {

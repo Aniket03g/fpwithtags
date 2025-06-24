@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/FeaturePlus/backend/database"
@@ -200,30 +198,17 @@ func main() {
 		})
 	})
 
-	// Static frontend files
-	staticDir := "../frontend/.next"
-	router.Static("/static", filepath.Join(staticDir, "static"))
-	router.Static("/_next", filepath.Join(staticDir, "static"))
+	// Serve static files from the frontend build directory
+	router.StaticFS("/_next", http.Dir("public_html/_next"))
+	router.StaticFile("/", "public_html/index.html")
 
 	// Handle unmatched routes (e.g., for client-side routing)
 	router.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
-			c.JSON(http.StatusNotFound, gin.H{"error": "API endpoint not found"})
+		if !strings.HasPrefix(c.Request.URL.Path, "/api") {
+			c.File("public_html/index.html")
 			return
 		}
-
-		path := filepath.Join(staticDir, c.Request.URL.Path)
-		if _, err := os.Stat(path); err == nil {
-			c.File(path)
-			return
-		}
-
-		indexPath := filepath.Join(staticDir, "server", "app", "index.html")
-		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend build not found"})
-			return
-		}
-		c.File(indexPath)
+		c.JSON(http.StatusNotFound, gin.H{"error": "API endpoint not found"})
 	})
 
 	// Start server

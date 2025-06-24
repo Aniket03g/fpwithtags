@@ -1,33 +1,39 @@
 "use client";
 import { useState } from 'react';
 import styles from './FeatureCard.module.css';
-import { Feature, User } from '@/app/types';
+import { Feature } from '@/app/types/feature';
+import { User } from '@/app/types/user';
+import { Project } from '@/app/types/project';
+import API from '@/api/api';
 
 
 interface FeatureCreateEditProps {
   project: Project;
-  feature: Feature;
+  feature?: Feature;
   featureGroups: Feature[];
   users: User[];
   onEdit: (feature: Feature) => void;
-  onCreate: (feature: Feature) => void;
+  onCreate: (feature: Omit<Feature, 'id' | 'created_at' | 'updated_at'>) => void;
+  onClose: () => void;
+  featureAllTags: string[];
 }
 
-const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, onCreate}: FeatureCreateEditProps) => {
+const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, onCreate, onClose, featureAllTags}: FeatureCreateEditProps) => {
 
   const [featureFormLoading, setFeatureFormLoading] = useState(false);
   const [featureFormError, setFeatureFormError] = useState('');
   const [featureShowTagSuggestions, setFeatureShowTagSuggestions] = useState(false);
+  const [featureTagSuggestions, setFeatureTagSuggestions] = useState<string[]>([]);
   const [featureSelectedTags, setFeatureSelectedTags] = useState<string[]>([]);
 
   const [featureForm, setFeatureForm] = useState({
-    title: '',
-    parent_feature_id: '',
-    description: '',
+    title: feature?.title || '',
+    parent_feature_id: feature?.parent_feature_id?.toString() || '',
+    description: feature?.description || '',
     tags: '',
-    status: 'todo',
-    priority: 'medium',
-    assignee_id: '',
+    status: feature?.status || 'todo',
+    priority: feature?.priority || 'medium',
+    assignee_id: feature?.assignee_id?.toString() || '',
   });
 
 
@@ -68,8 +74,8 @@ const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, 
     setFeatureFormLoading(true);
     setFeatureFormError('');
     try {
-      await API.post('/features', {
-        project_id: Number(projectId),
+      const featureData = {
+        project_id: Number(project.id),
         parent_feature_id: Number(featureForm.parent_feature_id),
         title: featureForm.title,
         description: featureForm.description,
@@ -77,22 +83,19 @@ const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, 
         status: featureForm.status,
         priority: featureForm.priority,
         assignee_id: featureForm.assignee_id ? Number(featureForm.assignee_id) : 0,
-      });
-      setShowFeatureModal(false);
-      setFeatureForm({
-        title: '',
-        parent_feature_id: '',
-        description: '',
-        tags: '',
-        status: 'todo',
-        priority: 'medium',
-        assignee_id: '',
-      });
-      setFeatureSelectedTags([]);
-      const response = await API.get(`/features/project/${projectId}?root_only=true`);
-      setFeatures(response.data);
+      };
+
+      if (feature?.id) {
+        // @ts-ignore
+        await onEdit({ ...featureData, id: feature.id });
+      } else {
+        // @ts-ignore
+        await onCreate(featureData);
+      }
+      
+      onClose();
     } catch (err) {
-      setFeatureFormError('Failed to create feature.');
+      setFeatureFormError('Failed to save feature.');
     } finally {
       setFeatureFormLoading(false);
     }
@@ -106,8 +109,8 @@ const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, 
   return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
-            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={() => setShowFeatureModal(false)}>&times;</button>
-            <h2 className="text-xl font-bold mb-4">Create Feature</h2>
+            <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-600" onClick={onClose}>&times;</button>
+            <h2 className="text-xl font-bold mb-4">{feature?.id ? 'Edit' : 'Create'} Feature</h2>
             <form onSubmit={handleFeatureFormSubmit}>
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">Title</label>
@@ -229,7 +232,7 @@ const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, 
                 <button
                   type="button"
                   className="px-4 py-2 rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-100"
-                  onClick={() => setShowFeatureModal(false)}
+                  onClick={onClose}
                   disabled={featureFormLoading}
                 >
                   Cancel
@@ -239,7 +242,7 @@ const FeatureCreateEditForm = ({project, feature, featureGroups, users, onEdit, 
                   className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 shadow"
                   disabled={featureFormLoading}
                 >
-                  {featureFormLoading ? 'Creating...' : 'Create'}
+                  {featureFormLoading ? (feature?.id ? 'Saving...' : 'Creating...') : (feature?.id ? 'Save' : 'Create')}
                 </button>
               </div>
             </form>

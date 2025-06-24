@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import API from "@/app/api/api";
+import API from "@/api/api";
 import styles from './page.module.css';
 
 const CreateUserPage = () => { // Changed component name

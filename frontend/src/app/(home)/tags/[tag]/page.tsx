@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { TagsAPI } from '@/api/api';
-import { Feature } from '@/types';
+import { Feature } from '@/app/types';
 
 export default function TagPage() {
   const params = useParams();
