@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
 import styles from './FeatureBoard.module.css';
-import FeatureCard from '@/app/features/card';
+import FeatureCard from '@/components/FeatureCard';
 import { Feature, User } from '@/app/types';
-import API from '@/app/api/api';
+import type { Project } from '@/app/types/project';
+import API from '@/api/api';
 
 interface FeatureBoardProps {
   projectId: string | number;
@@ -68,7 +69,8 @@ const FeatureBoard = ({ projectId, onFeatureUpdated }: FeatureBoardProps) => {
         description: newFeature.description,
         status: newFeature.status,
         priority: newFeature.priority,
-        assignee_id: newFeature.assignee_id || 0
+        assignee_id: newFeature.assignee_id || 0,
+        parent_feature_id: null
       };
       
       console.log("Submitting feature data:", submitData);
@@ -109,8 +111,10 @@ const FeatureBoard = ({ projectId, onFeatureUpdated }: FeatureBoardProps) => {
               priority: 'medium',
               assignee_id: 0,
               created_at: '',
-              updated_at: ''
-            });
+              updated_at: '',
+              parent_feature_id: null,
+              assignee: undefined
+            } as Feature);
             setIsModalOpen(true);
           }}
         >

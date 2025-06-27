@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
+/** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
+  output: 'export',
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   /* config options here */
   webpack(config) {
     config.module.rules.push({
@@ -11,4 +16,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

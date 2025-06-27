@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import API from '@/api/api';
-import type { Project } from '@/types/project';
+import type { Project } from '@/app/types/project';
 import ProjectCard from './ProjectCard';
 import styles from './Projects.module.css';
 import { useRouter } from 'next/navigation';
@@ -16,18 +16,19 @@ export default function Projects() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        console.log("/projects: Fetching projects.");
+        console.log("/projects: Fetching projects from static JSON.");
         setLoading(true);
-        const response = await API.get('/projects');
-        setProjects(response.data);
+        const response = await fetch('/data/projects/index.json');
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          setProjects([]);
+          setError('Projects data is not an array.');
+        }
       } catch (err: any) {
         console.error('Error fetching projects:', err);
         setProjects([]);
-        if (err.response?.status === 401) {
-          // Redirect to login if unauthorized
-          router.push('/fflogin');
-          return;
-        }
         setError('Failed to load projects. Please try again later.');
       } finally {
         setLoading(false);

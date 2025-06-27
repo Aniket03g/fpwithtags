@@ -1,233 +1,93 @@
 package main
 
 import (
+	"compress/gzip"
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/FeaturePlus/backend/database"
-	"github.com/FeaturePlus/backend/handlers"
-	"github.com/FeaturePlus/backend/middleware"
-	"github.com/FeaturePlus/backend/models"
-	"github.com/FeaturePlus/backend/repositories"
-	"github.com/FeaturePlus/backend/routes"
-	"github.com/jilio/sqlitefs"
-
-	"github.com/gin-gonic/gin"
 )
 
+const outDir = "../frontend/out"
+
 func main() {
-	// Initialize DB
-	db, err := database.InitDB()
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	// Get the underlying *sql.DB from GORM
-	sqlDB, err := db.DB.DB()
-	if err != nil {
-		panic("failed to get database connection: " + err.Error())
-	}
-
-	// Initialize SQLiteFS with the *sql.DB
-	sqliteFS, err := sqlitefs.NewSQLiteFS(sqlDB)
-	if err != nil {
-		panic("failed to initialize SQLiteFS: " + err.Error())
-	}
-	defer sqliteFS.Close()
-
-	// Migrate all schemas
-	if err := db.Migrate(&models.User{}, &models.Project{}, &models.Feature{}, &models.SubFeature{}, &models.Task{}, &models.FeatureTag{}, &models.TaskAttachment{}, &models.Comment{}); err != nil {
-		panic("failed to migrate database: " + err.Error())
-	}
-
-	// Create repositories
-	userRepo := repositories.NewUserRepository(db.DB)
-	projectRepo := repositories.NewProjectRepository(db.DB)
-	featureRepo := repositories.NewFeatureRepository(db.DB)
-	taskRepo := repositories.NewTaskRepository(db.DB)
-	tagRepo := repositories.NewTagRepository(db.DB)
-	attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS)
-	commentRepo := repositories.NewCommentRepository(db.DB)
-
-	// Create handlers
-	userHandler := handlers.NewUserHandler(userRepo)
-	projectHandler := handlers.NewProjectHandler(projectRepo)
-	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, db.DB)
-	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)
-	tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB)
-	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
-	commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo)
-
-	router := gin.Default()
-
-	// Configure multipart form handling
-	router.MaxMultipartMemory = 8 << 20 // 8 MiB
-
-	// Add logging middleware
-	router.Use(middleware.LoggingMiddleware())
-
-	// CORS middleware
-	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusOK)
-			return
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[Request] %s %s", r.Method, r.URL.Path)
+		// Gzip response if supported
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			gz := gzip.NewWriter(w)
+			defer gz.Close()
+			gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+			serveStatic(gzw, r)
+		} else {
+			serveStatic(w, r)
 		}
-		c.Next()
 	})
 
-	// Register auth routes
-	routes.RegisterAuthRoutes(router, db.DB)
+	log.Println("Serving on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 
-	// User routes - not protected, admin only functions should be protected elsewhere
-	userRoutes := router.Group("/api/users")
-	{
-		userRoutes.GET("", userHandler.GetAllUsers)
-		userRoutes.GET("/:id", userHandler.GetUser)
-		userRoutes.POST("", userHandler.CreateUser)
-		userRoutes.PUT("/:id", userHandler.UpdateUser)
-		userRoutes.DELETE("/:id", userHandler.DeleteUser)
-	}
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
 
-	// Protected routes - requires authentication
-	// Project routes
-	projectRoutes := router.Group("/api/projects", middleware.AuthMiddleware())
-	{
-		projectRoutes.POST("", projectHandler.CreateProject)
-		projectRoutes.GET("", projectHandler.GetAllProjects)
-		projectRoutes.GET("/:id", projectHandler.GetProject)
-		projectRoutes.PUT("/:id", projectHandler.UpdateProject)
-		projectRoutes.DELETE("/:id", projectHandler.DeleteProject)
-		projectRoutes.GET("/user/:user_id", projectHandler.GetProjectsByUser)
-	}
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
 
-	// Feature routes
-	featureRoutes := router.Group("/api/features", middleware.AuthMiddleware())
-	{
-		featureRoutes.POST("", featureHandler.CreateFeature)
-		featureRoutes.GET("", featureHandler.GetAllFeatures)
-		featureRoutes.GET("/:id", featureHandler.GetFeature)
-		featureRoutes.PUT("/:id", featureHandler.UpdateFeature)
-		featureRoutes.PATCH("/:id/field", featureHandler.UpdateFeatureField)
-		featureRoutes.DELETE("/:id", featureHandler.DeleteFeature)
-		featureRoutes.GET("/:id/subfeatures", featureHandler.GetSubfeatures)
-
-		// Feature-specific Task routes
-		featureRoutes.POST("/:id/tasks", taskHandler.CreateTaskForFeature)
-		featureRoutes.GET("/:id/tasks", taskHandler.GetTasksByFeature)
-		featureRoutes.PUT("/:id/task/:task_id", taskHandler.UpdateTaskForFeature)
-		featureRoutes.DELETE("/:id/task/:task_id", taskHandler.DeleteTaskForFeature)
-
-		// Feature tags routes
-		featureRoutes.GET("/:id/tags", tagHandler.GetFeatureTags)
-		featureRoutes.PUT("/:id/tags", tagHandler.UpdateFeatureTags)
-	}
-
-	// Public route for project features (for frontend access)
-	router.GET("/api/features/project/:project_id", featureHandler.GetProjectFeatures)
-
-	// Task routes - split into separate groups for clarity
-	taskRoutes := router.Group("/api/tasks", middleware.AuthMiddleware())
-	{
-		// Core task operations
-		taskRoutes.GET("", taskHandler.GetAllTasks)
-		taskRoutes.POST("", taskHandler.CreateTask)
-		taskRoutes.GET("/project/:project_id", taskHandler.GetTasksByProject)
-
-		// Individual task operations
-		taskRoutes.GET("/:task_id", taskHandler.GetTask)
-		taskRoutes.PUT("/:task_id", taskHandler.UpdateTask)
-		taskRoutes.DELETE("/:task_id", taskHandler.DeleteTask)
-
-		// Task attachment routes
-		taskRoutes.POST("/:task_id/attachments", attachmentHandler.UploadAttachment)
-		taskRoutes.GET("/:task_id/attachments", attachmentHandler.GetTaskAttachments)
-		taskRoutes.GET("/:task_id/attachments/:filename", attachmentHandler.DownloadAttachment)
-		taskRoutes.DELETE("/:task_id/attachments/:attachmentId", attachmentHandler.DeleteAttachment)
-
-		// Task comment routes
-		taskRoutes.POST("/:task_id/comments", commentHandler.CreateComment)
-		taskRoutes.GET("/:task_id/comments", commentHandler.GetTaskComments)
-	}
-
-	// Comment routes
-	commentRoutes := router.Group("/api/comments", middleware.AuthMiddleware())
-	{
-		commentRoutes.PUT("/:comment_id", commentHandler.UpdateComment)
-		commentRoutes.DELETE("/:comment_id", commentHandler.DeleteComment)
-	}
-
-	// Attachment comment routes
-	attachmentRoutes := router.Group("/api/attachments", middleware.AuthMiddleware())
-	{
-		attachmentRoutes.GET("/:attachment_id/comments", commentHandler.GetAttachmentComments)
-	}
-
-	// Sub-feature routes
-	subFeatureRoutes := router.Group("/api/sub-features", middleware.AuthMiddleware())
-	{
-		subFeatureRoutes.POST("", handlers.CreateSubFeature(db.DB))
-		subFeatureRoutes.PUT("/:id", handlers.UpdateSubFeature(db.DB))
-		subFeatureRoutes.GET("", handlers.GetSubFeaturesByFeature(db.DB))
-		subFeatureRoutes.GET("/project", handlers.GetSubFeaturesByProject(db.DB))
-		subFeatureRoutes.GET("/:id", handlers.GetSubFeatureDetail(db.DB))
-
-		// Sub-feature task routes
-		subFeatureRoutes.POST("/:id/tasks", taskHandler.CreateTaskForSubFeature)
-		subFeatureRoutes.GET("/:id/tasks", taskHandler.GetTasksBySubFeature)
-		subFeatureRoutes.PUT("/:id/task/:task_id", taskHandler.UpdateTaskForSubFeature)
-		subFeatureRoutes.DELETE("/:id/task/:task_id", taskHandler.DeleteTaskForSubFeature)
-	}
-
-	// Tag routes
-	tagRoutes := router.Group("/api/tags", middleware.AuthMiddleware())
-	{
-		tagRoutes.GET("", tagHandler.GetAllTags)
-		tagRoutes.GET("/:tag_name/features", tagHandler.GetFeaturesByTag)
-	}
-
-	// Health check
-	router.GET("/api/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "ok",
-			"version": "1.0.0",
-		})
-	})
-
-	// Static frontend files
-	staticDir := "../frontend/.next"
-	router.Static("/static", filepath.Join(staticDir, "static"))
-	router.Static("/_next", filepath.Join(staticDir, "static"))
-
-	// Handle unmatched routes (e.g., for client-side routing)
-	router.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
-			c.JSON(http.StatusNotFound, gin.H{"error": "API endpoint not found"})
+func serveStatic(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	log.Printf("[serveStatic] Path: %s", path)
+	// Serve static JSON files from /data
+	if strings.HasPrefix(path, "/data/") {
+		filePath := filepath.Join(outDir, path)
+		log.Printf("[serveStatic] Serving data file: %s", filePath)
+		if fileExists(filePath) {
+			http.ServeFile(w, r, filePath)
 			return
 		}
-
-		path := filepath.Join(staticDir, c.Request.URL.Path)
-		if _, err := os.Stat(path); err == nil {
-			c.File(path)
-			return
-		}
-
-		indexPath := filepath.Join(staticDir, "server", "app", "index.html")
-		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend build not found"})
-			return
-		}
-		c.File(indexPath)
-	})
-
-	// Start server
-	if err := router.Run(":8080"); err != nil {
-		panic("failed to start server: " + err.Error())
+		log.Printf("[serveStatic] Data file not found: %s", filePath)
+		serve404(w, r)
+		return
 	}
+
+	// Serve static assets if they exist
+	filePath := filepath.Join(outDir, path)
+	if fileExists(filePath) && !isDir(filePath) {
+		log.Printf("[serveStatic] Serving static file: %s", filePath)
+		http.ServeFile(w, r, filePath)
+		return
+	}
+
+	// Serve 404.html for /404 or missing files
+	if path == "/404" || path == "/404.html" {
+		log.Printf("[serveStatic] Serving 404 page")
+		serve404(w, r)
+		return
+	}
+
+	// For all other routes, serve index.html (SPA fallback)
+	log.Printf("[serveStatic] Fallback to index.html for path: %s", path)
+	http.ServeFile(w, r, filepath.Join(outDir, "index.html"))
+}
+
+func serve404(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	log.Printf("[serve404] Serving 404.html for path: %s", r.URL.Path)
+	http.ServeFile(w, r, filepath.Join(outDir, "404.html"))
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
+
+func isDir(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
 }

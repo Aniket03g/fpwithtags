@@ -77,14 +77,6 @@ const FeatureCard = ({ feature, onEdit }: FeatureCardProps) => {
           )}
           
           <div className={styles.meta}>
-            <div className={styles.assignee}>
-              <span className={styles.avatar}>
-                {feature.assignee ? feature.assignee.username.charAt(0).toUpperCase() : 'U'}
-              </span>
-              <span className={styles.assigneeName}>
-                {feature.assignee ? feature.assignee.username : 'Unassigned'}
-              </span>
-            </div>
             <button 
               className={styles.editButton}
               onClick={(e) => {

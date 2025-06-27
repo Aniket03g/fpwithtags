@@ -25,31 +25,12 @@ const Home = () => {
   const { token, authInfo, project, registerCredentials, forgetCredentials } = useContext(AuthContext);
   const router=useRouter();
 
-  useEffect(()=> {
-    console.log("Home page (loading): authInfo=", authInfo, " token=", token);
-    if (authInfo) {
-       router.push("/projects");
-    }
-  }, [token, authInfo] );
-
   console.log("Home page (Page render): authInfo=", authInfo, " token=", token);
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Welcome to the App</h1>
-      {authInfo? (
-        <>
-          <p className="text-lg">User: {authInfo.username || authInfo.name}</p>
-          <p className="text-lg">Project: {project?.name || 'No project selected'}</p>
-          <button onClick={forgetCredentials} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">Logout</button>
-        </>
-      ) : (
-        <> 
-          <p className="text-lg">Please log in.</p>
-          <div><Link href="/fflogin"> Login </Link></div>
-          <button onClick={forgetCredentials} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">Logout</button>
-        </>
-      )}
-      
+      {/* Static mode: Show welcome message only */}
+      <p className="text-lg">Welcome to FeaturePlus! Static mode enabled.</p>
     </div>
   );
 }

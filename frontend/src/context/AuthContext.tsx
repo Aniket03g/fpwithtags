@@ -37,6 +37,7 @@ export const AuthContext = createContext<AuthContextType>({
   project: null, 
   registerCredentials: () => {},
   forgetCredentials: () => {},
+  verifyCredentials: () => {},
 });
 
 // Mock auth provider (simulates auth state)
@@ -58,23 +59,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const l_authInfo=localStorage.getItem('authInfo');
     const l_project=localStorage.getItem('project');
     setToken(l_token);
-    setAuthInfo(l_authInfo);
-    setProject(l_project);
+    setAuthInfo(l_authInfo && l_authInfo !== 'undefined' && l_authInfo !== '' ? JSON.parse(l_authInfo) : null);
+    setProject(l_project && l_project !== 'undefined' && l_project !== '' ? JSON.parse(l_project) : null);
     setLoading(false); // Set loading to false after checking localStorage
     console.log("AuthProvider: useEffect (pageload): token=", token, " AuthInfo=", authInfo); 
     console.log("AuthProvider: Fetched:", l_token, l_authInfo, l_project); 
     /* We can't assume token etc. are set here. Use local variables. */ 
-    if ( !l_token ) {
-      console.log("AuthProvider: Loggin in, token is nil."); 
-      router.push('/fflogin');
-    } 
+    // if ( !l_token ) {
+    //   console.log("AuthProvider: Loggin in, token is nil."); 
+    //   router.push('/fflogin');
+    // } 
   }, []); 
 
   const registerCredentials = (l_authInfo: AuthInfo, l_project: Project, l_token: string) => {
     console.log("AuthProvider: registerCredentials: Adding to localStorage()"); 
     localStorage.setItem('token', l_token);
-    localStorage.setItem('authInfo', l_authInfo);
-    localStorage.setItem('project', l_project);
+    localStorage.setItem('authInfo', JSON.stringify(l_authInfo));
+    localStorage.setItem('project', JSON.stringify(l_project));
     setToken(l_token);
     setAuthInfo(l_authInfo); 
     setProject(l_project);

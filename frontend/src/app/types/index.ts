@@ -13,7 +13,7 @@ export type { Project } from './project';
 export interface Feature {
   id: number;
   project_id: number;
-  parent_feature_id: number | null;
+  parent_feature_id?: number | null;
   title: string;
   description: string;
   status: 'todo' | 'in_progress' | 'done';
@@ -22,7 +22,6 @@ export interface Feature {
   created_at: string;
   updated_at: string;
   parent_feature?: Feature;
-  assignee?: User;
   tags?: Tag[];
 }
 
@@ -44,6 +43,4 @@ export interface Task {
   feature_id: number;
 } 
 
-export * from './task';
-export * from './feature';
-export * from './user'; 
+export * from './task'; 

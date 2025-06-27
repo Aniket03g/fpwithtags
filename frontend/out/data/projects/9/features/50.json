@@ -1,0 +1,1 @@
+{"assignee_id":0,"category":"general","created_at":"2025-05-26T19:39:16.2492036+05:30","deleted_at":null,"description":"Use this go package for implementing attachments:\nhttps://github.com/jilio/sqlitefs","id":50,"parent_feature_id":49,"priority":"medium","project_id":9,"status":"todo","tag":"p2","title":"Attachments ","updated_at":"2025-05-26T19:39:16.2492036+05:30"}
