@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -29,9 +31,21 @@ func NewTaskHandler(taskRepo repositories.TaskRepository, db *gorm.DB) *TaskHand
 // CreateTask creates a standalone task not tied to a specific feature
 func (h *TaskHandler) CreateTask(c *gin.Context) {
 	var task models.Task
-	if err := c.ShouldBindJSON(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	// Check if it's a form submission (HTMX) or JSON (API)
+	contentType := c.GetHeader("Content-Type")
+	if contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data" {
+		// Form data for HTMX
+		if err := c.ShouldBind(&task); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		// JSON for API
+		if err := c.ShouldBindJSON(&task); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	// Validate task fields
@@ -83,15 +97,44 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, task)
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return HTML for HTMX
+		tmpl, err := template.ParseFiles("templates/_task-item.html")
+		if err != nil {
+			log.Printf("template parse error: %v", err)
+			c.String(http.StatusInternalServerError, "Template error")
+			return
+		}
+		err = tmpl.ExecuteTemplate(c.Writer, "task-item", task)
+		if err != nil {
+			log.Printf("template execute error: %v", err)
+			c.String(http.StatusInternalServerError, "Render error")
+		}
+	} else {
+		// Return JSON for API
+		c.JSON(http.StatusCreated, task)
+	}
 }
 
 // UpdateTask updates a standalone task by JSON input
 func (h *TaskHandler) UpdateTask(c *gin.Context) {
 	var task models.Task
-	if err := c.ShouldBindJSON(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	// Check if it's a form submission (HTMX) or JSON (API)
+	contentType := c.GetHeader("Content-Type")
+	if contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data" {
+		// Form data for HTMX
+		if err := c.ShouldBind(&task); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		// JSON for API
+		if err := c.ShouldBindJSON(&task); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	if err := h.taskRepo.Update(&task); err != nil {
@@ -99,7 +142,24 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, task)
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return HTML for HTMX
+		tmpl, err := template.ParseFiles("templates/_task-item.html")
+		if err != nil {
+			log.Printf("template parse error: %v", err)
+			c.String(http.StatusInternalServerError, "Template error")
+			return
+		}
+		err = tmpl.ExecuteTemplate(c.Writer, "task-item", task)
+		if err != nil {
+			log.Printf("template execute error: %v", err)
+			c.String(http.StatusInternalServerError, "Render error")
+		}
+	} else {
+		// Return JSON for API
+		c.JSON(http.StatusOK, task)
+	}
 }
 
 // DeleteTask deletes a standalone task by ID
@@ -109,7 +169,13 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete task"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
+
+	// For HTMX requests, return empty body to remove the element
+	if c.GetHeader("HX-Request") == "true" {
+		c.Status(http.StatusOK)
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
+	}
 }
 
 // GetTask retrieves a task by its ID

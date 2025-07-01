@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
 	"net/http"
-	"os"
-	"path/filepath"
+
+	"html/template"
 	"strings"
 
 	"github.com/FeaturePlus/backend/database"
@@ -12,28 +13,25 @@ import (
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/backend/routes"
-	"github.com/jilio/sqlitefs"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jilio/sqlitefs"
 )
 
 func main() {
 	// Initialize DB
 	db, err := database.InitDB()
 	if err != nil {
-		panic("failed to connect database")
+		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	// Get the underlying *sql.DB from GORM
 	sqlDB, err := db.DB.DB()
 	if err != nil {
-		panic("failed to get database connection: " + err.Error())
+		log.Fatalf("failed to get sql.DB: %v", err)
 	}
 
-	// Initialize SQLiteFS with the *sql.DB
 	sqliteFS, err := sqlitefs.NewSQLiteFS(sqlDB)
 	if err != nil {
-		panic("failed to initialize SQLiteFS: " + err.Error())
+		log.Fatalf("failed to create sqlitefs: %v", err)
 	}
 	defer sqliteFS.Close()
 
@@ -47,183 +45,151 @@ func main() {
 	projectRepo := repositories.NewProjectRepository(db.DB)
 	featureRepo := repositories.NewFeatureRepository(db.DB)
 	taskRepo := repositories.NewTaskRepository(db.DB)
+	commentRepo := repositories.NewCommentRepository(db.DB)
 	tagRepo := repositories.NewTagRepository(db.DB)
 	attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS)
-	commentRepo := repositories.NewCommentRepository(db.DB)
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
+	authHandler := handlers.NewAuthHandler(db.DB)
 	projectHandler := handlers.NewProjectHandler(projectRepo)
 	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, db.DB)
 	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)
-	tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB)
-	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
 	commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo)
+	tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB)
+	taskAttachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, taskRepo, sqliteFS)
 
+	// Initialize Gin router
 	router := gin.Default()
-
-	// Configure multipart form handling
-	router.MaxMultipartMemory = 8 << 20 // 8 MiB
-
-	// Add logging middleware
 	router.Use(middleware.LoggingMiddleware())
 
-	// CORS middleware
-	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusOK)
-			return
-		}
-		c.Next()
+	// Add template functions
+	router.SetFuncMap(template.FuncMap{
+		"title": strings.Title,
 	})
 
-	// Register auth routes
-	routes.RegisterAuthRoutes(router, db.DB)
+	// CORRECT WAY TO SERVE STATIC FILES
+	// This serves files from `FeaturePlus/frontend/public` at the URL `/public`
+	// The path is relative to the `backend` directory where `main.go` is run
+	router.Static("/public", "../frontend/public")
+	router.GET("/attachments/:filename/download", taskAttachmentHandler.DownloadAttachment)
 
-	// User routes - not protected, admin only functions should be protected elsewhere
-	userRoutes := router.Group("/api/users")
+	// Setup HTML rendering
+	router.LoadHTMLFiles(
+		"templates/layouts/base.html",
+		"templates/layouts/_sidebar.html",
+		"templates/login.html",
+		"templates/signup.html",
+		"templates/dashboard.html",
+		"templates/projects.html",
+		"templates/_project-card.html",
+		"templates/_project-form.html",
+	)
+
+	// --- API Routes ---
+	api := router.Group("/api")
 	{
-		userRoutes.GET("", userHandler.GetAllUsers)
-		userRoutes.GET("/:id", userHandler.GetUser)
-		userRoutes.POST("", userHandler.CreateUser)
-		userRoutes.PUT("/:id", userHandler.UpdateUser)
-		userRoutes.DELETE("/:id", userHandler.DeleteUser)
+		routes.RegisterAuthRoutes(router, db.DB) // Original auth routes for API if needed
+
+		userRoutes := api.Group("/users")
+		{
+			userRoutes.GET("", userHandler.GetAllUsers)
+			userRoutes.POST("", userHandler.CreateUser)
+			userRoutes.GET("/:id", userHandler.GetUser)
+			userRoutes.PUT("/:id", userHandler.UpdateUser)
+			userRoutes.DELETE("/:id", userHandler.DeleteUser)
+		}
+
+		protectedAPI := api.Group("")
+		protectedAPI.Use(middleware.AuthMiddleware())
+		{
+			projectRoutes := protectedAPI.Group("/projects")
+			{
+				projectRoutes.POST("", projectHandler.CreateProject)
+				projectRoutes.GET("", projectHandler.GetAllProjects)
+				projectRoutes.GET("/:id", projectHandler.GetProject)
+				projectRoutes.PUT("/:id", projectHandler.UpdateProject)
+				projectRoutes.DELETE("/:id", projectHandler.DeleteProject)
+				projectRoutes.GET("/user/:user_id", projectHandler.GetProjectsByUser)
+			}
+
+			featureRoutes := protectedAPI.Group("/features")
+			{
+				featureRoutes.POST("", featureHandler.CreateFeature)
+				featureRoutes.GET("", featureHandler.GetAllFeatures)
+				featureRoutes.GET("/:id", featureHandler.GetFeature)
+				featureRoutes.PUT("/:id", featureHandler.UpdateFeature)
+				featureRoutes.DELETE("/:id", featureHandler.DeleteFeature)
+			}
+
+			taskRoutes := protectedAPI.Group("/tasks")
+			{
+				taskRoutes.POST("", taskHandler.CreateTask)
+				taskRoutes.GET("", taskHandler.GetAllTasks)
+				taskRoutes.GET("/:task_id", taskHandler.GetTask)
+				taskRoutes.PUT("/:task_id", taskHandler.UpdateTask)
+				taskRoutes.DELETE("/:task_id", taskHandler.DeleteTask)
+				taskRoutes.GET("/feature/:feature_id", taskHandler.GetTasksByFeature)
+				taskRoutes.GET("/:task_id/attachments", taskAttachmentHandler.GetTaskAttachments)
+				taskRoutes.POST("/:task_id/attachments", taskAttachmentHandler.UploadAttachment)
+				taskRoutes.GET("/:task_id/comments", commentHandler.GetTaskComments)
+				taskRoutes.POST("/:task_id/comments", commentHandler.CreateComment)
+			}
+
+			commentRoutes := protectedAPI.Group("/comments")
+			{
+				commentRoutes.PUT("/:comment_id", commentHandler.UpdateComment)
+				commentRoutes.DELETE("/:comment_id", commentHandler.DeleteComment)
+			}
+
+			tagRoutes := protectedAPI.Group("/tags")
+			{
+				tagRoutes.GET("", tagHandler.GetAllTags)
+			}
+
+			attachmentRoutes := protectedAPI.Group("/attachments")
+			{
+				attachmentRoutes.DELETE("/:attachmentId", taskAttachmentHandler.DeleteAttachment)
+			}
+		}
+		// Publicly accessible feature route
+		api.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
 	}
 
-	// Protected routes - requires authentication
-	// Project routes
-	projectRoutes := router.Group("/api/projects", middleware.AuthMiddleware())
+	// --- Web (HTMX) Routes ---
+	web := router.Group("/web")
 	{
-		projectRoutes.POST("", projectHandler.CreateProject)
-		projectRoutes.GET("", projectHandler.GetAllProjects)
-		projectRoutes.GET("/:id", projectHandler.GetProject)
-		projectRoutes.PUT("/:id", projectHandler.UpdateProject)
-		projectRoutes.DELETE("/:id", projectHandler.DeleteProject)
-		projectRoutes.GET("/user/:user_id", projectHandler.GetProjectsByUser)
-	}
-
-	// Feature routes
-	featureRoutes := router.Group("/api/features", middleware.AuthMiddleware())
-	{
-		featureRoutes.POST("", featureHandler.CreateFeature)
-		featureRoutes.GET("", featureHandler.GetAllFeatures)
-		featureRoutes.GET("/:id", featureHandler.GetFeature)
-		featureRoutes.PUT("/:id", featureHandler.UpdateFeature)
-		featureRoutes.PATCH("/:id/field", featureHandler.UpdateFeatureField)
-		featureRoutes.DELETE("/:id", featureHandler.DeleteFeature)
-		featureRoutes.GET("/:id/subfeatures", featureHandler.GetSubfeatures)
-
-		// Feature-specific Task routes
-		featureRoutes.POST("/:id/tasks", taskHandler.CreateTaskForFeature)
-		featureRoutes.GET("/:id/tasks", taskHandler.GetTasksByFeature)
-		featureRoutes.PUT("/:id/task/:task_id", taskHandler.UpdateTaskForFeature)
-		featureRoutes.DELETE("/:id/task/:task_id", taskHandler.DeleteTaskForFeature)
-
-		// Feature tags routes
-		featureRoutes.GET("/:id/tags", tagHandler.GetFeatureTags)
-		featureRoutes.PUT("/:id/tags", tagHandler.UpdateFeatureTags)
-	}
-
-	// Public route for project features (for frontend access)
-	router.GET("/api/features/project/:project_id", featureHandler.GetProjectFeatures)
-
-	// Task routes - split into separate groups for clarity
-	taskRoutes := router.Group("/api/tasks", middleware.AuthMiddleware())
-	{
-		// Core task operations
-		taskRoutes.GET("", taskHandler.GetAllTasks)
-		taskRoutes.POST("", taskHandler.CreateTask)
-		taskRoutes.GET("/project/:project_id", taskHandler.GetTasksByProject)
-
-		// Individual task operations
-		taskRoutes.GET("/:task_id", taskHandler.GetTask)
-		taskRoutes.PUT("/:task_id", taskHandler.UpdateTask)
-		taskRoutes.DELETE("/:task_id", taskHandler.DeleteTask)
-
-		// Task attachment routes
-		taskRoutes.POST("/:task_id/attachments", attachmentHandler.UploadAttachment)
-		taskRoutes.GET("/:task_id/attachments", attachmentHandler.GetTaskAttachments)
-		taskRoutes.GET("/:task_id/attachments/:filename", attachmentHandler.DownloadAttachment)
-		taskRoutes.DELETE("/:task_id/attachments/:attachmentId", attachmentHandler.DeleteAttachment)
-
-		// Task comment routes
-		taskRoutes.POST("/:task_id/comments", commentHandler.CreateComment)
-		taskRoutes.GET("/:task_id/comments", commentHandler.GetTaskComments)
-	}
-
-	// Comment routes
-	commentRoutes := router.Group("/api/comments", middleware.AuthMiddleware())
-	{
-		commentRoutes.PUT("/:comment_id", commentHandler.UpdateComment)
-		commentRoutes.DELETE("/:comment_id", commentHandler.DeleteComment)
-	}
-
-	// Attachment comment routes
-	attachmentRoutes := router.Group("/api/attachments", middleware.AuthMiddleware())
-	{
-		attachmentRoutes.GET("/:attachment_id/comments", commentHandler.GetAttachmentComments)
-	}
-
-	// Sub-feature routes
-	subFeatureRoutes := router.Group("/api/sub-features", middleware.AuthMiddleware())
-	{
-		subFeatureRoutes.POST("", handlers.CreateSubFeature(db.DB))
-		subFeatureRoutes.PUT("/:id", handlers.UpdateSubFeature(db.DB))
-		subFeatureRoutes.GET("", handlers.GetSubFeaturesByFeature(db.DB))
-		subFeatureRoutes.GET("/project", handlers.GetSubFeaturesByProject(db.DB))
-		subFeatureRoutes.GET("/:id", handlers.GetSubFeatureDetail(db.DB))
-
-		// Sub-feature task routes
-		subFeatureRoutes.POST("/:id/tasks", taskHandler.CreateTaskForSubFeature)
-		subFeatureRoutes.GET("/:id/tasks", taskHandler.GetTasksBySubFeature)
-		subFeatureRoutes.PUT("/:id/task/:task_id", taskHandler.UpdateTaskForSubFeature)
-		subFeatureRoutes.DELETE("/:id/task/:task_id", taskHandler.DeleteTaskForSubFeature)
-	}
-
-	// Tag routes
-	tagRoutes := router.Group("/api/tags", middleware.AuthMiddleware())
-	{
-		tagRoutes.GET("", tagHandler.GetAllTags)
-		tagRoutes.GET("/:tag_name/features", tagHandler.GetFeaturesByTag)
-	}
-
-	// Health check
-	router.GET("/api/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status":  "ok",
-			"version": "1.0.0",
+		// Public routes
+		web.GET("/login", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "login.html", gin.H{
+				"title": "Login",
+			})
 		})
-	})
+		web.GET("/signup", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "signup.html", gin.H{
+				"title": "Sign Up",
+			})
+		})
 
-	// Static frontend files
-	staticDir := "../frontend/.next"
-	router.Static("/static", filepath.Join(staticDir, "static"))
-	router.Static("/_next", filepath.Join(staticDir, "static"))
+		// Auth handlers
+		web.POST("/login", authHandler.WebLogin)
+		web.POST("/signup", authHandler.WebSignup)
+		web.GET("/logout", authHandler.Logout)
 
-	// Handle unmatched routes (e.g., for client-side routing)
-	router.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
-			c.JSON(http.StatusNotFound, gin.H{"error": "API endpoint not found"})
-			return
+		// Protected web routes
+		protectedWeb := web.Group("")
+		// protectedWeb.Use(middleware.RequireAuthWeb(userRepo)) // <--- Disabled for UI testing
+		{
+			protectedWeb.GET("/dashboard", projectHandler.ShowDashboard)
+			protectedWeb.GET("/projects", projectHandler.GetProjectsPage)
+			protectedWeb.GET("/projects/new-form", projectHandler.ShowNewProjectForm)
+			// Add other protected web routes here
 		}
+	}
 
-		path := filepath.Join(staticDir, c.Request.URL.Path)
-		if _, err := os.Stat(path); err == nil {
-			c.File(path)
-			return
-		}
-
-		indexPath := filepath.Join(staticDir, "server", "app", "index.html")
-		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend build not found"})
-			return
-		}
-		c.File(indexPath)
+	// Redirect root to the web login page
+	router.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/web/login")
 	})
 
 	// Start server

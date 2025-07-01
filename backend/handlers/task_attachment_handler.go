@@ -2,38 +2,44 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
-	"github.com/gin-gonic/gin"
 	"github.com/jilio/sqlitefs"
+
+	"github.com/gin-gonic/gin"
 )
 
 type TaskAttachmentHandler struct {
 	attachmentRepo repositories.TaskAttachmentRepository
+	taskRepo       repositories.TaskRepository
 	sqliteFS       *sqlitefs.SQLiteFS
 }
 
-func NewTaskAttachmentHandler(repo repositories.TaskAttachmentRepository, sqliteFS *sqlitefs.SQLiteFS) *TaskAttachmentHandler {
+func NewTaskAttachmentHandler(attachmentRepo repositories.TaskAttachmentRepository, taskRepo repositories.TaskRepository, sqliteFS *sqlitefs.SQLiteFS) *TaskAttachmentHandler {
 	return &TaskAttachmentHandler{
-		attachmentRepo: repo,
+		attachmentRepo: attachmentRepo,
+		taskRepo:       taskRepo,
 		sqliteFS:       sqliteFS,
 	}
 }
 
+// UploadAttachment handles file upload for a task
 func (h *TaskAttachmentHandler) UploadAttachment(c *gin.Context) {
 	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid task ID: %v", err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Failed to get file: %v", err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No file uploaded"})
 		return
 	}
 	defer file.Close()
@@ -41,34 +47,67 @@ func (h *TaskAttachmentHandler) UploadAttachment(c *gin.Context) {
 	// Create a unique filename
 	filename := fmt.Sprintf("task_%d_%s", taskID, header.Filename)
 
-	// Create writer in SQLiteFS
-	writer := h.sqliteFS.NewWriter(filename)
-	defer writer.Close()
-
-	// Copy file to SQLiteFS
-	if _, err := io.Copy(writer, file); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to save file: %v", err)})
-		return
-	}
-
 	// Create attachment record
-	attachment := &models.TaskAttachment{
+	attachment := models.TaskAttachment{
 		TaskID:   uint(taskID),
 		FileName: filename,
 		FileSize: header.Size,
 		MimeType: header.Header.Get("Content-Type"),
 	}
 
-	if err := h.attachmentRepo.Create(attachment); err != nil {
-		// Try to delete the file since we couldn't create the record
-		writer := h.sqliteFS.NewWriter(filename)
-		writer.Close()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to save attachment record: %v", err)})
+	if err := h.attachmentRepo.Create(&attachment); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save attachment record"})
 		return
 	}
 
-	// Return the created attachment with its ID
-	c.JSON(http.StatusCreated, attachment)
+	// Save file to SQLiteFS
+	writer := h.sqliteFS.NewWriter(filename)
+	defer writer.Close()
+	if _, err := io.Copy(writer, file); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+		return
+	}
+
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return HTML for HTMX - the updated task item
+		task, err := h.taskRepo.GetByID(uint(taskID))
+		if err != nil {
+			log.Printf("Error fetching task: %v", err)
+			c.String(http.StatusInternalServerError, "Error fetching task")
+			return
+		}
+
+		tmpl, err := template.ParseFiles("templates/_task-item.html")
+		if err != nil {
+			log.Printf("template parse error: %v", err)
+			c.String(http.StatusInternalServerError, "Template error")
+			return
+		}
+
+		// Convert task to map for template
+		taskData := map[string]interface{}{
+			"ID":          task.ID,
+			"Title":       task.TaskName,
+			"Description": task.Description,
+			"Status":      "todo",   // Default status since Task model doesn't have it
+			"Priority":    "medium", // Default priority since Task model doesn't have it
+			"AssigneeID":  0,        // Default since Task model doesn't have it
+			"CreatedAt":   task.CreatedAt,
+			"UpdatedAt":   task.UpdatedAt,
+			"Attachments": task.Attachments,
+			"Comments":    []models.Comment{}, // Will be loaded separately if needed
+		}
+
+		err = tmpl.ExecuteTemplate(c.Writer, "task-item", taskData)
+		if err != nil {
+			log.Printf("template execute error: %v", err)
+			c.String(http.StatusInternalServerError, "Render error")
+		}
+	} else {
+		// Return JSON for API
+		c.JSON(http.StatusCreated, attachment)
+	}
 }
 
 func (h *TaskAttachmentHandler) GetTaskAttachments(c *gin.Context) {

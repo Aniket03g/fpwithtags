@@ -1,0 +1,38 @@
+{{define "attachment-form"}}
+<div class="attachment-item bg-blue-50 rounded border border-blue-200 p-2">
+    <form 
+        hx-post="/api/tasks/{{.TaskID}}/attachments"
+        hx-target="closest .attachment-item"
+        hx-swap="outerHTML"
+        hx-encoding="multipart/form-data"
+        enctype="multipart/form-data"
+        class="space-y-2">
+        
+        <div>
+            <label for="file" class="block text-xs font-medium text-gray-700">Select File</label>
+            <input 
+                type="file" 
+                id="file" 
+                name="file" 
+                required
+                class="mt-1 block w-full text-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        
+        <div class="flex justify-end space-x-2">
+            <button 
+                type="button"
+                hx-get="/web/tasks/{{.TaskID}}/attachments/new"
+                hx-target="closest .attachment-item"
+                hx-swap="outerHTML"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-2 py-1 rounded text-xs font-medium">
+                Cancel
+            </button>
+            <button 
+                type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-medium">
+                Upload
+            </button>
+        </div>
+    </form>
+</div>
+{{end}} 

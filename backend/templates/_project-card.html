@@ -1,0 +1,46 @@
+{{define "project-card"}}
+<div class="rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md flex flex-col justify-between h-full">
+    <div class="p-6 flex-1 flex flex-col">
+        <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-x-2">
+                <p class="text-sm text-slate-500 font-semibold">#{{.ID}}</p>
+            </div>
+        </div>
+        <h3 class="mb-1 text-xl font-bold leading-tight text-slate-800">
+            {{.Name}}
+        </h3>
+        <p class="mb-4 text-sm text-slate-600" style="min-height: 40px;">
+            {{if .Description}}
+                {{.Description}}
+            {{else}}
+                <span class="text-slate-400">No description provided.</span>
+            {{end}}
+        </p>
+        <div class="mb-4 flex flex-col text-xs text-slate-500 gap-1">
+            <div>
+                <span class="font-medium">Created:</span>
+                <span>{{.CreatedAt.Format "Jan 2, 2006"}}</span>
+            </div>
+            <div>
+                <span class="font-medium">Updated:</span>
+                <span>{{.UpdatedAt.Format "Jan 2, 2006"}}</span>
+            </div>
+        </div>
+        <div class="flex items-center justify-end mt-auto">
+            <a href="/web/projects/{{.ID}}" class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                Project Board
+            </a>
+        </div>
+    </div>
+    <div class="flex gap-2 px-6 pb-4 pt-2">
+        <a href="#" class="flex-1 inline-flex items-center justify-center rounded-md bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200">
+            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6"/></svg>
+            Features
+        </a>
+        <a href="#" class="flex-1 inline-flex items-center justify-center rounded-md bg-slate-100 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-200">
+            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6"/></svg>
+            Tasks
+        </a>
+    </div>
+</div>
+{{end}} 

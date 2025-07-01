@@ -1,0 +1,104 @@
+{{define "content"}}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/web/dashboard" class="text-blue-600 hover:text-blue-800">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">{{.project.Name}}</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700">Welcome, {{.username}}!</span>
+                    <a href="/web/logout" 
+                       class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Project Details -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900">{{.project.Name}}</h2>
+                        {{if .project.Description}}
+                            <p class="mt-2 text-gray-600">{{.project.Description}}</p>
+                        {{end}}
+                        <div class="mt-4 flex items-center text-sm text-gray-500">
+                            <span>Created {{.project.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                            {{if .project.UpdatedAt}}
+                                <span class="mx-2">•</span>
+                                <span>Updated {{.project.UpdatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button 
+                            hx-get="/web/projects/{{.project.ID}}/edit"
+                            hx-target="#project-form-container"
+                            hx-swap="innerHTML"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            Edit Project
+                        </button>
+                        <button 
+                            hx-delete="/api/projects/{{.project.ID}}"
+                            hx-confirm="Are you sure you want to delete this project?"
+                            hx-push-url="true"
+                            hx-target="body"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            Delete Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Project Form Container -->
+            <div id="project-form-container"></div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Features</h2>
+                    <button 
+                        hx-get="/web/projects/{{.project.ID}}/features/new"
+                        hx-target="#feature-form-container"
+                        hx-swap="innerHTML"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        New Feature
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Feature Form Container -->
+            <div id="feature-form-container"></div>
+            
+            <!-- Feature List -->
+            <div id="feature-list" class="divide-y divide-gray-200">
+                {{range .features}}
+                    {{template "feature-item" .}}
+                {{else}}
+                    <div class="px-6 py-8 text-center text-gray-500">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No features</h3>
+                        <p class="mt-1 text-sm text-gray-500">Get started by creating a new feature.</p>
+                    </div>
+                {{end}}
+            </div>
+        </div>
+    </main>
+</div>
+{{end}} 

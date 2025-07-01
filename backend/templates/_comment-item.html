@@ -1,0 +1,30 @@
+{{define "comment-item"}}
+<div class="comment-item bg-white rounded border border-gray-200 p-2">
+    <div class="flex items-start justify-between">
+        <div class="flex-1">
+            <div class="flex items-center space-x-2 mb-1">
+                <span class="text-xs font-medium text-gray-900">{{.AuthorName}}</span>
+                <span class="text-xs text-gray-400">{{.CreatedAt.Format "Jan 2, 3:04 PM"}}</span>
+            </div>
+            <p class="text-xs text-gray-700">{{.Content}}</p>
+        </div>
+        <div class="flex items-center space-x-2 ml-3">
+            <button 
+                hx-get="/web/comments/{{.ID}}/edit"
+                hx-target="closest .comment-item"
+                hx-swap="outerHTML"
+                class="text-gray-600 hover:text-gray-800 text-xs font-medium">
+                Edit
+            </button>
+            <button 
+                hx-delete="/api/comments/{{.ID}}"
+                hx-target="closest .comment-item"
+                hx-swap="outerHTML"
+                hx-confirm="Are you sure you want to delete this comment?"
+                class="text-red-600 hover:text-red-800 text-xs font-medium">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+{{end}} 

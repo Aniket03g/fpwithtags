@@ -164,3 +164,105 @@ func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
+
+// WebLogin handles login for the web frontend with HTTP-only cookies
+func (h *AuthHandler) WebLogin(c *gin.Context) {
+	var input struct {
+		Email    string `form:"email"`
+		Password string `form:"password"`
+	}
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Logging to debug
+	fmt.Printf("Web login attempt: email=%s, password_length=%d\n", input.Email, len(input.Password))
+
+	var user models.User
+	if err := h.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	// Check if password is empty in database
+	if user.Password == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Account has no password set"})
+		return
+	}
+
+	if !user.CheckPassword(input.Password) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	token, err := utils.GenerateJWT(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	// Set HTTP-only cookie
+	c.SetCookie("jwt-token", token, 72*60*60, "/", "", false, true) // 72 hours, HttpOnly
+
+	// Return HTMX redirect response
+	c.Header("HX-Redirect", "/web/dashboard")
+	c.Status(http.StatusOK)
+}
+
+// WebSignup handles signup for the web frontend with HTTP-only cookies
+func (h *AuthHandler) WebSignup(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBind(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Debug log
+	fmt.Printf("Web signup request: email=%s, username=%s, password_length=%d\n",
+		user.Email, user.Username, len(user.Password))
+
+	// Make sure password is not empty
+	if user.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password cannot be empty"})
+		return
+	}
+
+	// Store the password temporarily
+	plainPassword := user.Password
+
+	// Hash the password
+	if err := user.HashPassword(plainPassword); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error hashing password: %v", err)})
+		return
+	}
+
+	// Create the user with hashed password
+	if err := h.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("User already exists or database error: %v", err)})
+		return
+	}
+
+	// Generate token for the new user
+	token, err := utils.GenerateJWT(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	// Set HTTP-only cookie
+	c.SetCookie("jwt-token", token, 72*60*60, "/", "", false, true) // 72 hours, HttpOnly
+
+	// Return HTMX redirect response
+	c.Header("HX-Redirect", "/web/dashboard")
+	c.Status(http.StatusOK)
+}
+
+// Logout clears the JWT cookie and redirects to login
+func (h *AuthHandler) Logout(c *gin.Context) {
+	// Clear the JWT cookie
+	c.SetCookie("jwt-token", "", -1, "/", "", false, true)
+
+	// Redirect to login page
+	c.Redirect(http.StatusFound, "/web/login")
+}

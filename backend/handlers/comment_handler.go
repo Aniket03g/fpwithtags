@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -23,11 +26,19 @@ func NewCommentHandler(commentRepo *repositories.CommentRepository, attachmentRe
 
 // CreateComment creates a new comment for a task
 func (h *CommentHandler) CreateComment(c *gin.Context) {
+	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
+		return
+	}
+
 	var comment models.Comment
-	if err := c.ShouldBindJSON(&comment); err != nil {
+	if err := c.ShouldBind(&comment); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	comment.TaskID = uint(taskID)
 
 	// Get user ID from context
 	userID, exists := c.Get("user_id")
@@ -37,41 +48,39 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 	}
 	comment.UserID = userID.(uint)
 
-	// Validate task ID from URL
-	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
-		return
-	}
-	comment.TaskID = uint(taskID)
-
-	// If attachment_id is provided, validate it belongs to the task
-	if comment.AttachmentID != nil {
-		attachment, err := h.attachmentRepo.GetByID(*comment.AttachmentID)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid attachment ID"})
-			return
-		}
-		if attachment.TaskID != comment.TaskID {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Attachment does not belong to this task"})
-			return
-		}
-	}
-
-	// Create the comment
 	if err := h.commentRepo.Create(&comment); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create comment"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create comment"})
 		return
 	}
 
-	// Fetch the complete comment with relationships
-	createdComment, err := h.commentRepo.GetByID(comment.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch created comment"})
-		return
-	}
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return HTML for HTMX
+		tmpl, err := template.ParseFiles("templates/_comment-item.html")
+		if err != nil {
+			log.Printf("template parse error: %v", err)
+			c.String(http.StatusInternalServerError, "Template error")
+			return
+		}
 
-	c.JSON(http.StatusCreated, createdComment)
+		// Add author name for display
+		commentData := map[string]interface{}{
+			"ID":         comment.ID,
+			"Content":    comment.Content,
+			"AuthorName": fmt.Sprintf("User #%d", comment.UserID),
+			"CreatedAt":  comment.CreatedAt,
+			"UpdatedAt":  comment.UpdatedAt,
+		}
+
+		err = tmpl.ExecuteTemplate(c.Writer, "comment-item", commentData)
+		if err != nil {
+			log.Printf("template execute error: %v", err)
+			c.String(http.StatusInternalServerError, "Render error")
+		}
+	} else {
+		// Return JSON for API
+		c.JSON(http.StatusCreated, comment)
+	}
 }
 
 // GetTaskComments retrieves all comments for a task
@@ -116,47 +125,50 @@ func (h *CommentHandler) UpdateComment(c *gin.Context) {
 		return
 	}
 
-	// Get the existing comment
-	existingComment, err := h.commentRepo.GetByID(uint(commentID))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
-		return
-	}
-
-	// Get user ID from context
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	// Verify ownership
-	if existingComment.UserID != userID.(uint) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Not authorized to update this comment"})
-		return
-	}
-
-	// Bind the update data
-	var updateData struct {
-		Content string `json:"content"`
-	}
-	if err := c.ShouldBindJSON(&updateData); err != nil {
+	var comment models.Comment
+	if err := c.ShouldBind(&comment); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Update only the content
-	existingComment.Content = updateData.Content
+	comment.ID = uint(commentID)
 
-	if err := h.commentRepo.Update(existingComment); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update comment"})
+	if err := h.commentRepo.Update(&comment); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update comment"})
 		return
 	}
 
-	c.JSON(http.StatusOK, existingComment)
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return HTML for HTMX
+		tmpl, err := template.ParseFiles("templates/_comment-item.html")
+		if err != nil {
+			log.Printf("template parse error: %v", err)
+			c.String(http.StatusInternalServerError, "Template error")
+			return
+		}
+
+		// Add author name for display
+		commentData := map[string]interface{}{
+			"ID":         comment.ID,
+			"Content":    comment.Content,
+			"AuthorName": fmt.Sprintf("User #%d", comment.UserID),
+			"CreatedAt":  comment.CreatedAt,
+			"UpdatedAt":  comment.UpdatedAt,
+		}
+
+		err = tmpl.ExecuteTemplate(c.Writer, "comment-item", commentData)
+		if err != nil {
+			log.Printf("template execute error: %v", err)
+			c.String(http.StatusInternalServerError, "Render error")
+		}
+	} else {
+		// Return JSON for API
+		c.JSON(http.StatusOK, comment)
+	}
 }
 
-// DeleteComment deletes an existing comment
+// DeleteComment deletes a comment
 func (h *CommentHandler) DeleteComment(c *gin.Context) {
 	commentID, err := strconv.ParseUint(c.Param("comment_id"), 10, 32)
 	if err != nil {
@@ -164,30 +176,15 @@ func (h *CommentHandler) DeleteComment(c *gin.Context) {
 		return
 	}
 
-	// Get the existing comment
-	existingComment, err := h.commentRepo.GetByID(uint(commentID))
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Comment not found"})
-		return
-	}
-
-	// Get user ID from context
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-
-	// Verify ownership
-	if existingComment.UserID != userID.(uint) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Not authorized to delete this comment"})
-		return
-	}
-
 	if err := h.commentRepo.Delete(uint(commentID)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete comment"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete comment"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Comment deleted successfully"})
+	// For HTMX requests, return empty body to remove the element
+	if c.GetHeader("HX-Request") == "true" {
+		c.Status(http.StatusOK)
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Comment deleted"})
+	}
 }

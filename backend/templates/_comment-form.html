@@ -1,0 +1,45 @@
+{{define "comment-form"}}
+<div class="comment-item bg-green-50 rounded border border-green-200 p-2">
+    <form 
+        {{if .ID}}
+            hx-put="/api/comments/{{.ID}}"
+        {{else}}
+            hx-post="/api/tasks/{{.TaskID}}/comments"
+        {{end}}
+        hx-target="closest .comment-item"
+        hx-swap="outerHTML"
+        class="space-y-2">
+        
+        <div>
+            <label for="content" class="block text-xs font-medium text-gray-700">Comment</label>
+            <textarea 
+                id="content" 
+                name="content" 
+                rows="2"
+                required
+                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-xs"
+                placeholder="Write your comment...">{{.Content}}</textarea>
+        </div>
+        
+        <div class="flex justify-end space-x-2">
+            <button 
+                type="button"
+                {{if .ID}}
+                    hx-get="/web/comments/{{.ID}}/view"
+                {{else}}
+                    hx-get="/web/tasks/{{.TaskID}}/comments/new"
+                {{end}}
+                hx-target="closest .comment-item"
+                hx-swap="outerHTML"
+                class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-2 py-1 rounded text-xs font-medium">
+                Cancel
+            </button>
+            <button 
+                type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-medium">
+                {{if .ID}}Update{{else}}Add{{end}} Comment
+            </button>
+        </div>
+    </form>
+</div>
+{{end}} 

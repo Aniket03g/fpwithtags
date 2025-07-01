@@ -1,0 +1,69 @@
+{{template "base.html" .}}
+
+{{define "title"}}Projects{{end}}
+
+{{define "sidebar"}}
+    {{template "sidebar-template" .}}
+{{end}}
+
+{{define "content"}}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Page Header -->
+    <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Projects Dashboard</h1>
+            <p class="mt-1 text-sm text-slate-600">
+                Here's a list of all your projects. You can create a new one, or view an existing project board.
+            </p>
+        </div>
+        <button hx-get="/web/projects/new-form" hx-target="#modal-content" hx-swap="innerHTML"
+            onclick="document.getElementById('modal').classList.remove('hidden')"
+            class="inline-flex items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+            + New Project
+        </button>
+    </div>
+
+    <!-- Projects Grid -->
+    <div id="project-list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {{range .Projects}}
+            {{template "project-card" .}}
+        {{else}}
+            <div class="col-span-full rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
+                <h3 class="text-lg font-medium text-slate-900">No projects yet</h3>
+                <p class="mt-1 text-sm text-slate-500">Get started by creating a new project.</p>
+            </div>
+        {{end}}
+    </div>
+
+</div>
+
+<!-- Modal for New Project Form -->
+<div id="modal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm" onclick="this.classList.add('hidden')">
+    <div id="modal-content" class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md" onclick="event.stopPropagation()">
+        <!-- Form will be loaded here -->
+    </div>
+</div>
+{{end}}
+
+{{define "project-item"}}
+<div class="py-4 flex items-center justify-between">
+    <div>
+        <a href="/web/projects/{{ .ID }}" class="font-semibold text-lg hover:text-blue-500 transition">{{ .Name }}</a>
+        <div class="text-gray-500 dark:text-gray-400 text-sm">{{ .Description }}</div>
+        <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            Created {{ .CreatedAt.Format "Jan 2, 2006" }} &bull; Updated {{ .UpdatedAt.Format "Jan 2, 2006" }}
+        </div>
+    </div>
+    <div class="flex space-x-4">
+        <button hx-get="/web/projects/{{ .ID }}/edit" hx-target="#project-form-container" hx-swap="innerHTML"
+            class="text-sm font-medium text-blue-600 hover:underline">
+            Edit
+        </button>
+        <button hx-delete="/web/projects/{{ .ID }}" hx-confirm="Are you sure?" hx-target="closest .py-4" hx-swap="outerHTML"
+            class="text-sm font-medium text-red-600 hover:underline">
+            Delete
+        </button>
+    </div>
+</div>
+{{end}} 
