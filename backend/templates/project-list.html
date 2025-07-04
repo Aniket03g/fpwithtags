@@ -1,0 +1,22 @@
+<div class="p-6">
+  <h2 class="text-2xl font-bold">Projects</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+    {{ range .Projects }}
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">{{ .Name }}</h2>
+          <p>{{ .Description }}</p>
+          <div class="card-actions justify-end">
+            <button 
+              hx-get="/web/projects/{{ .ID }}/features" 
+              hx-target="#main-content" 
+              hx-push-url="true" 
+              class="btn btn-primary">
+              Features
+            </button>
+          </div>
+        </div>
+      </div>
+    {{ end }}
+  </div>
+</div> 

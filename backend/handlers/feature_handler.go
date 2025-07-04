@@ -111,7 +111,7 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 }
 
 func (h *FeatureHandler) GetFeature(c *gin.Context) {
-	idStr := c.Param("id")
+	idStr := c.Param("featureid")
 	featureID, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid feature ID"})
@@ -127,11 +127,11 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 	// Log the feature object with preloaded tags
 	fmt.Printf("Fetched feature with tags in backend: %+v\n", feature)
 
-	c.JSON(http.StatusOK, feature)
+	c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature})
 }
 
 func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
-	projectIDStr := c.Param("project_id")
+	projectIDStr := c.Param("id")
 	projectID, err := strconv.Atoi(projectIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
@@ -146,7 +146,7 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, features)
+		c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID})
 		return
 	}
 
@@ -157,7 +157,7 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, features)
+	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID})
 }
 
 // GetSubfeatures returns all subfeatures for a given parent feature

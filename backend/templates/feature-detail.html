@@ -1,0 +1,11 @@
+<h1>{{ .Feature.Title }}</h1>
+<p>{{ .Feature.Description }}</p>
+<span>Status: {{ .Feature.Status }}</span>
+<br/>
+<a 
+  hx-get="/web/projects/{{ .Feature.ProjectID }}/features" 
+  hx-target="#main-content"
+  href="#"
+>
+  Back to Features
+</a> 

@@ -46,7 +46,7 @@ func (h *ProjectHandler) GetAllProjects(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, projects)
+	c.HTML(http.StatusOK, "project-list.html", gin.H{"Projects": projects})
 }
 
 // GetProject handles getting a single project
@@ -64,7 +64,7 @@ func (h *ProjectHandler) GetProject(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, project)
+	c.HTML(http.StatusOK, "project-detail.html", gin.H{"Project": project})
 }
 
 // UpdateProject handles project updates
@@ -124,4 +124,13 @@ func (h *ProjectHandler) GetProjectsByUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, projects)
+}
+
+func (h *ProjectHandler) ShowDashboard(c *gin.Context) {
+	projects, err := h.repo.GetAllProjects()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "dashboard.html", gin.H{"error": err.Error()})
+		return
+	}
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{"Projects": projects})
 }

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FeaturePlus Dashboard</title>
+  <!-- DaisyUI (includes Tailwind CSS) -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <!-- Tailwind CSS (standalone for CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body class="flex min-h-screen bg-base-200">
+  <!-- Sidebar -->
+  <aside>
+    <ul class="menu p-4 w-72 min-h-full bg-base-300 text-base-content">
+      <li class="menu-title"><span>FeaturePlus</span></li>
+      <li>
+        <a 
+          hx-get="/web/projects" 
+          hx-target="#main-content" 
+          hx-push-url="true"
+        >
+          Projects
+        </a>
+      </li>
+    </ul>
+  </aside>
+  <!-- Main Area Wrapper -->
+  <div class="flex-1 flex flex-col">
+    <!-- Top Navbar -->
+    <header>
+      <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1"></div>
+        <div class="flex-none">
+          <div class="form-control">
+            <input type="text" placeholder="Search..." class="input input-bordered w-full max-w-xs" />
+          </div>
+        </div>
+        <div class="flex-none ml-4">
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+              <div class="w-10 rounded-full">
+                <img src="https://i.pravatar.cc/100?img=3" alt="User avatar" />
+              </div>
+            </div>
+            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+              <li><a>Profile</a></li>
+              <li><a>Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Main Content Area -->
+    <main id="main-content" class="flex-1 p-6">
+      <h2>Welcome!</h2>
+    </main>
+  </div>
+</body>
+</html> 
