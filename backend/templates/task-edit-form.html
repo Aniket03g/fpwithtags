@@ -1,0 +1,39 @@
+<form 
+  hx-post="/web/fragments/features/{{ .FeatureID }}/tasks/{{ .Task.ID }}/edit"
+  hx-target="closest .card"
+  hx-swap="outerHTML"
+  class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full">
+  <div class="card-body p-6 flex-row items-center justify-between w-full">
+    <div class="flex items-center gap-4 w-full">
+      <select name="TaskType" class="select select-sm bg-base-200 font-semibold" style="width: 56px;">
+        {{ range .TaskTypes }}
+        <option value="{{ . }}" {{ if eq . $.Task.TaskType }}selected{{ end }}>{{ . }}</option>
+        {{ end }}
+      </select>
+      <div class="flex-1">
+        <input 
+          type="text" 
+          name="TaskName" 
+          value="{{ .Task.TaskName }}" 
+          class="input input-ghost w-full font-bold text-base-content text-base bg-transparent focus:bg-base-200 border-0 focus:ring-0 mb-1"
+          style="min-width: 200px; font-size: 1.125rem;" 
+          required 
+        />
+        <textarea 
+          name="Description" 
+          class="textarea textarea-ghost w-full text-sm text-base-content/70 bg-transparent focus:bg-base-200 border-0 focus:ring-0 resize-none mt-1"
+          rows="2"
+        >{{ .Task.Description }}</textarea>
+      </div>
+    </div>
+    <div class="card-actions">
+      <button type="submit" class="btn btn-sm btn-success">Save</button>
+      <a 
+        hx-get="/web/fragments/features/{{ $.FeatureID }}/tasks/{{ $.Task.ID }}/view"
+        hx-target="closest .card"
+        hx-swap="outerHTML"
+        class="btn btn-sm btn-ghost"
+      >Cancel</a>
+    </div>
+  </div>
+</form> 

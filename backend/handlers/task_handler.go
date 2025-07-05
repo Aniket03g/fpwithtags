@@ -420,3 +420,69 @@ func (h *TaskHandler) GetTasksByProject(c *gin.Context) {
 func (h *TaskHandler) CancelTaskForm(c *gin.Context) {
 	c.Status(200)
 }
+
+// EditTaskForm serves the inline edit form for a task
+func (h *TaskHandler) EditTaskForm(c *gin.Context) {
+	featureID, _ := strconv.Atoi(c.Param("id"))
+	taskID, _ := strconv.Atoi(c.Param("task_id"))
+	task, err := h.taskRepo.GetByID(uint(taskID))
+	if err != nil {
+		c.String(http.StatusNotFound, "Task not found")
+		return
+	}
+	// Get task types from project config (reuse logic from NewTaskForm)
+	featureRepo := repositories.NewFeatureRepository(h.DB)
+	feature, _ := featureRepo.GetFeatureByID(featureID)
+	projectRepo := repositories.NewProjectRepository(h.DB)
+	project, _ := projectRepo.GetProjectByID(feature.ProjectID)
+	var taskTypes []string
+	if types, ok := project.Config["task_types"].([]interface{}); ok {
+		for _, t := range types {
+			if tStr, ok := t.(string); ok {
+				if tStr == "Db" {
+					tStr = "DB"
+				}
+				taskTypes = append(taskTypes, tStr)
+			}
+		}
+	}
+	c.HTML(http.StatusOK, "task-edit-form.html", gin.H{
+		"FeatureID": featureID,
+		"Task":      task,
+		"TaskTypes": taskTypes,
+	})
+}
+
+// UpdateTaskInline handles inline task updates
+func (h *TaskHandler) UpdateTaskInline(c *gin.Context) {
+	featureID, _ := strconv.Atoi(c.Param("id"))
+	taskID, _ := strconv.Atoi(c.Param("task_id"))
+	var task models.Task
+	if err := c.ShouldBind(&task); err != nil {
+		c.String(http.StatusBadRequest, "Invalid input")
+		return
+	}
+	task.ID = uint(taskID)
+	task.FeatureID = uint(featureID)
+	if task.TaskType == "Db" {
+		task.TaskType = "DB"
+	}
+	if err := h.taskRepo.Update(&task); err != nil {
+		c.String(http.StatusInternalServerError, "Could not update task")
+		return
+	}
+	// Re-render the updated card (reuse the card HTML from task-list.html)
+	c.HTML(http.StatusOK, "task-card.html", gin.H{"Task": task, "FeatureID": featureID})
+}
+
+// ViewTaskCard serves the card partial for a single task (for cancel)
+func (h *TaskHandler) ViewTaskCard(c *gin.Context) {
+	featureID, _ := strconv.Atoi(c.Param("id"))
+	taskID, _ := strconv.Atoi(c.Param("task_id"))
+	task, err := h.taskRepo.GetByID(uint(taskID))
+	if err != nil {
+		c.String(http.StatusNotFound, "Task not found")
+		return
+	}
+	c.HTML(http.StatusOK, "task-card.html", gin.H{"Task": task, "FeatureID": featureID})
+}

@@ -261,6 +261,9 @@ func main() {
 		fragments.GET("/projects/:id", projectHandler.GetProject)
 		fragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
 		fragments.GET("/features/:id", featureHandler.GetFeature)
+		fragments.GET("/features/:id/tasks/:task_id/edit", taskHandler.EditTaskForm)
+		fragments.POST("/features/:id/tasks/:task_id/edit", taskHandler.UpdateTaskInline)
+		fragments.GET("/features/:id/tasks/:task_id/view", taskHandler.ViewTaskCard)
 	}
 	// ==========================================================
 
