@@ -148,7 +148,10 @@ func main() {
 
 		web.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
 
-		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature) // <-- Added new route
+		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)     // <-- Existing route
+		web.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)       // <-- New: serve empty task form
+		web.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature) // <-- New: handle task creation
+		web.GET("/tasks/cancel", taskHandler.CancelTaskForm)
 	}
 	// ==========================================================
 

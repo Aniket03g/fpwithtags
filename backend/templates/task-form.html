@@ -1,0 +1,60 @@
+<form hx-post="/web/features/{{ .FeatureID }}/tasks"
+      hx-target="#task-list-container"
+      hx-swap="outerHTML">
+  
+  <div class="card bg-base-200 shadow-xl mb-4">
+    <div class="card-body p-4">
+      
+      <!-- Task Name Field -->
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text font-semibold">Task Name</span>
+        </label>
+        <input type="text" 
+               name="TaskName" 
+               class="input input-bordered w-full font-bold" 
+               placeholder="Enter task name..."
+               required>
+      </div>
+      
+      <!-- Description Field -->
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text font-semibold">Description</span>
+        </label>
+        <textarea name="Description" 
+                  class="textarea textarea-bordered w-full" 
+                  placeholder="Enter task description..."
+                  rows="3"></textarea>
+      </div>
+      
+      <!-- Task Type Dropdown -->
+      <div class="form-control mt-4">
+        <label class="label">
+          <span class="label-text font-semibold">Task Type</span>
+        </label>
+        <select name="TaskType" class="select select-bordered w-full" required>
+          <option value="">Select task type...</option>
+          {{ range .TaskTypes }}
+          <option value="{{ . }}">{{ . }}</option>
+          {{ end }}
+        </select>
+      </div>
+      
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="card-actions justify-end p-4 pt-0">
+      <a hx-get="/web/tasks/cancel"
+         hx-target="#new-task-form-container"
+         hx-swap="innerHTML"
+         class="btn btn-ghost btn-sm">
+        Cancel
+      </a>
+      <button type="submit" class="btn btn-success btn-sm">
+        Save Task
+      </button>
+    </div>
+    
+  </div>
+</form> 
