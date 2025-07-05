@@ -1,60 +1,28 @@
-<form hx-post="/web/features/{{ .FeatureID }}/tasks"
-      hx-target="#task-list-container"
-      hx-swap="outerHTML">
-  
-  <div class="card bg-base-200 shadow-xl mb-4">
-    <div class="card-body p-4">
-      
-      <!-- Task Name Field -->
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text font-semibold">Task Name</span>
-        </label>
-        <input type="text" 
-               name="TaskName" 
-               class="input input-bordered w-full font-bold" 
-               placeholder="Enter task name..."
-               required>
-      </div>
-      
-      <!-- Description Field -->
-      <div class="form-control mt-4">
-        <label class="label">
-          <span class="label-text font-semibold">Description</span>
-        </label>
-        <textarea name="Description" 
-                  class="textarea textarea-bordered w-full" 
-                  placeholder="Enter task description..."
-                  rows="3"></textarea>
-      </div>
-      
-      <!-- Task Type Dropdown -->
-      <div class="form-control mt-4">
-        <label class="label">
-          <span class="label-text font-semibold">Task Type</span>
-        </label>
-        <select name="TaskType" class="select select-bordered w-full" required>
-          <option value="">Select task type...</option>
-          {{ range .TaskTypes }}
-          <option value="{{ . }}">{{ . }}</option>
-          {{ end }}
-        </select>
-      </div>
-      
-    </div>
+<form 
+  hx-post="/web/features/{{ .FeatureID }}/tasks"
+  hx-target="#task-list-container" 
+  hx-swap="outerHTML" 
+  class="card bg-base-200 shadow-md border border-primary mb-4">
+
+  <div class="card-body p-4">
     
-    <!-- Action Buttons -->
-    <div class="card-actions justify-end p-4 pt-0">
-      <a hx-get="/web/tasks/cancel"
-         hx-target="#new-task-form-container"
-         hx-swap="innerHTML"
-         class="btn btn-ghost btn-sm">
-        Cancel
-      </a>
-      <button type="submit" class="btn btn-success btn-sm">
-        Save Task
-      </button>
+    <div class="flex justify-between items-center mb-2">
+      <select name="TaskType" class="select select-bordered select-sm w-fit">
+        <option disabled selected>Select Type</option>
+        {{ range .TaskTypes }}
+        <option value="{{ . }}">{{ . }}</option>
+        {{ end }}
+      </select>
+      <div class="card-actions">
+        <button type="submit" class="btn btn-sm btn-success">Save</button>
+        <a hx-get="/web/tasks/cancel" hx-target="#new-task-form-container" hx-swap="innerHTML" class="btn btn-sm btn-ghost">Cancel</a>
+      </div>
     </div>
-    
+
+    <div>
+      <input type="text" name="TaskName" placeholder="Enter a task name..." class="input input-ghost w-full font-bold p-0 text-lg" required />
+      <textarea name="Description" class="textarea textarea-ghost w-full p-0 mt-1" placeholder="Enter a description..."></textarea>
+    </div>
+
   </div>
 </form> 

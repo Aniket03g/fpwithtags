@@ -8,9 +8,9 @@
         <p class="text-base-content/70">{{ .Description }}</p>
         <div class="card-actions justify-end">
           <button 
-            hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" 
+            hx-get="/web/fragments/features/{{ .ID }}" 
             hx-target="#main-content" 
-            hx-push-url="true" 
+            hx-push-url="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" 
             class="btn btn-primary btn-sm">
             View Details
           </button>

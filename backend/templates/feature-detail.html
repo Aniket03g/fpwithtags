@@ -3,7 +3,7 @@
 <span>Status: {{ .Feature.Status }}</span>
 <br/>
 <a 
-  hx-get="/web/projects/{{ .Feature.ProjectID }}/features" 
+  hx-get="/web/fragments/projects/{{ .Feature.ProjectID }}/features" 
   hx-target="#main-content"
   href="#"
 >

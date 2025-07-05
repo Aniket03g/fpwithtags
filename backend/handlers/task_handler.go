@@ -180,11 +180,14 @@ func (h *TaskHandler) NewTaskForm(c *gin.Context) {
 		return
 	}
 
-	// Extract task types from project config
+	// Extract task types from project config and normalize 'Db' to 'DB'
 	var taskTypes []string
 	if types, ok := project.Config["task_types"].([]interface{}); ok {
 		for _, t := range types {
 			if tStr, ok := t.(string); ok {
+				if tStr == "Db" {
+					tStr = "DB"
+				}
 				taskTypes = append(taskTypes, tStr)
 			}
 		}
@@ -205,7 +208,6 @@ func (h *TaskHandler) CreateTaskForFeature(c *gin.Context) {
 		return
 	}
 
-	// Get user ID from context first
 	// userID, exists := c.Get("user_id")
 	// if !exists {
 	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
@@ -222,6 +224,11 @@ func (h *TaskHandler) CreateTaskForFeature(c *gin.Context) {
 	task.FeatureID = uint(featureID)
 	// For testing: hardcode CreatedByUser to 1
 	task.CreatedByUser = 1
+
+	// Normalize task type to 'DB' if user submitted 'Db'
+	if task.TaskType == "Db" {
+		task.TaskType = "DB"
+	}
 
 	if err := h.taskRepo.Create(&task); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create task"})

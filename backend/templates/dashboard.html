@@ -18,7 +18,7 @@
       <li class="menu-title"><span>FeaturePlus</span></li>
       <li>
         <a 
-          hx-get="/web/projects" 
+          hx-get="/web/fragments/projects" 
           hx-target="#main-content" 
           hx-push-url="true"
         >
@@ -57,9 +57,7 @@
       </div>
     </header>
     <!-- Main Content Area -->
-    <main id="main-content" class="flex-1 p-6">
-      <h2>Welcome!</h2>
-    </main>
+    <main id="main-content" class="flex-1 p-6" hx-get="{{ .InitialURL }}" hx-trigger="load"></main>
   </div>
 </body>
 </html> 

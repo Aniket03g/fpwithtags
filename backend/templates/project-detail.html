@@ -2,7 +2,7 @@
   <h1>{{ .Project.Name }}</h1>
   <p>{{ .Project.Description }}</p>
   <button 
-    hx-get="/web/projects/{{ .Project.ID }}/features" 
+    hx-get="/web/fragments/projects/{{ .Project.ID }}/features" 
     hx-target="#main-content" 
     hx-push-url="true">
     View Features

@@ -49,7 +49,7 @@ type Project struct {
 func (p *Project) BeforeCreate(tx *gorm.DB) (err error) {
 	if p.Config == nil || len(p.Config) == 0 {
 		p.Config = JSONB{
-			"task_types":       []string{"UI", "Dev", "Db", "Backend"},
+			"task_types":       []string{"UI", "Dev", "DB", "Backend"},
 			"feature_category": []string{"Auth", "Payment", "Tags", "Tasks", "Features"},
 		}
 	}

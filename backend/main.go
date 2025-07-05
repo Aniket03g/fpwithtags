@@ -48,6 +48,107 @@ func LoggingMiddleware() gin.HandlerFunc {
 	}
 }
 
+// RenderDashboardShell renders the main dashboard.html shell for all main web pages
+func RenderDashboardShell(c *gin.Context) {
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{})
+}
+
+// ProjectsFragmentHandler returns the projects list fragment (placeholder for now)
+func ProjectsFragmentHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "projects-list.html", gin.H{})
+}
+
+// RenderAppShell renders the dashboard.html shell and passes the correct initial fragment URL
+func RenderAppShell(c *gin.Context) {
+	path := c.Request.URL.Path
+	fragment := ""
+
+	// Remove "/web" prefix
+	if strings.HasPrefix(path, "/web") {
+		path = path[len("/web"):]
+	}
+
+	// Build fragment URL for new /web/fragments group
+	switch {
+	case path == "/dashboard" || path == "/projects":
+		fragment = "/web/fragments/projects"
+	case strings.HasPrefix(path, "/projects/") && strings.HasSuffix(path, "/features"):
+		// e.g. /projects/8/features -> /web/fragments/projects/8/features
+		parts := strings.Split(path, "/")
+		if len(parts) >= 4 {
+			fragment = "/web/fragments/projects/" + parts[2] + "/features"
+		}
+	case strings.HasPrefix(path, "/projects/") && strings.Contains(path, "/features/"):
+		// e.g. /projects/8/features/33 -> /web/fragments/features/33
+		parts := strings.Split(path, "/")
+		if len(parts) >= 5 {
+			fragment = "/web/fragments/features/" + parts[4]
+		}
+	case strings.HasPrefix(path, "/projects/"):
+		// e.g. /projects/8 -> /web/fragments/projects/8
+		parts := strings.Split(path, "/")
+		if len(parts) >= 3 {
+			fragment = "/web/fragments/projects/" + parts[2]
+		}
+	default:
+		fragment = "/web/fragments/projects"
+	}
+
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"InitialURL": fragment,
+	})
+}
+
+// Middleware to redirect non-HTMX requests for fragments to the app shell route
+func FragmentHTMXGuard() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		hx := c.GetHeader("HX-Request")
+		if hx == "true" {
+			c.Next()
+			return
+		}
+
+		// Not an HTMX request: redirect to the corresponding app shell route
+		path := c.Request.URL.Path
+		if strings.HasPrefix(path, "/web/fragments/projects/") && strings.HasSuffix(path, "/features") {
+			// /web/fragments/projects/:id/features -> /web/projects/:id/features
+			parts := strings.Split(path, "/")
+			if len(parts) >= 6 {
+				redirect := "/web/projects/" + parts[4] + "/features"
+				c.Redirect(http.StatusFound, redirect)
+				c.Abort()
+				return
+			}
+		} else if strings.HasPrefix(path, "/web/fragments/features/") {
+			// /web/fragments/features/:id -> /web/projects/:pid/features/:id (try to guess parent, fallback)
+			parts := strings.Split(path, "/")
+			if len(parts) >= 5 {
+				// You may want to look up the parent project, but fallback to /web/features/:id
+				redirect := "/web/features/" + parts[4]
+				c.Redirect(http.StatusFound, redirect)
+				c.Abort()
+				return
+			}
+		} else if strings.HasPrefix(path, "/web/fragments/projects/") {
+			// /web/fragments/projects/:id -> /web/projects/:id
+			parts := strings.Split(path, "/")
+			if len(parts) >= 5 {
+				redirect := "/web/projects/" + parts[4]
+				c.Redirect(http.StatusFound, redirect)
+				c.Abort()
+				return
+			}
+		} else if path == "/web/fragments/projects" {
+			c.Redirect(http.StatusFound, "/web/projects")
+			c.Abort()
+			return
+		}
+		// Default fallback: redirect to dashboard
+		c.Redirect(http.StatusFound, "/web/dashboard")
+		c.Abort()
+	}
+}
+
 func main() {
 	// Initialize DB
 	db, err := database.InitDB()
@@ -139,19 +240,27 @@ func main() {
 	// ==========================================================
 	web := router.Group("/web")
 	{
-		web.GET("/dashboard", projectHandler.ShowDashboard)
-		web.GET("/projects", projectHandler.GetAllProjects)
-		web.GET("/projects/:id", projectHandler.GetProject)
+		// Main web page routes: always render dashboard.html shell
+		web.GET("/dashboard", RenderAppShell)
+		web.GET("/projects", RenderAppShell)
+		web.GET("/projects/:id", RenderAppShell)
+		web.GET("/projects/:id/features", RenderAppShell)
+		web.GET("/projects/:id/features/:featureid", RenderAppShell)
 
-		// *** FIX WAS HERE: Renamed :projectid to :id to match the route above ***
-		web.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
-
-		web.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
-
-		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)     // <-- Existing route
-		web.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)       // <-- New: serve empty task form
-		web.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature) // <-- New: handle task creation
+		// HTMX fragment and API routes (do not change)
+		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
+		web.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
+		web.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
 		web.GET("/tasks/cancel", taskHandler.CancelTaskForm)
+	}
+
+	// New fragment group for all HTMX fragments
+	fragments := router.Group("/web/fragments", FragmentHTMXGuard())
+	{
+		fragments.GET("/projects", projectHandler.GetAllProjects)
+		fragments.GET("/projects/:id", projectHandler.GetProject)
+		fragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
+		fragments.GET("/features/:id", featureHandler.GetFeature)
 	}
 	// ==========================================================
 
