@@ -13,13 +13,14 @@ import (
 )
 
 type FeatureHandler struct {
-	repo    *repositories.FeatureRepository
-	tagRepo *repositories.TagRepository
-	DB      *gorm.DB
+	repo     *repositories.FeatureRepository
+	tagRepo  *repositories.TagRepository
+	taskRepo repositories.TaskRepository
+	DB       *gorm.DB
 }
 
-func NewFeatureHandler(repo *repositories.FeatureRepository, tagRepo *repositories.TagRepository, db *gorm.DB) *FeatureHandler {
-	return &FeatureHandler{repo: repo, tagRepo: tagRepo, DB: db}
+func NewFeatureHandler(repo *repositories.FeatureRepository, tagRepo *repositories.TagRepository, taskRepo repositories.TaskRepository, db *gorm.DB) *FeatureHandler {
+	return &FeatureHandler{repo: repo, tagRepo: tagRepo, taskRepo: taskRepo, DB: db}
 }
 
 type FeatureWithTags struct {
@@ -124,10 +125,17 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 		return
 	}
 
+	// Fetch tasks for this feature
+	tasks, err := h.taskRepo.GetByFeatureID(uint(featureID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch tasks"})
+		return
+	}
+
 	// Log the feature object with preloaded tags
 	fmt.Printf("Fetched feature with tags in backend: %+v\n", feature)
 
-	c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature})
+	c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature, "Tasks": tasks})
 }
 
 func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {

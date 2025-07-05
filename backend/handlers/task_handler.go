@@ -126,12 +126,33 @@ func (h *TaskHandler) GetTask(c *gin.Context) {
 // GetTasksByFeature lists all tasks under a specific feature
 func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 	featureID, _ := strconv.Atoi(c.Param("id"))
-	tasks, err := h.taskRepo.GetByFeatureID(uint(featureID))
+
+	// Get filter parameter from query string
+	taskType := c.Query("type")
+
+	var tasks []models.Task
+	var err error
+
+	// Apply filter if specified and not "All"
+	if taskType != "" && taskType != "All" {
+		// Use direct database query for filtering
+		err = h.DB.Unscoped().Preload("Attachments").Where("feature_id = ? AND task_type = ?", featureID, taskType).Find(&tasks).Error
+	} else {
+		// Get all tasks for the feature
+		tasks, err = h.taskRepo.GetByFeatureID(uint(featureID))
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch tasks"})
 		return
 	}
-	c.JSON(http.StatusOK, tasks)
+
+	// Pass the current filter to the template
+	c.HTML(http.StatusOK, "task-list.html", gin.H{
+		"Tasks":         tasks,
+		"Feature":       gin.H{"ID": featureID},
+		"CurrentFilter": taskType,
+	})
 }
 
 // CreateTaskForFeature creates a task and links it to a feature

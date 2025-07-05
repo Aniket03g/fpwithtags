@@ -1,0 +1,60 @@
+<div class="space-y-4 pt-6" id="task-list-container">
+  <div class="flex items-center justify-between">
+    <h3 class="text-xl font-semibold text-base-content">Associated Tasks</h3>
+    
+    <div class="flex items-center gap-2">
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=All"
+         hx-target="#task-list-container"
+         hx-swap="outerHTML"
+         class="btn btn-sm {{ if or (eq .CurrentFilter "") (eq .CurrentFilter "All") }}btn-active{{ end }}">
+        All
+      </a>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=UI"
+         hx-target="#task-list-container"
+         hx-swap="outerHTML"
+         class="btn btn-sm {{ if eq .CurrentFilter "UI" }}btn-active{{ end }}">
+        UI
+      </a>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=DB"
+         hx-target="#task-list-container"
+         hx-swap="outerHTML"
+         class="btn btn-sm {{ if eq .CurrentFilter "DB" }}btn-active{{ end }}">
+        DB
+      </a>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=Dev"
+         hx-target="#task-list-container"
+         hx-swap="outerHTML"
+         class="btn btn-sm {{ if eq .CurrentFilter "Dev" }}btn-active{{ end }}">
+        Dev
+      </a>
+    </div>
+  </div>
+  
+  {{ range .Tasks }}
+  <div class="card bg-base-100 shadow-md border border-base-300">
+    <div class="card-body p-4 flex-row items-center justify-between">
+      
+      <div class="flex items-center gap-4">
+        <div class="badge badge-primary font-semibold">{{ .TaskType }}</div>
+        <div>
+          <h4 class="font-bold text-base-content">{{ .TaskName }}</h4>
+          <p class="text-sm text-base-content/70">{{ .Description }}</p>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn btn-square btn-ghost btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.5 6.5z" /></svg>
+        </button>
+        <button class="btn btn-square btn-ghost btn-sm">
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+  {{ else }}
+  <p class="text-center p-8 text-base-content/70">No tasks found for this filter.</p>
+  {{ end }}
+
+</div> 

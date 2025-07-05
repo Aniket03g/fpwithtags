@@ -77,7 +77,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(db.DB)
 	projectRepo := repositories.NewProjectRepository(db.DB)
 	featureRepo := repositories.NewFeatureRepository(db.DB)
-	// taskRepo := repositories.NewTaskRepository(db.DB) // Comment out for now
+	taskRepo := repositories.NewTaskRepository(db.DB) // Uncommented
 	// tagRepo := repositories.NewTagRepository(db.DB) // Comment out for now
 	// attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS) // Comment out for now
 	// commentRepo := repositories.NewCommentRepository(db.DB) // Comment out for now
@@ -85,8 +85,8 @@ func main() {
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
 	projectHandler := handlers.NewProjectHandler(projectRepo)
-	featureHandler := handlers.NewFeatureHandler(featureRepo, nil, db.DB) // Passing nil for tagRepo for now
-	// taskHandler := handlers.NewTaskHandler(taskRepo, db.DB) // Comment out for now
+	featureHandler := handlers.NewFeatureHandler(featureRepo, nil, taskRepo, db.DB) // Added taskRepo
+	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)                         // Uncommented
 	// tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB) // Comment out for now
 	// attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS) // Comment out for now
 	// commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo) // Comment out for now
@@ -147,6 +147,8 @@ func main() {
 		web.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
 
 		web.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
+
+		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature) // <-- Added new route
 	}
 	// ==========================================================
 

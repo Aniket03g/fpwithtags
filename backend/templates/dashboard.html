@@ -25,6 +25,9 @@
           Projects
         </a>
       </li>
+      {{ range .Projects }}
+        <li><a>{{ .Name }}</a></li>
+      {{ end }}
     </ul>
   </aside>
   <!-- Main Area Wrapper -->
