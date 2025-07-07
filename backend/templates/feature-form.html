@@ -1,0 +1,46 @@
+<div class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full">
+  <div class="card-body p-6 flex-row items-center justify-between w-full">
+    <form 
+      hx-post="/web/projects/{{ .ProjectID }}/features"
+      hx-target="#feature-list-container"
+      hx-swap="outerHTML"
+      class="flex items-center gap-4 w-full"
+    >
+      <div class="flex-1">
+        <input 
+          type="text" 
+          name="title" 
+          placeholder="Feature Title" 
+          class="input input-ghost w-full font-bold text-base-content text-base bg-transparent focus:bg-base-200 border-0 focus:ring-0 mb-1"
+          style="min-width: 200px; font-size: 1.125rem;"
+          required
+        />
+        <textarea 
+          name="description" 
+          placeholder="Feature Description" 
+          class="textarea textarea-ghost w-full text-sm text-base-content/70 bg-transparent focus:bg-base-200 border-0 focus:ring-0 resize-none mt-1"
+          rows="2"
+        ></textarea>
+        <select 
+          name="category" 
+          class="select select-bordered w-full mt-2 mb-2"
+          required
+        >
+          <option value="" disabled selected>Select Category</option>
+          {{ range .FeatureCategories }}
+            <option value="{{ . }}">{{ . }}</option>
+          {{ end }}
+        </select>
+      </div>
+      <div class="card-actions flex-shrink-0 ml-2 flex flex-col gap-2">
+        <button type="submit" class="btn btn-sm btn-success">Save</button>
+        <a 
+          hx-get="/web/fragments/features/cancel"
+          hx-target="#new-feature-form-container"
+          hx-swap="innerHTML"
+          class="btn btn-sm btn-ghost"
+        >Cancel</a>
+      </div>
+    </form>
+  </div>
+</div> 

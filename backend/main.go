@@ -246,6 +246,11 @@ func main() {
 		web.GET("/projects/:id", RenderAppShell)
 		web.GET("/projects/:id/features", RenderAppShell)
 		web.GET("/projects/:id/features/:featureid", RenderAppShell)
+		web.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
+		web.POST("/projects/:id/features", featureHandler.CreateFeature)
+
+		// New fragment route for project list only
+		web.GET("/projects-fragment", ProjectsFragmentHandler)
 
 		// HTMX fragment and API routes (do not change)
 		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
@@ -260,10 +265,12 @@ func main() {
 		fragments.GET("/projects", projectHandler.GetAllProjects)
 		fragments.GET("/projects/:id", projectHandler.GetProject)
 		fragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
+		fragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 		fragments.GET("/features/:id", featureHandler.GetFeature)
 		fragments.GET("/features/:id/tasks/:task_id/edit", taskHandler.EditTaskForm)
 		fragments.POST("/features/:id/tasks/:task_id/edit", taskHandler.UpdateTaskInline)
 		fragments.GET("/features/:id/tasks/:task_id/view", taskHandler.ViewTaskCard)
+		fragments.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
 	}
 	// ==========================================================
 

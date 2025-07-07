@@ -28,33 +28,38 @@ type FeatureWithTags struct {
 	TagsInput string `json:"tags_input,omitempty"`
 }
 
+type FeatureFormInput struct {
+	Title       string `form:"title" binding:"required"`
+	Description string `form:"description"`
+	Category    string `form:"category" binding:"required"`
+}
+
 func (h *FeatureHandler) CreateFeature(c *gin.Context) {
-	var featureWithTags FeatureWithTags
-	if err := c.ShouldBindJSON(&featureWithTags); err != nil {
+	var input FeatureFormInput
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Extract feature from the combined structure
-	feature := featureWithTags.Feature
-
-	// Convert string values to proper types
-	feature.Status = models.FeatureStatus(feature.Status)
-	feature.Priority = models.FeaturePriority(feature.Priority)
-
-	if !isValidStatus(feature.Status) || !isValidPriority(feature.Priority) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status or priority"})
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID in URL"})
 		return
 	}
 
-	if feature.Category == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "category is required"})
-		return
+	feature := models.Feature{
+		ProjectID:   projectID,
+		Title:       input.Title,
+		Description: input.Description,
+		Category:    input.Category,
+		Status:      models.StatusTodo,
+		Priority:    models.PriorityMedium,
 	}
 
 	// Strict validation for category against project config
 	projectRepo := repositories.NewProjectRepository(h.DB)
-	project, err := projectRepo.GetProjectByID(feature.ProjectID)
+	project, err := projectRepo.GetProjectByID(projectID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID for category validation"})
 		return
@@ -81,34 +86,9 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 		return
 	}
 
-	// Handle tags if provided
-	if featureWithTags.TagsInput != "" {
-		userID, exists := c.Get("user_id")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-			return
-		}
-
-		err := h.tagRepo.UpdateFeatureTags(feature.ID, userID.(uint), featureWithTags.TagsInput)
-		if err != nil {
-			// Log the error but don't fail the whole request
-			// We already created the feature successfully
-			c.JSON(http.StatusCreated, gin.H{
-				"feature": feature,
-				"warning": "Feature created but failed to save tags",
-			})
-			return
-		}
-
-		// Fetch the feature again with its tags
-		updatedFeature, err := h.repo.GetFeatureByID(int(feature.ID))
-		if err == nil {
-			c.JSON(http.StatusCreated, updatedFeature)
-			return
-		}
-	}
-
-	c.JSON(http.StatusCreated, feature)
+	// Return the updated feature list fragment
+	features, _ := h.repo.GetFeaturesByProject(projectID)
+	c.HTML(http.StatusOK, "feature-list-oob.html", gin.H{"Features": features, "ProjectID": projectID})
 }
 
 func (h *FeatureHandler) GetFeature(c *gin.Context) {
@@ -444,6 +424,42 @@ func (h *FeatureHandler) UpdateFeatureField(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, existingFeature)
+}
+
+// NewFeatureForm renders the inline form for creating a new feature
+func (h *FeatureHandler) NewFeatureForm(c *gin.Context) {
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid project ID")
+		return
+	}
+
+	projectRepo := repositories.NewProjectRepository(h.DB)
+	project, err := projectRepo.GetProjectByID(projectID)
+	if err != nil {
+		c.String(http.StatusNotFound, "Project not found")
+		return
+	}
+
+	categoriesIface, ok := project.Config["feature_category"].([]interface{})
+	if !ok {
+		c.String(http.StatusInternalServerError, "Project config missing feature_category")
+		return
+	}
+
+	// Convert []interface{} to []string
+	categories := make([]string, 0, len(categoriesIface))
+	for _, cat := range categoriesIface {
+		if catStr, ok := cat.(string); ok {
+			categories = append(categories, catStr)
+		}
+	}
+
+	c.HTML(http.StatusOK, "feature-form.html", gin.H{
+		"ProjectID":         projectID,
+		"FeatureCategories": categories,
+	})
 }
 
 // Helper functions

@@ -1,21 +1,18 @@
 <div class="p-6">
-  <h2 class="text-2xl font-bold mb-6">Features</h2>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold">Features</h2>
+    <button 
+      class="btn btn-primary btn-sm"
+      hx-get="/web/fragments/projects/{{ .ProjectID }}/features/new"
+      hx-target="#new-feature-form-container"
+      hx-swap="innerHTML"
+    >
+      Add Feature
+    </button>
+  </div>
+  <div id="new-feature-form-container"></div>
 
-  {{ range .Features }}
-    <div class="card bg-base-100 shadow-lg mb-4">
-      <div class="card-body">
-        <h3 class="card-title text-lg">{{ .Title }}</h3>
-        <p class="text-base-content/70">{{ .Description }}</p>
-        <div class="card-actions justify-end">
-          <button 
-            hx-get="/web/fragments/features/{{ .ID }}" 
-            hx-target="#main-content" 
-            hx-push-url="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" 
-            class="btn btn-primary btn-sm">
-            View Details
-          </button>
-        </div>
-      </div>
-    </div>
-  {{ end }}
+  <div id="feature-list-container">
+    {{ template "feature-list-inner.html" . }}
+  </div>
 </div> 
