@@ -86,9 +86,18 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 		return
 	}
 
-	// Return the updated feature list fragment
+	// Return the updated feature list (full block, not just inner fragment)
+	categoriesIface2, ok2 := project.Config["feature_category"].([]interface{})
+	categories2 := []string{}
+	if ok2 {
+		for _, cat := range categoriesIface2 {
+			if catStr, ok := cat.(string); ok {
+				categories2 = append(categories2, catStr)
+			}
+		}
+	}
 	features, _ := h.repo.GetFeaturesByProject(projectID)
-	c.HTML(http.StatusOK, "feature-list-oob.html", gin.H{"Features": features, "ProjectID": projectID})
+	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID, "FeatureCategories": categories2, "FilterCategory": "All"})
 }
 
 func (h *FeatureHandler) GetFeature(c *gin.Context) {
@@ -129,26 +138,47 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 		return
 	}
 
-	// Check if we should return only root features
-	rootOnly := c.Query("root_only")
-	if rootOnly == "true" {
-		features, err := h.repo.GetRootFeaturesByProject(projectID)
+	// Fetch project to get categories
+	projectRepo := repositories.NewProjectRepository(h.DB)
+	project, err := projectRepo.GetProjectByID(projectID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
+		return
+	}
+	categoriesIface, ok := project.Config["feature_category"].([]interface{})
+	categories := []string{}
+	if ok {
+		for _, cat := range categoriesIface {
+			if catStr, ok := cat.(string); ok {
+				categories = append(categories, catStr)
+			}
+		}
+	}
+
+	// Get filter from query param
+	filterCategory := c.Query("category")
+	if filterCategory == "" || filterCategory == "All" {
+		features, err := h.repo.GetFeaturesByProject(projectID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID})
+		c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": "All"})
 		return
 	}
 
-	// Return all features for the project
 	features, err := h.repo.GetFeaturesByProject(projectID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID})
+	filtered := []models.Feature{}
+	for _, f := range features {
+		if f.Category == filterCategory {
+			filtered = append(filtered, f)
+		}
+	}
+	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": filtered, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": filterCategory})
 }
 
 // GetSubfeatures returns all subfeatures for a given parent feature

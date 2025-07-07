@@ -1,6 +1,14 @@
-<div class="p-6">
+<div id="feature-list-container" class="p-6">
   <div class="flex items-center justify-between mb-6">
-    <h2 class="text-2xl font-bold">Features</h2>
+    <div class="flex items-center gap-4">
+      <h2 class="text-2xl font-bold">Features</h2>
+      <div class="flex gap-1">
+        <a hx-get="/web/fragments/projects/{{ .ProjectID }}/features?category=All" hx-target="#feature-list-container" hx-swap="outerHTML" class="btn btn-xs {{ if or (not .FilterCategory) (eq .FilterCategory "All") }}btn-active btn-primary{{ else }}btn-ghost{{ end }}">All</a>
+        {{ range .FeatureCategories }}
+          <a hx-get="/web/fragments/projects/{{ $.ProjectID }}/features?category={{ . }}" hx-target="#feature-list-container" hx-swap="outerHTML" class="btn btn-xs {{ if eq $.FilterCategory . }}btn-active btn-primary{{ else }}btn-ghost{{ end }}">{{ . }}</a>
+        {{ end }}
+      </div>
+    </div>
     <button 
       class="btn btn-primary btn-sm"
       hx-get="/web/fragments/projects/{{ .ProjectID }}/features/new"
@@ -11,8 +19,5 @@
     </button>
   </div>
   <div id="new-feature-form-container"></div>
-
-  <div id="feature-list-container">
-    {{ template "feature-list-inner.html" . }}
-  </div>
+  {{ template "feature-list-inner.html" . }}
 </div> 
