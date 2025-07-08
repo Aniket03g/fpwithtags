@@ -4,29 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FeaturePlus Dashboard</title>
-  <!-- DaisyUI (includes Tailwind CSS) -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
   <!-- Tailwind CSS (standalone for CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="flex min-h-screen bg-base-200">
+<body class="flex min-h-screen bg-gray-100">
   <!-- Sidebar -->
   <aside>
-    <ul class="menu p-4 w-72 min-h-full bg-base-300 text-base-content">
-      <li class="menu-title"><span>FeaturePlus</span></li>
+    <ul class="flex flex-col gap-2 p-4 w-72 min-h-full bg-white border-r border-gray-200 text-gray-800 shadow-lg">
+      <li class="text-lg font-bold tracking-wide mb-4">FeaturePlus</li>
       <li>
-        <a 
-          hx-get="/web/fragments/projects" 
-          hx-target="#main-content" 
-          hx-push-url="true"
-        >
-          Projects
-        </a>
+        <a href="/web/projects">Projects</a>
       </li>
       {{ range .Projects }}
-        <li><a>{{ .Name }}</a></li>
+        <li><a href="/web/projects/{{ .ID }}">{{ .Name }}</a></li>
       {{ end }}
     </ul>
   </aside>
@@ -34,30 +27,31 @@
   <div class="flex-1 flex flex-col">
     <!-- Top Navbar -->
     <header>
-      <div class="navbar bg-base-100 shadow-lg">
+      <div class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 shadow-sm">
         <div class="flex-1"></div>
         <div class="flex-none">
           <div class="form-control">
-            <input type="text" placeholder="Search..." class="input input-bordered w-full max-w-xs" />
+            <input type="text" placeholder="Search..." class="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm" />
           </div>
         </div>
         <div class="flex-none ml-4">
-          <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" @blur="open = false" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+              <span class="sr-only">Open user menu</span>
               <div class="w-10 rounded-full">
                 <img src="https://i.pravatar.cc/100?img=3" alt="User avatar" />
               </div>
-            </div>
-            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-              <li><a>Profile</a></li>
-              <li><a>Logout</a></li>
+            </button>
+            <ul x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-50" x-transition>
+              <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a></li>
+              <li><a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a></li>
             </ul>
           </div>
         </div>
       </div>
     </header>
     <!-- Main Content Area -->
-    <main id="main-content" class="flex-1 p-6" hx-get="/web/projects-fragment" hx-trigger="load"></main>
+    <main id="main-content" class="flex-1 p-6" hx-get="{{ .InitialURL }}" hx-trigger="load"></main>
   </div>
 </body>
 </html> 

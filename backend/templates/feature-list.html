@@ -1,23 +1,28 @@
 <div id="feature-list-container" class="p-6">
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-4">
-      <h2 class="text-2xl font-bold">Features</h2>
+      <h2 class="text-2xl font-bold text-gray-800">Features</h2>
       <div class="flex gap-1">
-        <a hx-get="/web/fragments/projects/{{ .ProjectID }}/features?category=All" hx-target="#feature-list-container" hx-swap="outerHTML" class="btn btn-xs {{ if or (not .FilterCategory) (eq .FilterCategory "All") }}btn-active btn-primary{{ else }}btn-ghost{{ end }}">All</a>
+        <a hx-get="/web/projects/{{ .ProjectID }}/features/content?category=All" hx-target="#main-content" hx-swap="innerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if or (not .FilterCategory) (eq .FilterCategory "All") }}bg-primary-600 text-white border-primary-600{{ end }}">All</a>
         {{ range .FeatureCategories }}
-          <a hx-get="/web/fragments/projects/{{ $.ProjectID }}/features?category={{ . }}" hx-target="#feature-list-container" hx-swap="outerHTML" class="btn btn-xs {{ if eq $.FilterCategory . }}btn-active btn-primary{{ else }}btn-ghost{{ end }}">{{ . }}</a>
+        <a hx-get="/web/projects/{{ $.ProjectID }}/features/content?category={{ . }}" hx-target="#main-content" hx-swap="innerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if eq $.FilterCategory . }}bg-primary-600 text-white border-primary-600{{ end }}">{{ . }}</a>
         {{ end }}
       </div>
     </div>
-    <button 
-      class="btn btn-primary btn-sm"
-      hx-get="/web/fragments/projects/{{ .ProjectID }}/features/new"
-      hx-target="#new-feature-form-container"
-      hx-swap="innerHTML"
-    >
-      Add Feature
-    </button>
+    <button hx-get="/web/projects/{{ .ProjectID }}/features/new" hx-target="#new-feature-form-container" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">+ Add Feature</button>
   </div>
   <div id="new-feature-form-container"></div>
-  {{ template "feature-list-inner.html" . }}
+  <div id="feature-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+    {{ range .Features }}
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ .Title }}</h3>
+          <p class="text-gray-500 text-sm mb-4">{{ .Description }}</p>
+        </div>
+        <div class="flex justify-end">
+          <a hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" hx-target="#main-content" hx-push-url="true" class="inline-block px-4 py-2 bg-primary-50 text-primary-700 rounded-lg shadow hover:bg-primary-100 transition-colors text-sm font-medium border border-primary-200">View Details</a>
+        </div>
+      </div>
+    {{ end }}
+  </div>
 </div> 

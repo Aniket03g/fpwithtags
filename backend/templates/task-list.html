@@ -1,49 +1,38 @@
 <div id="task-list-container" class="space-y-4 pt-6">
   
   <div class="flex justify-between items-center mb-4">
-    <h3 class="text-xl font-semibold text-base-content">Associated Tasks</h3>
+    <h3 class="text-xl font-semibold text-gray-800">Associated Tasks</h3>
     <div class="flex items-center gap-2">
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=All" hx-target="#task-list-container" hx-swap="outerHTML" class="btn btn-sm {{ if or (not .FilterType) (eq .FilterType "All") }}btn-active{{ end }}">All</a>
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=UI" hx-target="#task-list-container" hx-swap="outerHTML" class="btn btn-sm {{ if eq .FilterType "UI" }}btn-active{{ end }}">UI</a>
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=DB" hx-target="#task-list-container" hx-swap="outerHTML" class="btn btn-sm {{ if eq .FilterType "DB" }}btn-active{{ end }}">DB</a>
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=Dev" hx-target="#task-list-container" hx-swap="outerHTML" class="btn btn-sm {{ if eq .FilterType "Dev" }}btn-active{{ end }}">Dev</a>
-
-      <button hx-get="/web/features/{{ .Feature.ID }}/tasks/new" hx-target="#new-task-form-container" hx-swap="innerHTML" class="btn btn-sm btn-primary">Add Task</button>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=All" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if or (not .FilterType) (eq .FilterType "All") }}bg-primary-600 text-white border-primary-600{{ end }}">All</a>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=UI" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if eq .FilterType "UI" }}bg-primary-600 text-white border-primary-600{{ end }}">UI</a>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=DB" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if eq .FilterType "DB" }}bg-primary-600 text-white border-primary-600{{ end }}">DB</a>
+      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=Dev" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if eq .FilterType "Dev" }}bg-primary-600 text-white border-primary-600{{ end }}">Dev</a>
     </div>
+    <button hx-get="/web/features/{{ .Feature.ID }}/tasks/new" hx-target="#new-task-form-container" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">Add Task</button>
   </div>
 
   <div id="new-task-form-container"></div>
 
   {{ if .Tasks }}
     {{ range .Tasks }}
-    <div class="card bg-base-100 shadow-md border border-base-300 group w-full">
-      <div class="card-body p-6 flex-row items-center justify-between w-full">
-        <div class="flex items-center gap-4 w-full">
-          <div class="badge badge-primary font-semibold">{{ .TaskType }}</div>
-          <div class="flex-1">
-            <h4 class="font-bold text-base-content">{{ .TaskName }}</h4>
-            <p class="text-sm text-base-content/70">{{ .Description }}</p>
-          </div>
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between group w-full transition-transform hover:-translate-y-1 hover:shadow-xl">
+      <div class="flex items-center gap-4 w-full">
+        <span class="inline-block px-3 py-1 rounded-full bg-primary-100 text-primary-700 font-semibold text-xs">{{ .TaskType }}</span>
+        <div class="flex-1">
+          <h4 class="font-bold text-gray-900">{{ .TaskName }}</h4>
+          <p class="text-sm text-gray-500 mt-1">{{ .Description }}</p>
         </div>
-        <div class="card-actions">
-          <button 
-            class="btn btn-square btn-ghost btn-sm opacity-0 group-hover:opacity-100 transition"
-            hx-get="/web/fragments/features/{{ $.Feature.ID }}/tasks/{{ .ID }}/edit"
-            hx-target="closest .card"
-            hx-swap="outerHTML"
-            aria-label="Edit Task"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.5 6.5z" />
-            </svg>
+        <div class="flex-shrink-0 ml-2 flex gap-2">
+          <button hx-get="/web/tasks/{{ .ID }}/edit" hx-target="#task-list-container" hx-swap="beforeend" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-primary-100 text-gray-500 hover:text-primary-700 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z" /></svg>
           </button>
         </div>
       </div>
     </div>
     {{ end }}
   {{ else }}
-    <div class="text-center p-8 bg-base-100 rounded-lg shadow-md border border-base-300">
-      <p class="text-base-content/70">No '{{ .FilterType }}' tasks found for this feature.</p>
+    <div class="text-center p-8 bg-white rounded-lg shadow-md border border-gray-200">
+      <p class="text-gray-500">No '{{ .FilterType }}' tasks found for this feature.</p>
     </div>
   {{ end }}
 

@@ -2,12 +2,6 @@
 <p>{{ .Feature.Description }}</p>
 <span>Status: {{ .Feature.Status }}</span>
 <br/>
-<a 
-  hx-get="/web/fragments/projects/{{ .Feature.ProjectID }}/features" 
-  hx-target="#main-content"
-  href="#"
->
-  Back to Features
-</a>
+<a href="/web/projects/{{ .Feature.ProjectID }}/features">Back to Features</a>
 
 <div id="task-list-htmx-container" hx-get="/web/features/{{ .Feature.ID }}/tasks" hx-trigger="load"></div> 

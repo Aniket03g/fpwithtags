@@ -157,6 +157,33 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 
 	// Get filter from query param
 	filterCategory := c.Query("category")
+	if c.GetHeader("HX-Request") == "true" {
+		// HTMX request: only render the inner list
+		if filterCategory == "" || filterCategory == "All" {
+			features, err := h.repo.GetFeaturesByProject(projectID)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.HTML(http.StatusOK, "feature-list-inner.html", gin.H{"Features": features, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": "All"})
+			return
+		}
+		features, err := h.repo.GetFeaturesByProject(projectID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		filtered := []models.Feature{}
+		for _, f := range features {
+			if f.Category == filterCategory {
+				filtered = append(filtered, f)
+			}
+		}
+		c.HTML(http.StatusOK, "feature-list-inner.html", gin.H{"Features": filtered, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": filterCategory})
+		return
+	}
+
+	// Non-HTMX request: render the full feature list
 	if filterCategory == "" || filterCategory == "All" {
 		features, err := h.repo.GetFeaturesByProject(projectID)
 		if err != nil {
@@ -179,6 +206,54 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 		}
 	}
 	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": filtered, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": filterCategory})
+}
+
+// FeaturesContentHandler serves /web/projects/:id/features/content for main content swaps
+func (h *FeatureHandler) FeaturesContentHandler(c *gin.Context) {
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
+		return
+	}
+
+	projectRepo := repositories.NewProjectRepository(h.DB)
+	project, err := projectRepo.GetProjectByID(projectID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
+		return
+	}
+	categoriesIface, ok := project.Config["feature_category"].([]interface{})
+	categories := []string{}
+	if ok {
+		for _, cat := range categoriesIface {
+			if catStr, ok := cat.(string); ok {
+				categories = append(categories, catStr)
+			}
+		}
+	}
+
+	filterCategory := c.Query("category")
+	features, err := h.repo.GetFeaturesByProject(projectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if filterCategory != "" && filterCategory != "All" {
+		filtered := []models.Feature{}
+		for _, f := range features {
+			if f.Category == filterCategory {
+				filtered = append(filtered, f)
+			}
+		}
+		features = filtered
+	}
+	c.HTML(http.StatusOK, "feature-list.html", gin.H{
+		"Features":          features,
+		"ProjectID":         projectID,
+		"FeatureCategories": categories,
+		"FilterCategory":    filterCategory,
+	})
 }
 
 // GetSubfeatures returns all subfeatures for a given parent feature
@@ -490,6 +565,61 @@ func (h *FeatureHandler) NewFeatureForm(c *gin.Context) {
 		"ProjectID":         projectID,
 		"FeatureCategories": categories,
 	})
+}
+
+// CreateFeatureForProject handles POST /web/projects/:id/features
+func (h *FeatureHandler) CreateFeatureForProject(c *gin.Context) {
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid project ID")
+		return
+	}
+
+	var input FeatureFormInput
+	if err := c.ShouldBind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Invalid form data")
+		return
+	}
+
+	feature := models.Feature{
+		Title:       input.Title,
+		Description: input.Description,
+		Category:    input.Category,
+		ProjectID:   projectID, // fix: use int, not uint
+	}
+	if err := h.repo.CreateFeature(&feature); err != nil {
+		c.String(http.StatusInternalServerError, "Failed to create feature")
+		return
+	}
+
+	// Fetch categories for filter bar
+	projectRepo := repositories.NewProjectRepository(h.DB)
+	project, err := projectRepo.GetProjectByID(projectID)
+	categories := []string{}
+	if err == nil {
+		if cats, ok := project.Config["feature_category"].([]interface{}); ok {
+			for _, cat := range cats {
+				if catStr, ok := cat.(string); ok {
+					categories = append(categories, catStr)
+				}
+			}
+		}
+	}
+
+	features, _ := h.repo.GetFeaturesByProject(projectID)
+
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "feature-list-inner.html", gin.H{
+			"Features":          features,
+			"ProjectID":         projectID,
+			"FeatureCategories": categories,
+			"FilterCategory":    "All",
+		})
+		return
+	}
+	// Non-HTMX: redirect to full page
+	c.Redirect(http.StatusSeeOther, "/web/projects/"+projectIDStr+"/features")
 }
 
 // Helper functions

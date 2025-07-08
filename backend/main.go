@@ -55,7 +55,7 @@ func RenderDashboardShell(c *gin.Context) {
 
 // ProjectsFragmentHandler returns the projects list fragment (placeholder for now)
 func ProjectsFragmentHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "projects-list.html", gin.H{})
+	c.HTML(http.StatusOK, "project-list.html", gin.H{})
 }
 
 // RenderAppShell renders the dashboard.html shell and passes the correct initial fragment URL
@@ -73,10 +73,10 @@ func RenderAppShell(c *gin.Context) {
 	case path == "/dashboard" || path == "/projects":
 		fragment = "/web/fragments/projects"
 	case strings.HasPrefix(path, "/projects/") && strings.HasSuffix(path, "/features"):
-		// e.g. /projects/8/features -> /web/fragments/projects/8/features
+		// e.g. /projects/8/features -> /web/projects/8/features/content
 		parts := strings.Split(path, "/")
 		if len(parts) >= 4 {
-			fragment = "/web/fragments/projects/" + parts[2] + "/features"
+			fragment = "/web/projects/" + parts[2] + "/features/content"
 		}
 	case strings.HasPrefix(path, "/projects/") && strings.Contains(path, "/features/"):
 		// e.g. /projects/8/features/33 -> /web/fragments/features/33
@@ -245,9 +245,9 @@ func main() {
 		web.GET("/projects", RenderAppShell)
 		web.GET("/projects/:id", RenderAppShell)
 		web.GET("/projects/:id/features", RenderAppShell)
-		web.GET("/projects/:id/features/:featureid", RenderAppShell)
+		web.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
 		web.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
-		web.POST("/projects/:id/features", featureHandler.CreateFeature)
+		web.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
 
 		// New fragment route for project list only
 		web.GET("/projects-fragment", ProjectsFragmentHandler)

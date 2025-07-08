@@ -1,17 +1,19 @@
-{{ range .Features }}
-  <div class="card bg-base-100 shadow-lg mb-4">
-    <div class="card-body">
-      <h3 class="card-title text-lg">{{ .Title }}</h3>
-      <p class="text-base-content/70">{{ .Description }}</p>
-      <div class="card-actions justify-end">
-        <button 
-          hx-get="/web/fragments/features/{{ .ID }}" 
-          hx-target="#main-content" 
-          hx-push-url="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" 
-          class="btn btn-primary btn-sm">
-          View Details
-        </button>
+{{ if not .Features }}
+  <div class="flex flex-col items-center justify-center py-16">
+    <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+    <p class="text-gray-500 text-lg mb-2">No features found</p>
+    <p class="text-gray-400 text-sm">Start by adding a new feature to this project.</p>
+  </div>
+{{ else }}
+  {{ range .Features }}
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-4 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl cursor-pointer group" role="button" tabindex="0" hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" hx-target="#main-content" hx-push-url="true">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ .Title }}</h3>
+        <p class="text-gray-500 text-sm mb-4">{{ .Description }}</p>
+      </div>
+      <div class="flex justify-end">
+        <button hx-get="/web/features/{{ .ID }}/edit" hx-target="#feature-list-container" hx-swap="beforeend" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">Edit</button>
       </div>
     </div>
-  </div>
+  {{ end }}
 {{ end }} 
