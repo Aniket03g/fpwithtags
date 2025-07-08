@@ -13,10 +13,10 @@
     <button hx-get="/web/projects/{{ .ProjectID }}/features/new" hx-target="#new-feature-form-container" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">+ Add Feature</button>
   </div>
   <div id="new-feature-form-container"></div>
-  <div id="feature-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+  <div id="feature-cards-container" class="flex flex-col gap-6 mt-4">
     {{ range .Features }}
       <div 
-        class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl cursor-pointer group"
+        class="bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-row items-center gap-8 transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer group"
         role="button"
         tabindex="0"
         hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}"
@@ -25,12 +25,23 @@
         hx-select="#main-content"
         hx-swap="innerHTML"
       >
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ .Title }}</h3>
-          <p class="text-gray-500 text-sm mb-4">{{ .Description }}</p>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-4 mb-2">
+            <h3 class="text-xl font-bold text-primary-700 group-hover:text-primary-800">{{ .Title }}</h3>
+          </div>
+          <p class="text-gray-600 text-base mb-2">{{ .Description }}</p>
+          <div class="flex flex-wrap gap-2 mt-2">
+            <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs font-medium">{{ .Priority }}</span>
+            <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-xs font-medium">{{ .Category }}</span>
+            <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-medium">{{ .Status }}</span>
+            <!-- Tags if available -->
+            {{ range .Tags }}
+              <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium">#{{ .TagName }}</span>
+            {{ end }}
+          </div>
         </div>
-        <div class="flex justify-end">
-          <span class="inline-block px-4 py-2 bg-primary-50 text-primary-700 rounded-lg shadow hover:bg-primary-100 transition-colors text-sm font-medium border border-primary-200 opacity-60 group-hover:opacity-100">View Details</span>
+        <div class="flex-none ml-6">
+          <span class="inline-block px-4 py-2 bg-primary-50 text-primary-700 rounded-lg shadow border border-primary-200 text-sm font-medium opacity-60 group-hover:opacity-100">To Do</span>
         </div>
       </div>
     {{ end }}

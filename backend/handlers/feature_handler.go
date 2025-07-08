@@ -155,6 +155,10 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
+			fmt.Printf("[GetProjectFeatures] ProjectID: %d, Filter: '%s', Features: %d\n", projectID, filterCategory, len(features))
+			for _, f := range features {
+				fmt.Printf("  - %s\n", f.Title)
+			}
 			c.HTML(http.StatusOK, "feature-list-inner.html", gin.H{"Features": features, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": "All"})
 			return
 		}
@@ -169,6 +173,10 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 				filtered = append(filtered, f)
 			}
 		}
+		fmt.Printf("[GetProjectFeatures] ProjectID: %d, Filter: '%s', Features: %d\n", projectID, filterCategory, len(filtered))
+		for _, f := range filtered {
+			fmt.Printf("  - %s\n", f.Title)
+		}
 		c.HTML(http.StatusOK, "feature-list-inner.html", gin.H{"Features": filtered, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": filterCategory})
 		return
 	}
@@ -179,6 +187,10 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
+		}
+		fmt.Printf("[GetProjectFeatures] ProjectID: %d, Filter: '%s', Features: %d\n", projectID, filterCategory, len(features))
+		for _, f := range features {
+			fmt.Printf("  - %s\n", f.Title)
 		}
 		c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": "All"})
 		return
@@ -194,6 +206,10 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 		if f.Category == filterCategory {
 			filtered = append(filtered, f)
 		}
+	}
+	fmt.Printf("[GetProjectFeatures] ProjectID: %d, Filter: '%s', Features: %d\n", projectID, filterCategory, len(filtered))
+	for _, f := range filtered {
+		fmt.Printf("  - %s\n", f.Title)
 	}
 	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": filtered, "ProjectID": projectID, "FeatureCategories": categories, "FilterCategory": filterCategory})
 }
@@ -237,6 +253,10 @@ func (h *FeatureHandler) FeaturesContentHandler(c *gin.Context) {
 			}
 		}
 		features = filtered
+	}
+	fmt.Printf("[FeaturesContentHandler] ProjectID: %d, Filter: '%s', Features: %d\n", projectID, filterCategory, len(features))
+	for _, f := range features {
+		fmt.Printf("  - %s\n", f.Title)
 	}
 	c.HTML(http.StatusOK, "feature-list.html", gin.H{
 		"Features":          features,
