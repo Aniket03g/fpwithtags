@@ -4,13 +4,13 @@
     <div class="flex items-center gap-4">
       <h2 class="text-2xl font-bold text-gray-800">Features</h2>
       <div class="flex gap-1">
-        <a hx-get="/web/projects/{{ .ProjectID }}/features/content?category=All" hx-target="#main-content" hx-swap="innerHTML" hx-select="#main-content" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if or (not .FilterCategory) (eq .FilterCategory "All") }}bg-primary-600 text-white border-primary-600{{ end }}">All</a>
+        <a hx-get="/web/projects/{{ .ProjectID }}/features/content?category=All" hx-target="#main-content" hx-swap="innerHTML" hx-select="#main-content" class="px-4 py-2 rounded-full text-base font-semibold border-2 transition {{ if or (not .FilterCategory) (eq .FilterCategory "All") }}bg-blue-600 text-white border-blue-600{{ else }}bg-white text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-600{{ end }}">All</a>
         {{ range .FeatureCategories }}
-        <a hx-get="/web/projects/{{ $.ProjectID }}/features/content?category={{ . }}" hx-target="#main-content" hx-swap="innerHTML" hx-select="#main-content" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition {{ if eq $.FilterCategory . }}bg-primary-600 text-white border-primary-600{{ end }}">{{ . }}</a>
+        <a hx-get="/web/projects/{{ $.ProjectID }}/features/content?category={{ . }}" hx-target="#main-content" hx-swap="innerHTML" hx-select="#main-content" class="px-4 py-2 rounded-full text-base font-semibold border-2 transition {{ if eq $.FilterCategory . }}bg-blue-600 text-white border-blue-600{{ else }}bg-white text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-600{{ end }}">{{ . }}</a>
         {{ end }}
       </div>
     </div>
-    <button hx-get="/web/projects/{{ .ProjectID }}/features/new" hx-target="#new-feature-form-container" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">+ Add Feature</button>
+    <button hx-get="/web/projects/{{ .ProjectID }}/features/new" hx-target="#new-feature-form-container" hx-swap="innerHTML" class="inline-block px-5 py-2 rounded-full bg-blue-600 text-white font-semibold text-base shadow hover:bg-blue-700 transition-colors border-2 border-blue-600">+ Add Feature</button>
   </div>
   <div id="new-feature-form-container"></div>
   <div id="feature-cards-container" class="flex flex-col gap-6 mt-4">

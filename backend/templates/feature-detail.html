@@ -1,47 +1,44 @@
-<div id="main-content">
-<div id="feature-detail-container" class="p-6">
-  
-  <div class="flex items-center gap-4 mb-6">
-    <a hx-get="/web/projects/{{ .Feature.ProjectID }}/features"
-       hx-target="#main-content"
-       hx-select="#main-content > *"
-       hx-push-url="true"
-       class="btn btn-square btn-ghost">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-    </a>
-    <h2 class="text-2xl font-bold text-base-content">{{ .Feature.Title }}</h2>
-  </div>
+<div id="main-content" class="min-h-screen bg-gray-50">
+  <div id="feature-detail-container" class="max-w-2xl mx-auto p-8">
+    <div class="flex items-center gap-4 mb-8">
+      <a hx-get="/web/projects/{{ .Feature.ProjectID }}/features"
+         hx-target="#main-content"
+         hx-select="#main-content > *"
+         hx-push-url="true"
+         class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      </a>
+      <h2 class="text-2xl font-bold text-gray-900">{{ .Feature.Title }}</h2>
+    </div>
 
-  <div class="card bg-base-100 shadow-xl mb-8">
-    <div class="card-body">
-      <h3 class="card-title">Description</h3>
-      <p class="text-base-content/80">{{ .Feature.Description }}</p>
-      <div class="mt-4 flex gap-4">
+    <div class="bg-white rounded-xl shadow-lg p-8 mb-10">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Description</h3>
+      <p class="text-gray-600 mb-6">{{ .Feature.Description }}</p>
+      <div class="flex flex-wrap gap-6">
         <div>
-          <div class="font-semibold text-sm">Category</div>
-          <div class="badge badge-neutral">{{ .Feature.Category }}</div>
+          <div class="font-semibold text-sm text-gray-500 mb-1">Category</div>
+          <span class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">{{ .Feature.Category }}</span>
         </div>
         <div>
-          <div class="font-semibold text-sm">Status</div>
-          <div class="badge badge-secondary">{{ .Feature.Status }}</div>
+          <div class="font-semibold text-sm text-gray-500 mb-1">Status</div>
+          <span class="inline-block px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs font-medium">{{ .Feature.Status }}</span>
         </div>
         <div>
-          <div class="font-semibold text-sm">Priority</div>
-          <div class="badge badge-accent">{{ .Feature.Priority }}</div>
+          <div class="font-semibold text-sm text-gray-500 mb-1">Priority</div>
+          <span class="inline-block px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium">{{ .Feature.Priority }}</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <div 
-    id="task-section" 
-    hx-get="/web/features/{{ .Feature.ID }}/tasks" 
-    hx-trigger="load"
-    hx-swap="innerHTML">
-      <div class="text-center">
-        <span class="loading loading-spinner loading-lg"></span>
-        <p>Loading tasks...</p>
-      </div>
+    <div 
+      id="task-section" 
+      hx-get="/web/features/{{ .Feature.ID }}/tasks" 
+      hx-trigger="load"
+      hx-swap="innerHTML">
+        <div class="text-center py-8">
+          <svg class="mx-auto animate-spin h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+          <p class="text-gray-400 mt-2">Loading tasks...</p>
+        </div>
+    </div>
   </div>
-
 </div> 
