@@ -1,5 +1,5 @@
 <div>
   <h1>{{ .Project.Name }}</h1>
   <p>{{ .Project.Description }}</p>
-  <a hx-get="/web/projects/{{ .Project.ID }}/features" hx-target="#main-content" hx-push-url="true">Features</a>
+  <a hx-get="/web/projects/{{ .Project.ID }}/features" hx-target="#main-content" hx-push-url="true" hx-select="#main-content" hx-swap="innerHTML">Features</a>
 </div> 

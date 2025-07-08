@@ -117,17 +117,7 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 		return
 	}
 
-	// Fetch tasks for this feature
-	tasks, err := h.taskRepo.GetByFeatureID(uint(featureID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch tasks"})
-		return
-	}
-
-	// Log the feature object with preloaded tags
-	fmt.Printf("Fetched feature with tags in backend: %+v\n", feature)
-
-	c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature, "Tasks": tasks})
+	c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature})
 }
 
 func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {

@@ -54,4 +54,12 @@
     <main id="main-content" class="flex-1 p-6" hx-get="{{ .InitialURL }}" hx-trigger="load"></main>
   </div>
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var main = document.getElementById('main-content');
+  if (main && main.childElementCount === 0 && main.getAttribute('hx-get')) {
+    htmx.process(main); // triggers hx-get if not already loaded
+  }
+});
+</script>
 </html> 
