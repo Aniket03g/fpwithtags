@@ -117,7 +117,14 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature})
+	if c.GetHeader("HX-Request") == "true" {
+		c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature})
+		return
+	}
+	// Non-HTMX: render dashboard shell with InitialURL for this feature
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"InitialURL": "/web/fragments/features/" + featureIDStr,
+	})
 }
 
 func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
