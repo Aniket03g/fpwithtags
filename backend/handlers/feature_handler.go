@@ -101,11 +101,11 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 }
 
 func (h *FeatureHandler) GetFeature(c *gin.Context) {
-	idStr := c.Param("id")
-	if idStr == "" {
-		idStr = c.Param("featureid")
+	featureIDStr := c.Param("featureid")
+	if featureIDStr == "" {
+		featureIDStr = c.Param("id")
 	}
-	featureID, err := strconv.Atoi(idStr)
+	featureID, err := strconv.Atoi(featureIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid feature ID"})
 		return

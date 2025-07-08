@@ -15,13 +15,22 @@
   <div id="new-feature-form-container"></div>
   <div id="feature-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
     {{ range .Features }}
-      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl">
+      <div 
+        class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl cursor-pointer group"
+        role="button"
+        tabindex="0"
+        hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}"
+        hx-target="#main-content"
+        hx-push-url="true"
+        hx-select="#main-content"
+        hx-swap="innerHTML"
+      >
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ .Title }}</h3>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ .Title }}</h3>
           <p class="text-gray-500 text-sm mb-4">{{ .Description }}</p>
         </div>
         <div class="flex justify-end">
-          <a hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" hx-target="#main-content" hx-push-url="true" hx-select="#main-content" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-primary-50 text-primary-700 rounded-lg shadow hover:bg-primary-100 transition-colors text-sm font-medium border border-primary-200">View Details</a>
+          <span class="inline-block px-4 py-2 bg-primary-50 text-primary-700 rounded-lg shadow hover:bg-primary-100 transition-colors text-sm font-medium border border-primary-200 opacity-60 group-hover:opacity-100">View Details</span>
         </div>
       </div>
     {{ end }}

@@ -245,6 +245,7 @@ func main() {
 		web.GET("/projects", RenderAppShell)
 		web.GET("/projects/:id", RenderAppShell)
 		web.GET("/projects/:id/features", RenderAppShell)
+		web.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
 		web.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
 		web.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 		web.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
