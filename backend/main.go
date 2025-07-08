@@ -258,6 +258,7 @@ func main() {
 		web.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
 		web.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
 		web.GET("/tasks/cancel", taskHandler.CancelTaskForm)
+		web.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
 	}
 
 	// New fragment group for all HTMX fragments

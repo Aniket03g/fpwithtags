@@ -620,7 +620,9 @@ func (h *FeatureHandler) CreateFeatureForProject(c *gin.Context) {
 	features, _ := h.repo.GetFeaturesByProject(projectID)
 
 	if c.GetHeader("HX-Request") == "true" {
-		c.HTML(http.StatusOK, "feature-list-inner.html", gin.H{
+		// Render feature cards and OOB clear form
+		c.Header("HX-Trigger", "feature-added")
+		c.HTML(http.StatusOK, "feature-list-oob.html", gin.H{
 			"Features":          features,
 			"ProjectID":         projectID,
 			"FeatureCategories": categories,
