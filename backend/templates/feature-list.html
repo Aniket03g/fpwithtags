@@ -17,6 +17,7 @@
     {{ range .Features }}
       <div 
         class="bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-row items-center gap-8 transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer group"
+        style="min-height: 140px; max-height: 140px; height: 140px;"
         role="button"
         tabindex="0"
         hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}"
@@ -25,24 +26,13 @@
         hx-select="#main-content"
         hx-swap="innerHTML"
       >
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 flex flex-col justify-center h-full">
           <div class="flex items-center gap-4 mb-2">
             <h3 class="text-xl font-bold text-primary-700 group-hover:text-primary-800">{{ .Title }}</h3>
           </div>
           <p class="text-gray-600 text-base mb-2">{{ .Description }}</p>
-          <div class="flex flex-wrap gap-2 mt-2">
-            <span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs font-medium">{{ .Priority }}</span>
-            <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-xs font-medium">{{ .Category }}</span>
-            <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-medium">{{ .Status }}</span>
-            <!-- Tags if available -->
-            {{ range .Tags }}
-              <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-medium">#{{ .TagName }}</span>
-            {{ end }}
-          </div>
         </div>
-        <div class="flex-none ml-6">
-          <span class="inline-block px-4 py-2 bg-primary-50 text-primary-700 rounded-lg shadow border border-primary-200 text-sm font-medium opacity-60 group-hover:opacity-100">To Do</span>
-        </div>
+        <!-- Removed labels, tags, and To Do button -->
       </div>
     {{ end }}
   </div>
