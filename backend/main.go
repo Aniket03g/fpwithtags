@@ -288,7 +288,10 @@ func main() {
 		fragments.GET("/features/:id/tasks/:task_id/edit", taskHandler.EditTaskForm)
 		fragments.POST("/features/:id/tasks/:task_id/edit", taskHandler.UpdateTaskInline)
 		fragments.GET("/features/:id/tasks/:task_id/view", taskHandler.ViewTaskCard)
+		fragments.GET("/features/:id/view", featureHandler.ViewFeatureCard)
 		fragments.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
+		// Add inline feature edit POST route
+		fragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 	}
 	// ==========================================================
 

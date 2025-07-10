@@ -1,39 +1,28 @@
-{{ $f := .Feature }}<div id="feature-card-{{ $f.ID }}"
+{{ $f := .Feature }}
+<div id="feature-card-{{ $f.ID }}"
   class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-4 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl group cursor-pointer"
   role="region" tabindex="0"
-  {{ if not (eq $.EditingID $f.ID) }}
-    hx-get="/web/projects/{{ $.ProjectID }}/features/{{ $f.ID }}"
-    hx-target="#main-content"
-    hx-push-url="true"
-    hx-select="#main-content"
-    hx-swap="innerHTML"
-  {{ end }}
   style="position:relative;"
 >
   <div>
-    {{ if eq $.EditingID $f.ID }}
-      <input type="text" name="title" value="{{ $f.Title }}" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-base font-semibold text-gray-900 mb-2" placeholder="Feature Title" />
-      <textarea name="description" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm text-gray-700 mb-4" rows="3" placeholder="Feature Description">{{ $f.Description }}</textarea>
-    {{ else }}
+    {{/* Old inline edit logic commented out
+    if eq $.EditingID $f.ID
+      {{ template "feature-edit-form.html" (dict "Feature" $f "ProjectID" $.ProjectID) }}
+    else */}}
       <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ $f.Title }}</h3>
       <p class="text-gray-500 text-sm mb-4">{{ $f.Description }}</p>
-    {{ end }}
+    {{/* end */}}
   </div>
   <div class="flex justify-end gap-2">
-    {{ if eq $.EditingID $f.ID }}
-      <button class="px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 text-sm font-medium">Save</button>
-      <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 text-sm font-medium">Cancel</button>
-    {{ else }}
-      <button 
-        hx-get="/web/features/{{ $f.ID }}/edit-inline?project_id={{ $.ProjectID }}"
-        hx-target="#feature-card-{{ $f.ID }}"
-        hx-swap="outerHTML"
-        aria-label="Edit Feature"
-        class="inline-flex items-center px-2 py-1 bg-transparent text-gray-500 hover:text-primary-700"
-        onclick="event.stopPropagation();"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg>
-      </button>
-    {{ end }}
+    <button 
+      hx-get="/web/features/{{ $f.ID }}/edit-inline?project_id={{ $.ProjectID }}"
+      hx-target="#feature-card-{{ $f.ID }}"
+      hx-swap="outerHTML"
+      aria-label="Edit Feature"
+      class="inline-flex items-center px-2 py-1 bg-transparent text-gray-500 hover:text-primary-700"
+      onclick="event.stopPropagation();"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg>
+    </button>
   </div>
 </div> 

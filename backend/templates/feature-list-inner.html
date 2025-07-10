@@ -6,6 +6,6 @@
   </div>
 {{ else }}
   {{ range .Features }}
-    {{ template "feature-card.html" (dict "Feature" . "EditingID" $.EditingID "ProjectID" $.ProjectID) }}
+    {{ template "feature-card.html" (dict "Feature" . "ProjectID" $.ProjectID) }}
   {{ end }}
 {{ end }} 

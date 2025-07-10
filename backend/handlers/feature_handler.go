@@ -664,6 +664,7 @@ func (h *FeatureHandler) GetFeaturesByProjectID(projectID int) ([]models.Feature
 }
 
 // Add this method to FeatureHandler
+// New: Render only the feature-edit-form.html partial for inline editing (like tasks)
 func (h *FeatureHandler) EditFeatureInline(c *gin.Context) {
 	idStr := c.Param("id")
 	projectIDStr := c.Query("project_id")
@@ -676,9 +677,60 @@ func (h *FeatureHandler) EditFeatureInline(c *gin.Context) {
 		c.String(http.StatusNotFound, "Feature not found")
 		return
 	}
+	c.HTML(http.StatusOK, "feature-edit-form.html", gin.H{
+		"Feature":   feature,
+		"ProjectID": projectID,
+	})
+}
+
+// UpdateFeatureInline handles inline feature updates (title, description only)
+func (h *FeatureHandler) UpdateFeatureInline(c *gin.Context) {
+	idStr := c.Param("id")
+	featureID, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid feature ID")
+		return
+	}
+	var input struct {
+		Title       string `form:"title" binding:"required"`
+		Description string `form:"description"`
+	}
+	if err := c.ShouldBind(&input); err != nil {
+		c.String(http.StatusBadRequest, "Invalid form data")
+		return
+	}
+	feature, err := h.repo.GetFeatureByID(featureID)
+	if err != nil {
+		c.String(http.StatusNotFound, "Feature not found")
+		return
+	}
+	feature.Title = input.Title
+	feature.Description = input.Description
+	if err := h.repo.UpdateFeature(feature); err != nil {
+		c.String(http.StatusInternalServerError, "Failed to update feature")
+		return
+	}
+	projectID := c.DefaultQuery("project_id", "0")
+	pid, _ := strconv.Atoi(projectID)
 	c.HTML(http.StatusOK, "feature-card.html", gin.H{
 		"Feature":   feature,
-		"EditingID": feature.ID,
+		"ProjectID": pid,
+	})
+}
+
+// ViewFeatureCard serves the card partial for a single feature (for cancel)
+func (h *FeatureHandler) ViewFeatureCard(c *gin.Context) {
+	idStr := c.Param("id")
+	projectIDStr := c.DefaultQuery("project_id", "0")
+	featureID, _ := strconv.Atoi(idStr)
+	projectID, _ := strconv.Atoi(projectIDStr)
+	feature, err := h.repo.GetFeatureByID(featureID)
+	if err != nil {
+		c.String(http.StatusNotFound, "Feature not found")
+		return
+	}
+	c.HTML(http.StatusOK, "feature-card.html", gin.H{
+		"Feature":   feature,
 		"ProjectID": projectID,
 	})
 }
