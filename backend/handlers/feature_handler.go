@@ -721,6 +721,17 @@ func (h *FeatureHandler) UpdateFeatureInline(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Failed to update feature")
 		return
 	}
+	// Handle tags
+	tagsInput := c.PostForm("tags_input")
+	if tagsInput != "" && h.tagRepo != nil {
+		var createdByUser uint = 1 // Default to admin if not available
+		if userID, exists := c.Get("user_id"); exists {
+			createdByUser = userID.(uint)
+		}
+		_ = h.tagRepo.UpdateFeatureTags(feature.ID, createdByUser, tagsInput)
+	} else if h.tagRepo != nil {
+		_ = h.tagRepo.DeleteTagsByFeatureID(feature.ID)
+	}
 	projectID := c.DefaultQuery("project_id", "0")
 	pid, _ := strconv.Atoi(projectID)
 	c.HTML(http.StatusOK, "feature-card.html", gin.H{

@@ -16,6 +16,7 @@ import (
 	"github.com/FeaturePlus/backend/routes"
 	"github.com/jilio/sqlitefs"
 
+	"encoding/json"
 	"html/template"
 
 	"github.com/gin-gonic/gin"
@@ -205,6 +206,10 @@ func main() {
 				dict[key] = values[i+1]
 			}
 			return dict
+		},
+		"toJson": func(v interface{}) template.JS {
+			a, _ := json.Marshal(v)
+			return template.JS(a)
 		},
 	})
 
