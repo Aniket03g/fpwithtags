@@ -762,3 +762,20 @@ func (h *FeatureHandler) ViewFeatureCard(c *gin.Context) {
 		"ProjectID": projectID,
 	})
 }
+
+// TagAutocomplete returns a JSON array of tag names matching the query
+func (h *FeatureHandler) TagAutocomplete(c *gin.Context) {
+	query := c.Query("query")
+	fmt.Println("[TagAutocomplete] query:", query) // DEBUG
+	if len(query) < 2 {
+		fmt.Println("[TagAutocomplete] Query too short, returning empty array") // DEBUG
+		c.JSON(200, []string{})
+		return
+	}
+	var tagNames []string
+	if h.tagRepo != nil {
+		tagNames, _ = h.tagRepo.AutocompleteTagNames(query)
+		fmt.Println("[TagAutocomplete] tagNames:", tagNames) // DEBUG
+	}
+	c.JSON(200, tagNames)
+}

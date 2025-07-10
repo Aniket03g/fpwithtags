@@ -297,6 +297,7 @@ func main() {
 		fragments.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
 		// Add inline feature edit POST route
 		fragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
+		fragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
 	}
 	// ==========================================================
 

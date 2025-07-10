@@ -82,6 +82,17 @@ func (r *TagRepository) UpdateFeatureTags(featureID uint, userID uint, tagInput 
 	return r.db.Create(&tags).Error
 }
 
+func (r *TagRepository) AutocompleteTagNames(query string) ([]string, error) {
+	var tagNames []string
+	if err := r.db.Model(&models.FeatureTag{}).
+		Where("LOWER(tag_name) LIKE ?", "%"+strings.ToLower(query)+"%").
+		Distinct().
+		Pluck("tag_name", &tagNames).Error; err != nil {
+		return nil, err
+	}
+	return tagNames, nil
+}
+
 // processTagString converts a comma/space/semicolon-separated string into a slice of tag names
 func processTagString(tagInput string) []string {
 	if tagInput == "" {

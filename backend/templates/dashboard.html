@@ -59,22 +59,49 @@ function tagInput() {
   return {
     input: '',
     tags: [],
-    addTag() {
-      let value = this.input.trim().replace(/[,;]$/, '');
-      if (value) {
-        value.split(/[,;\s]+/).forEach(tag => {
-          tag = tag.trim();
-          if (tag && !this.tags.includes(tag)) this.tags.push(tag);
+    suggestions: [],
+    showDropdown: false,
+    async fetchSuggestions() {
+      if (this.input.length < 2) {
+        this.suggestions = [];
+        this.showDropdown = false;
+        return;
+      }
+      const resp = await fetch(`/web/fragments/tags/autocomplete?query=${encodeURIComponent(this.input)}`, {
+        headers: { 'HX-Request': 'true' }
+      });
+      this.suggestions = await resp.json();
+      this.showDropdown = this.suggestions.length > 0;
+    },
+    addTag(tag) {
+      tag = (tag || this.input).trim().replace(/[,;]$/, '');
+      if (tag) {
+        tag.split(/[,;\s]+/).forEach(t => {
+          t = t.trim();
+          if (t && !this.tags.includes(t)) this.tags.push(t);
         });
       }
       this.input = '';
+      this.suggestions = [];
+      this.showDropdown = false;
     },
     removeTag(idx) {
       this.tags.splice(idx, 1);
+    },
+    onInput() {
+      this.fetchSuggestions();
+    },
+    onKeydown(e) {
+      if ([',', ';', ' '].includes(e.key)) {
+        e.preventDefault();
+        this.addTag();
+      }
+    },
+    selectSuggestion(tag) {
+      this.addTag(tag);
     }
   }
 }
-// For edit: prepopulate tags from Feature.Tags
 function tagInputEdit(initialTags) {
   let tags = [];
   if (Array.isArray(initialTags)) {
@@ -83,18 +110,46 @@ function tagInputEdit(initialTags) {
   return {
     input: '',
     tags: tags,
-    addTag() {
-      let value = this.input.trim().replace(/[,;]$/, '');
-      if (value) {
-        value.split(/[,;\s]+/).forEach(tag => {
-          tag = tag.trim();
-          if (tag && !this.tags.includes(tag)) this.tags.push(tag);
+    suggestions: [],
+    showDropdown: false,
+    async fetchSuggestions() {
+      if (this.input.length < 2) {
+        this.suggestions = [];
+        this.showDropdown = false;
+        return;
+      }
+      const resp = await fetch(`/web/fragments/tags/autocomplete?query=${encodeURIComponent(this.input)}`, {
+        headers: { 'HX-Request': 'true' }
+      });
+      this.suggestions = await resp.json();
+      this.showDropdown = this.suggestions.length > 0;
+    },
+    addTag(tag) {
+      tag = (tag || this.input).trim().replace(/[,;]$/, '');
+      if (tag) {
+        tag.split(/[,;\s]+/).forEach(t => {
+          t = t.trim();
+          if (t && !this.tags.includes(t)) this.tags.push(t);
         });
       }
       this.input = '';
+      this.suggestions = [];
+      this.showDropdown = false;
     },
     removeTag(idx) {
       this.tags.splice(idx, 1);
+    },
+    onInput() {
+      this.fetchSuggestions();
+    },
+    onKeydown(e) {
+      if ([',', ';', ' '].includes(e.key)) {
+        e.preventDefault();
+        this.addTag();
+      }
+    },
+    selectSuggestion(tag) {
+      this.addTag(tag);
     }
   }
 }
