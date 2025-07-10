@@ -22,9 +22,54 @@
         {{ end }}
       </select>
     </div>
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+      <div x-data="tagInput()">
+        <input
+          type="text"
+          x-model="input"
+          @keydown.enter.prevent="addTag"
+          @keydown.space.prevent="addTag"
+          @keydown.,.prevent="addTag"
+          @keydown.;.prevent="addTag"
+          placeholder="Enter tags separated by space, comma, or semicolon"
+          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm text-gray-700"
+        />
+        <div class="flex flex-wrap mt-2 gap-2">
+          <template x-for="(tag, idx) in tags" :key="tag">
+            <span class="bg-gray-200 px-3 py-1 rounded-full flex items-center">
+              <span x-text="tag"></span>
+              <button type="button" class="ml-2 text-gray-500 hover:text-red-600" @click="removeTag(idx)">×</button>
+            </span>
+          </template>
+        </div>
+        <input type="hidden" name="tags_input" :value="tags.join(' ')" />
+      </div>
+    </div>
     <div class="flex gap-2 justify-end">
       <button type="submit" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">Save</button>
       <button type="button" hx-get="/web/features/cancel" hx-target="#new-feature-form-container" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 transition-colors text-sm font-medium">Cancel</button>
     </div>
   </form>
 </div> 
+<script>
+function tagInput() {
+  return {
+    input: '',
+    tags: [],
+    addTag() {
+      let value = this.input.trim().replace(/[,;]$/, '');
+      if (value) {
+        value.split(/[,;\s]+/).forEach(tag => {
+          tag = tag.trim();
+          if (tag && !this.tags.includes(tag)) this.tags.push(tag);
+        });
+      }
+      this.input = '';
+    },
+    removeTag(idx) {
+      this.tags.splice(idx, 1);
+    }
+  }
+}
+</script> 

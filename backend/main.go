@@ -181,15 +181,15 @@ func main() {
 	projectRepo := repositories.NewProjectRepository(db.DB)
 	featureRepo := repositories.NewFeatureRepository(db.DB)
 	taskRepo := repositories.NewTaskRepository(db.DB) // Uncommented
-	// tagRepo := repositories.NewTagRepository(db.DB) // Comment out for now
+	tagRepo := repositories.NewTagRepository(db.DB)
 	// attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS) // Comment out for now
 	// commentRepo := repositories.NewCommentRepository(db.DB) // Comment out for now
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
 	projectHandler := handlers.NewProjectHandler(projectRepo)
-	featureHandler := handlers.NewFeatureHandler(featureRepo, nil, taskRepo, db.DB) // Added taskRepo
-	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)                         // Uncommented
+	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, taskRepo, db.DB) // Added taskRepo
+	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)                             // Uncommented
 	// tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB) // Comment out for now
 	// attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS) // Comment out for now
 	// commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo) // Comment out for now

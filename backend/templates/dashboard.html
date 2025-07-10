@@ -55,11 +55,30 @@
   </div>
 </body>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var main = document.getElementById('main-content');
-  if (main && main.childElementCount === 0 && main.getAttribute('hx-get')) {
-    htmx.process(main); // triggers hx-get if not already loaded
+function tagInput() {
+  return {
+    input: '',
+    tags: [],
+    addTag() {
+      let value = this.input.trim().replace(/[,;]$/, '');
+      if (value) {
+        value.split(/[,;\s]+/).forEach(tag => {
+          tag = tag.trim();
+          if (tag && !this.tags.includes(tag)) this.tags.push(tag);
+        });
+      }
+      this.input = '';
+    },
+    removeTag(idx) {
+      this.tags.splice(idx, 1);
+    }
   }
-});
+}
+// Ensure Alpine re-inits after htmx swaps
+if (window.Alpine) {
+  document.body.addEventListener('htmx:afterSwap', () => {
+    window.Alpine.initTree(document.body);
+  });
+}
 </script>
 </html> 

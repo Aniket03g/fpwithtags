@@ -610,6 +610,17 @@ func (h *FeatureHandler) CreateFeatureForProject(c *gin.Context) {
 		return
 	}
 
+	// Handle tags if present
+	tagsInput := c.PostForm("tags_input")
+	if tagsInput != "" && h.tagRepo != nil {
+		var createdByUser uint = 1 // Default to admin if not available
+		if userID, exists := c.Get("user_id"); exists {
+			createdByUser = userID.(uint)
+		}
+		// Save tags (handles single/multiple, any separator)
+		_ = h.tagRepo.UpdateFeatureTags(feature.ID, createdByUser, tagsInput)
+	}
+
 	// Fetch categories for filter bar
 	projectRepo := repositories.NewProjectRepository(h.DB)
 	project, err := projectRepo.GetProjectByID(projectID)
