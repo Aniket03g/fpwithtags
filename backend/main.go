@@ -16,6 +16,8 @@ import (
 	"github.com/FeaturePlus/backend/routes"
 	"github.com/jilio/sqlitefs"
 
+	"html/template"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -193,6 +195,19 @@ func main() {
 	// commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo) // Comment out for now
 
 	router := gin.Default()
+
+	// Add dict function to the template FuncMap BEFORE LoadHTMLGlob
+	router.SetFuncMap(template.FuncMap{
+		"dict": func(values ...interface{}) map[string]interface{} {
+			dict := make(map[string]interface{}, len(values)/2)
+			for i := 0; i < len(values); i += 2 {
+				key, _ := values[i].(string)
+				dict[key] = values[i+1]
+			}
+			return dict
+		},
+	})
+
 	router.LoadHTMLGlob("templates/*")
 
 	// Configure multipart form handling
@@ -249,6 +264,7 @@ func main() {
 		web.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
 		web.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 		web.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
+		web.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
 
 		// New fragment route for project list only
 		web.GET("/projects-fragment", ProjectsFragmentHandler)

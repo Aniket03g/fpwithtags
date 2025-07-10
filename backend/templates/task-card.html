@@ -1,4 +1,4 @@
-<div class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full">
+<div class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full" id="task-card-{{ .Task.ID }}">
   <div class="card-body p-6 flex-row items-center justify-between w-full">
     <div class="flex items-center gap-4 w-full">
       <div class="badge badge-primary font-semibold text-base">{{ .Task.TaskType }}</div>
@@ -8,14 +8,15 @@
       </div>
       <div class="card-actions flex-shrink-0 ml-2">
         <button 
-          class="btn btn-square btn-ghost btn-sm opacity-0 group-hover:opacity-100 transition"
           hx-get="/web/fragments/features/{{ .FeatureID }}/tasks/{{ .Task.ID }}/edit"
-          hx-target="closest .card"
+          hx-target="#task-card-{{ .Task.ID }}"
           hx-swap="outerHTML"
           aria-label="Edit Task"
+          title="Edit Task"
+          class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 hover:bg-primary-200 text-primary-700 hover:text-primary-900 shadow transition-colors border border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.5 6.5z" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z" />
           </svg>
         </button>
       </div>

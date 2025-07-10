@@ -14,27 +14,7 @@
   </div>
   <div id="new-feature-form-container"></div>
   <div id="feature-cards-container" class="flex flex-col gap-6 mt-4">
-    {{ range .Features }}
-      <div 
-        class="bg-white rounded-xl shadow border border-gray-200 p-6 flex flex-row items-center gap-8 transition-transform hover:-translate-y-1 hover:shadow-lg cursor-pointer group"
-        style="min-height: 140px; max-height: 140px; height: 140px;"
-        role="button"
-        tabindex="0"
-        hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}"
-        hx-target="#main-content"
-        hx-push-url="true"
-        hx-select="#main-content"
-        hx-swap="innerHTML"
-      >
-        <div class="flex-1 min-w-0 flex flex-col justify-center h-full">
-          <div class="flex items-center gap-4 mb-2">
-            <h3 class="text-xl font-bold text-primary-700 group-hover:text-primary-800">{{ .Title }}</h3>
-          </div>
-          <p class="text-gray-600 text-base mb-2">{{ .Description }}</p>
-        </div>
-        <!-- Removed labels, tags, and To Do button -->
-      </div>
-    {{ end }}
+    {{ template "feature-list-inner.html" . }}
   </div>
 </div>
 </div> 

@@ -657,3 +657,28 @@ func isValidPriority(priority models.FeaturePriority) bool {
 	}
 	return false
 }
+
+// Add these methods to FeatureHandler
+func (h *FeatureHandler) GetFeaturesByProjectID(projectID int) ([]models.Feature, error) {
+	return h.repo.GetFeaturesByProject(projectID)
+}
+
+// Add this method to FeatureHandler
+func (h *FeatureHandler) EditFeatureInline(c *gin.Context) {
+	idStr := c.Param("id")
+	projectIDStr := c.Query("project_id")
+	var projectID int
+	fmt.Sscanf(projectIDStr, "%d", &projectID)
+	featureID := 0
+	fmt.Sscanf(idStr, "%d", &featureID)
+	feature, err := h.repo.GetFeatureByID(featureID)
+	if err != nil {
+		c.String(http.StatusNotFound, "Feature not found")
+		return
+	}
+	c.HTML(http.StatusOK, "feature-card.html", gin.H{
+		"Feature":   feature,
+		"EditingID": feature.ID,
+		"ProjectID": projectID,
+	})
+}

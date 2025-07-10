@@ -6,14 +6,6 @@
   </div>
 {{ else }}
   {{ range .Features }}
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-4 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl cursor-pointer group" role="button" tabindex="0" hx-get="/web/projects/{{ $.ProjectID }}/features/{{ .ID }}" hx-target="#main-content" hx-push-url="true" hx-select="#main-content" hx-swap="innerHTML">
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ .Title }}</h3>
-        <p class="text-gray-500 text-sm mb-4">{{ .Description }}</p>
-      </div>
-      <div class="flex justify-end">
-        <button hx-get="/web/features/{{ .ID }}/edit" hx-target="#feature-list-container" hx-swap="beforeend" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">Edit</button>
-      </div>
-    </div>
+    {{ template "feature-card.html" (dict "Feature" . "EditingID" $.EditingID "ProjectID" $.ProjectID) }}
   {{ end }}
 {{ end }} 
