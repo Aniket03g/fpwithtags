@@ -105,7 +105,7 @@ function tagInput() {
 function tagInputEdit(initialTags) {
   let tags = [];
   if (Array.isArray(initialTags)) {
-    tags = initialTags.map(t => t.TagName);
+    tags = initialTags.map(t => typeof t === "string" ? t : (t.tag_name || ""));
   }
   return {
     input: '',
