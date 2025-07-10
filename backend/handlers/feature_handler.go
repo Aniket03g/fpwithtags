@@ -732,10 +732,16 @@ func (h *FeatureHandler) UpdateFeatureInline(c *gin.Context) {
 	} else if h.tagRepo != nil {
 		_ = h.tagRepo.DeleteTagsByFeatureID(feature.ID)
 	}
+	// Reload feature with tags
+	updatedFeature, err := h.repo.GetFeatureByID(featureID)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Failed to reload feature")
+		return
+	}
 	projectID := c.DefaultQuery("project_id", "0")
 	pid, _ := strconv.Atoi(projectID)
 	c.HTML(http.StatusOK, "feature-card.html", gin.H{
-		"Feature":   feature,
+		"Feature":   updatedFeature,
 		"ProjectID": pid,
 	})
 }
