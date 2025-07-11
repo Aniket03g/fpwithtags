@@ -1,21 +1,28 @@
 {{ $f := .Feature }}
 <div id="feature-card-{{ $f.ID }}"
-  class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-4 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl group cursor-pointer"
+  class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-4 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl group"
   role="region" tabindex="0"
   style="position:relative;"
 >
-  <div>
+  <!-- Main clickable area: title and description only -->
+  <a
+    href="/web/projects/{{ $.ProjectID }}/features/{{ $f.ID }}"
+    class="block cursor-pointer"
+    style="width:100%; text-decoration: none;"
+  >
     <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ $f.Title }}</h3>
     <p class="text-gray-500 text-sm mb-4">{{ $f.Description }}</p>
-    {{ if $f.Tags }}
-      <div class="flex flex-wrap gap-2 mt-2">
-        {{ range $f.Tags }}
-          <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm font-medium">{{ .TagName }}</span>
-        {{ end }}
-      </div>
-    {{ end }}
-  </div>
-  <div class="flex justify-end gap-2">
+  </a>
+  <!-- Tag chips (not clickable, visually separate) -->
+  {{ if $f.Tags }}
+    <div class="flex flex-wrap gap-2 mt-2">
+      {{ range $f.Tags }}
+        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm font-medium">{{ .TagName }}</span>
+      {{ end }}
+    </div>
+  {{ end }}
+  <!-- Pencil icon (edit) -->
+  <div class="flex justify-end gap-2 mt-2">
     <button 
       hx-get="/web/features/{{ $f.ID }}/edit-inline?project_id={{ $.ProjectID }}"
       hx-target="#feature-card-{{ $f.ID }}"
