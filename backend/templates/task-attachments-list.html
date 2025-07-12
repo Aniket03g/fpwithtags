@@ -1,19 +1,58 @@
 {{ if .Attachments }}
   <div class="mt-2 space-y-2">
     {{ range .Attachments }}
-      <div class="flex items-center gap-3 bg-white rounded shadow px-3 py-2">
+      <div class="flex items-center gap-3 bg-white rounded shadow px-3 py-2" x-data="{ showConfirm: false }">
         <a href="/api/attachments/{{ .FileName }}" target="_blank" class="text-blue-700 hover:underline flex items-center gap-1">
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586" /></svg>
           <span>{{ .FileName }}</span>
         </a>
         <span class="text-xs text-gray-400">{{ .MimeType }}</span>
         <span class="text-xs text-gray-400">{{ printf "%.1f KB" (div (float64 .FileSize) 1024.0) }}</span>
-        <button 
-          hx-delete="/api/attachments/{{ .ID }}"
-          hx-target="#attachments-list-{{ $.TaskID }}"
-          hx-swap="outerHTML"
-          class="ml-auto text-red-500 hover:underline text-xs"
-        >Delete</button>
+        {{ if (hasPrefix .MimeType "image/") }}
+          <img src="/api/attachments/{{ .FileName }}" alt="preview" class="h-10 w-10 object-cover rounded border ml-2" />
+        {{ end }}
+        <div class="flex-1"></div>
+        <button
+          type="button"
+          aria-label="Delete attachment"
+          class="text-red-600 hover:text-red-800"
+          @click="showConfirm = true"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4a2 2 0 012 2v2H7V5a2 2 0 012-2zm0 0V3m0 2v2" />
+          </svg>
+        </button>
+        <!-- Confirmation Modal -->
+        <div
+          x-show="showConfirm"
+          class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30"
+          style="display: none;"
+        >
+          <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+            <div class="font-semibold text-lg mb-2">Delete Attachment?</div>
+            <div class="text-gray-600 mb-4">Are you sure you want to delete this attachment? This action cannot be undone.</div>
+            <div class="flex justify-end gap-2">
+              <button
+                type="button"
+                class="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                @click="showConfirm = false"
+              >Cancel</button>
+              <form
+                method="POST"
+                hx-delete="/api/attachments/{{ .ID }}"
+                hx-target="#attachments-list-{{ $.TaskID }}"
+                hx-swap="outerHTML"
+                @submit="showConfirm = false"
+                class="inline"
+              >
+                <button
+                  type="submit"
+                  class="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                >Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     {{ end }}
   </div>

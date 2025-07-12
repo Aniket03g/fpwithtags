@@ -229,6 +229,7 @@ func main() {
 				return 0
 			}
 		},
+		"hasPrefix": strings.HasPrefix,
 	})
 
 	router.LoadHTMLGlob("templates/*")
@@ -272,6 +273,8 @@ func main() {
 		}
 		api.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
 		api.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
+		api.GET("/attachments/:filename", attachmentHandler.ServeAttachment)
+		api.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)
 	}
 
 	// ==========================================================

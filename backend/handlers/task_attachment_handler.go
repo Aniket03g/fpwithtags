@@ -115,40 +115,49 @@ func (h *TaskAttachmentHandler) DownloadAttachment(c *gin.Context) {
 	c.DataFromReader(http.StatusOK, -1, "application/octet-stream", file, nil)
 }
 
-func (h *TaskAttachmentHandler) DeleteAttachment(c *gin.Context) {
-	attachmentID, err := strconv.ParseUint(c.Param("attachmentId"), 10, 32)
+func (h *TaskAttachmentHandler) ServeAttachment(c *gin.Context) {
+	filename := c.Param("filename")
+	file, err := h.sqliteFS.Open(filename)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid attachment ID: %v", err)})
+		c.JSON(404, gin.H{"error": "File not found"})
 		return
 	}
+	defer file.Close()
 
-	// Log the request details
-	fmt.Printf("Deleting attachment: ID=%d\n", attachmentID)
+	// Try to get the MIME type from the DB (optional, fallback to octet-stream)
+	mimeType := "application/octet-stream"
+	attachment, err := h.attachmentRepo.GetByFileName(filename)
+	if err == nil && attachment.MimeType != "" {
+		mimeType = attachment.MimeType
+	}
+	c.DataFromReader(200, -1, mimeType, file, nil)
+}
 
-	// Get the attachment first to get the filename
+func (h *TaskAttachmentHandler) DeleteAttachment(c *gin.Context) {
+	attachmentID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid attachment ID"})
+		return
+	}
+	// Get the attachment to find the task ID
 	attachment, err := h.attachmentRepo.GetByID(uint(attachmentID))
 	if err != nil {
-		fmt.Printf("Error getting attachment: %v\n", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Attachment not found: %v", err)})
+		c.JSON(404, gin.H{"error": "Attachment not found"})
 		return
 	}
-
-	fmt.Printf("Found attachment: ID=%d, TaskID=%d, FileName=%s\n", attachment.ID, attachment.TaskID, attachment.FileName)
-
-	// Delete the file from SQLiteFS
-	writer := h.sqliteFS.NewWriter(attachment.FileName)
-	if err := writer.Close(); err != nil {
-		fmt.Printf("Error deleting file: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to delete file: %v", err)})
-		return
-	}
-
-	// Delete the record from database
+	// Delete the file and DB record
 	if err := h.attachmentRepo.Delete(uint(attachmentID)); err != nil {
-		fmt.Printf("Error deleting record: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to delete attachment record: %v", err)})
+		c.JSON(500, gin.H{"error": "Failed to delete attachment"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Attachment deleted successfully"})
+	// Return updated attachments list for the task
+	attachments, err := h.attachmentRepo.GetByTaskID(attachment.TaskID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to fetch attachments"})
+		return
+	}
+	c.HTML(200, "task-attachments-list.html", gin.H{
+		"Attachments": attachments,
+		"TaskID":      attachment.TaskID,
+	})
 }

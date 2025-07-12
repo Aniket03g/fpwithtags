@@ -11,6 +11,7 @@ type TaskAttachmentRepository interface {
 	Delete(attachmentID uint) error
 	GetByTaskID(taskID uint) ([]models.TaskAttachment, error)
 	GetByID(attachmentID uint) (*models.TaskAttachment, error)
+	GetByFileName(filename string) (*models.TaskAttachment, error)
 }
 
 type taskAttachmentRepository struct {
@@ -50,7 +51,16 @@ func (r *taskAttachmentRepository) GetByTaskID(taskID uint) ([]models.TaskAttach
 
 func (r *taskAttachmentRepository) GetByID(attachmentID uint) (*models.TaskAttachment, error) {
 	var attachment models.TaskAttachment
-	err := r.db.Preload("Task").First(&attachment, attachmentID).Error
+	err := r.db.First(&attachment, attachmentID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &attachment, nil
+}
+
+func (r *taskAttachmentRepository) GetByFileName(filename string) (*models.TaskAttachment, error) {
+	var attachment models.TaskAttachment
+	err := r.db.Where("file_name = ?", filename).First(&attachment).Error
 	if err != nil {
 		return nil, err
 	}
