@@ -181,18 +181,18 @@ func main() {
 	userRepo := repositories.NewUserRepository(db.DB)
 	projectRepo := repositories.NewProjectRepository(db.DB)
 	featureRepo := repositories.NewFeatureRepository(db.DB)
-	taskRepo := repositories.NewTaskRepository(db.DB) // Uncommented
+	taskRepo := repositories.NewTaskRepository(db.DB)
 	tagRepo := repositories.NewTagRepository(db.DB)
-	// attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS) // Comment out for now
+	attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS)
 	// commentRepo := repositories.NewCommentRepository(db.DB) // Comment out for now
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
 	projectHandler := handlers.NewProjectHandler(projectRepo)
-	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, taskRepo, db.DB) // Added taskRepo
-	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)                             // Uncommented
+	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, taskRepo, db.DB)
+	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)
+	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
 	// tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB) // Comment out for now
-	// attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS) // Comment out for now
 	// commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo) // Comment out for now
 
 	router := gin.Default()
@@ -210,6 +210,24 @@ func main() {
 		"toJson": func(v interface{}) template.JS {
 			a, _ := json.Marshal(v)
 			return template.JS(a)
+		},
+		"div": func(a, b float64) float64 {
+			if b == 0 {
+				return 0
+			}
+			return a / b
+		},
+		"float64": func(i interface{}) float64 {
+			switch v := i.(type) {
+			case int:
+				return float64(v)
+			case int64:
+				return float64(v)
+			case float64:
+				return v
+			default:
+				return 0
+			}
 		},
 	})
 
@@ -253,6 +271,7 @@ func main() {
 			// ... etc
 		}
 		api.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
+		api.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
 	}
 
 	// ==========================================================
@@ -332,6 +351,9 @@ func main() {
 		}
 		c.File(indexPath)
 	})
+
+	// Serve the minimal test upload page for debugging
+	router.StaticFile("/test-upload", "./templates/task-attachments-test.html")
 
 	// Start server
 	log.Println("Server starting on :8080...")

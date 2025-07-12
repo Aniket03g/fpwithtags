@@ -1,25 +1,81 @@
-<div class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full" id="task-card-{{ .Task.ID }}">
-  <div class="card-body p-6 flex-row items-center justify-between w-full">
-    <div class="flex items-center gap-4 w-full">
+<div x-data="{ open: false }" class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full" id="task-card-{{ .Task.ID }}">
+  <!-- Header -->
+  <div class="card-body p-6 flex-row items-center justify-between w-full flex cursor-pointer select-none" @click="open = !open">
+    <div class="flex items-center gap-4 w-full flex-1">
       <div class="badge badge-primary font-semibold text-base">{{ .Task.TaskType }}</div>
       <div class="flex-1">
         <h4 class="font-bold text-base-content text-lg">{{ .Task.TaskName }}</h4>
         <p class="text-base-content/70 mt-1">{{ .Task.Description }}</p>
       </div>
-      <div class="card-actions flex-shrink-0 ml-2">
-        <button 
-          hx-get="/web/fragments/features/{{ .FeatureID }}/tasks/{{ .Task.ID }}/edit"
-          hx-target="#task-card-{{ .Task.ID }}"
-          hx-swap="outerHTML"
-          aria-label="Edit Task"
-          title="Edit Task"
-          class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 hover:bg-primary-200 text-primary-700 hover:text-primary-900 shadow transition-colors border border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z" />
-          </svg>
-        </button>
+    </div>
+    <!-- Chevron Icon -->
+    <button type="button" @click.stop="open = !open" aria-label="Toggle Details" class="ml-2 p-2 rounded-full hover:bg-gray-100 transition">
+      <svg :class="{'rotate-180': open, 'rotate-0': !open}" class="h-5 w-5 text-gray-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <!-- Edit Button -->
+    <div class="card-actions flex-shrink-0 ml-2">
+      <button 
+        hx-get="/web/fragments/features/{{ .FeatureID }}/tasks/{{ .Task.ID }}/edit"
+        hx-target="#task-card-{{ .Task.ID }}"
+        hx-swap="outerHTML"
+        aria-label="Edit Task"
+        title="Edit Task"
+        class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 hover:bg-primary-200 text-primary-700 hover:text-primary-900 shadow transition-colors border border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13h6m2 0a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+  <!-- Collapsible Content -->
+  <div x-show="open" x-transition class="px-6 pb-6 pt-4 min-h-[100px] bg-gray-50 border-t border-gray-200">
+    <div class="flex items-center justify-between py-6 px-2 min-h-[80px]">
+      <div class="flex items-center gap-2">
+        <!-- Paperclip Icon -->
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79V17a5 5 0 01-10 0V7a3 3 0 016 0v8a1 1 0 01-2 0V8" />
+        </svg>
+        <span class="font-semibold text-base">Attachments</span>
       </div>
+      <!-- File Upload Form (HTMX) -->
+      <form
+        method="POST"
+        hx-post="/api/tasks/{{ .Task.ID }}/attachments"
+        hx-encoding="multipart/form-data"
+        hx-target="#attachments-list-{{ .Task.ID }}"
+        hx-swap="outerHTML"
+        class="flex items-center gap-2"
+        enctype="multipart/form-data"
+      >
+        <input
+          type="file"
+          name="file"
+          class="hidden"
+          id="file-input-{{ .Task.ID }}"
+          accept="image/*"
+          required
+        />
+        <button
+          type="button"
+          onclick="document.getElementById('file-input-{{ .Task.ID }}').click()"
+          class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition"
+        >
+          Choose File
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+        >
+          Add File
+        </button>
+      </form>
+    </div>
+    <!-- Attachments list will be rendered here after upload -->
+    <div id="attachments-list-{{ .Task.ID }}">
+      {{ template "task-attachments-list.html" (dict "Attachments" .Task.Attachments "TaskID" .Task.ID) }}
     </div>
   </div>
 </div> 

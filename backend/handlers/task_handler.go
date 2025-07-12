@@ -136,11 +136,10 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 	var tasks []models.Task
 	var err error
 
-	// Apply filter if specified and not "All"
 	if filterType != "All" {
-		err = h.DB.Unscoped().Preload("Attachments").Where("feature_id = ? AND task_type = ?", featureID, filterType).Find(&tasks).Error
+		err = h.DB.Preload("Attachments").Where("feature_id = ? AND task_type = ?", featureID, filterType).Find(&tasks).Error
 	} else {
-		tasks, err = h.taskRepo.GetByFeatureID(uint(featureID))
+		err = h.DB.Preload("Attachments").Where("feature_id = ?", featureID).Find(&tasks).Error
 	}
 
 	if err != nil {

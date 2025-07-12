@@ -68,7 +68,16 @@ func (h *TaskAttachmentHandler) UploadAttachment(c *gin.Context) {
 	}
 
 	// Return the created attachment with its ID
-	c.JSON(http.StatusCreated, attachment)
+	// Fetch all attachments for the task
+	attachments, err := h.attachmentRepo.GetByTaskID(uint(taskID))
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Failed to fetch attachments")
+		return
+	}
+	c.HTML(http.StatusOK, "task-attachments-list.html", gin.H{
+		"Attachments": attachments,
+		"TaskID":      taskID,
+	})
 }
 
 func (h *TaskAttachmentHandler) GetTaskAttachments(c *gin.Context) {
