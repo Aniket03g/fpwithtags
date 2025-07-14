@@ -24,18 +24,13 @@ func NewCommentHandler(commentRepo *repositories.CommentRepository, attachmentRe
 // CreateComment creates a new comment for a task
 func (h *CommentHandler) CreateComment(c *gin.Context) {
 	var comment models.Comment
-	if err := c.ShouldBindJSON(&comment); err != nil {
+	if err := c.ShouldBind(&comment); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Get user ID from context
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
-		return
-	}
-	comment.UserID = userID.(uint)
+	// TEMP: No auth, so use default user
+	comment.UserID = 1
 
 	// Validate task ID from URL
 	taskID, err := strconv.ParseUint(c.Param("task_id"), 10, 32)
@@ -64,14 +59,31 @@ func (h *CommentHandler) CreateComment(c *gin.Context) {
 		return
 	}
 
-	// Fetch the complete comment with relationships
-	createdComment, err := h.commentRepo.GetByID(comment.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch created comment"})
-		return
+	if comment.AttachmentID != nil {
+		// Attachment-specific comment
+		comments, _ := h.commentRepo.GetByAttachmentID(*comment.AttachmentID)
+		c.HTML(http.StatusOK, "attachment-comments-section.html", gin.H{
+			"Comments":     comments,
+			"TaskID":       comment.TaskID,
+			"AttachmentID": *comment.AttachmentID,
+			"PostURL":      "/api/tasks/" + strconv.Itoa(int(comment.TaskID)) + "/comments",
+		})
+	} else {
+		// General task comment
+		comments, _ := h.commentRepo.GetByTaskID(comment.TaskID)
+		// Filter only general comments (AttachmentID == nil)
+		var generalComments []models.Comment
+		for _, cm := range comments {
+			if cm.AttachmentID == nil {
+				generalComments = append(generalComments, cm)
+			}
+		}
+		c.HTML(http.StatusOK, "task-comments-section.html", gin.H{
+			"Comments": generalComments,
+			"TaskID":   comment.TaskID,
+			"PostURL":  "/api/tasks/" + strconv.Itoa(int(comment.TaskID)) + "/comments",
+		})
 	}
-
-	c.JSON(http.StatusCreated, createdComment)
 }
 
 // GetTaskComments retrieves all comments for a task

@@ -1,0 +1,6 @@
+<div id="attachment-comments-section-{{ .AttachmentID }}">
+  <div id="attachment-comments-list-{{ .AttachmentID }}">
+    {{ template "attachment-comments-list.html" (dict "Comments" .Comments "TaskID" .TaskID "AttachmentID" .AttachmentID) }}
+  </div>
+  {{ template "comment-form.html" (dict "TaskID" .TaskID "AttachmentID" .AttachmentID "PostURL" .PostURL "TargetID" (printf "#attachment-comments-section-%d" .AttachmentID)) }}
+</div> 

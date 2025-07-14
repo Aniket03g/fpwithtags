@@ -184,7 +184,7 @@ func main() {
 	taskRepo := repositories.NewTaskRepository(db.DB)
 	tagRepo := repositories.NewTagRepository(db.DB)
 	attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS)
-	// commentRepo := repositories.NewCommentRepository(db.DB) // Comment out for now
+	commentRepo := repositories.NewCommentRepository(db.DB)
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
@@ -192,8 +192,7 @@ func main() {
 	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, taskRepo, db.DB)
 	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)
 	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
-	// tagHandler := handlers.NewTagHandler(tagRepo, featureRepo, db.DB) // Comment out for now
-	// commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo) // Comment out for now
+	commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo)
 
 	router := gin.Default()
 
@@ -273,8 +272,14 @@ func main() {
 		}
 		api.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
 		api.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
-		api.GET("/attachments/:filename", attachmentHandler.ServeAttachment)
+		// Change file serving route to avoid conflict
+		api.GET("/attachments/file/:filename", attachmentHandler.ServeAttachment)
 		api.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)
+		api.POST("/tasks/:task_id/comments", commentHandler.CreateComment)
+		api.GET("/tasks/:task_id/comments", commentHandler.GetTaskComments)
+		api.GET("/attachments/:attachment_id/comments", commentHandler.GetAttachmentComments)
+		api.PUT("/comments/:comment_id", commentHandler.UpdateComment)
+		api.DELETE("/comments/:comment_id", commentHandler.DeleteComment)
 	}
 
 	// ==========================================================

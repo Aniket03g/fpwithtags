@@ -1,0 +1,24 @@
+<form hx-post="{{.PostURL}}" hx-target="{{.TargetID}}" hx-swap="outerHTML" class="comments-form flex items-center mt-2">
+  <input
+    type="text"
+    name="content"
+    placeholder="Add a comment..."
+    class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    autocomplete="off"
+    required
+  />
+  {{ if .AttachmentID }}
+    <input type="hidden" name="attachment_id" value="{{ .AttachmentID }}" />
+  {{ end }}
+  <button
+    type="submit"
+    class="ml-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-2 flex items-center justify-center"
+    aria-label="Send"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+         viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  </button>
+</form> 

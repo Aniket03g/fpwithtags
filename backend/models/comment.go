@@ -7,9 +7,9 @@ import (
 type Comment struct {
 	ID           uint      `json:"id" gorm:"primarykey"`
 	TaskID       uint      `json:"task_id"`
-	AttachmentID *uint     `json:"attachment_id,omitempty"` // Optional reference to an attachment
+	AttachmentID *uint     `form:"attachment_id" json:"attachment_id,omitempty"` // Optional reference to an attachment
 	UserID       uint      `json:"user_id"`
-	Content      string    `json:"content" gorm:"type:text"`
+	Content      string    `form:"content" json:"content" gorm:"type:text"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 

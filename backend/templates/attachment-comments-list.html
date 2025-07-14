@@ -1,0 +1,12 @@
+{{ if .Comments }}
+  <ul class="space-y-2">
+    {{ range .Comments }}
+      <li class="bg-gray-50 rounded shadow px-3 py-2">
+        <div class="text-sm text-gray-800">{{ .Content }}</div>
+        <div class="text-xs text-gray-400">{{ .User.Username }} • {{ .CreatedAt.Format "Jan 2, 15:04" }}</div>
+      </li>
+    {{ end }}
+  </ul>
+{{ else }}
+  <div class="text-gray-400 text-xs">No comments for this file.</div>
+{{ end }} 

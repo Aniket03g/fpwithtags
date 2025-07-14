@@ -11,4 +11,5 @@ type Task struct {
 	SubFeatureID  uint             `json:"sub_feature_id"`
 	CreatedByUser uint             `json:"created_by_user"`
 	Attachments   []TaskAttachment `json:"attachments" gorm:"foreignKey:TaskID"`
+	Comments      []Comment        `json:"comments" gorm:"foreignKey:TaskID"`
 }

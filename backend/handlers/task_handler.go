@@ -147,6 +147,25 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 		return
 	}
 
+	// Preload comments for each task and each attachment
+	commentRepo := repositories.NewCommentRepository(h.DB)
+	for i := range tasks {
+		comments, _ := commentRepo.GetByTaskID(tasks[i].ID)
+		// Only general comments (AttachmentID == nil)
+		var generalComments []models.Comment
+		for _, cm := range comments {
+			if cm.AttachmentID == nil {
+				generalComments = append(generalComments, cm)
+			}
+		}
+		tasks[i].Comments = generalComments
+		// Preload comments for each attachment
+		for j := range tasks[i].Attachments {
+			attComments, _ := commentRepo.GetByAttachmentID(tasks[i].Attachments[j].ID)
+			tasks[i].Attachments[j].Comments = attComments
+		}
+	}
+
 	c.HTML(http.StatusOK, "task-list.html", gin.H{
 		"Tasks":      tasks,
 		"Feature":    gin.H{"ID": featureID},

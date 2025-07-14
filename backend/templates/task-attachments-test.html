@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attachment Upload Test</title>
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+  <h2>Minimal Attachment Upload Test</h2>
+  <form method="POST" hx-post="/api/tasks/30/attachments" hx-encoding="multipart/form-data" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <button type="submit">Upload</button>
+  </form>
+  <div id="result"></div>
+</body>
+</html> 

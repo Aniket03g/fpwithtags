@@ -2,14 +2,14 @@
   <div class="mt-2 space-y-2">
     {{ range .Attachments }}
       <div class="flex items-center gap-3 bg-white rounded shadow px-3 py-2" x-data="{ showConfirm: false }">
-        <a href="/api/attachments/{{ .FileName }}" target="_blank" class="text-blue-700 hover:underline flex items-center gap-1">
+        <a href="/api/attachments/file/{{ .FileName }}" target="_blank" class="text-blue-700 hover:underline flex items-center gap-1">
           <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 10-5.656-5.656l-6.586 6.586" /></svg>
           <span>{{ .FileName }}</span>
         </a>
         <span class="text-xs text-gray-400">{{ .MimeType }}</span>
         <span class="text-xs text-gray-400">{{ printf "%.1f KB" (div (float64 .FileSize) 1024.0) }}</span>
         {{ if (hasPrefix .MimeType "image/") }}
-          <img src="/api/attachments/{{ .FileName }}" alt="preview" class="h-10 w-10 object-cover rounded border ml-2" />
+          <img src="/api/attachments/file/{{ .FileName }}" alt="preview" class="h-10 w-10 object-cover rounded border ml-2" />
         {{ end }}
         <div class="flex-1"></div>
         <button

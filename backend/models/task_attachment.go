@@ -12,5 +12,6 @@ type TaskAttachment struct {
 	FileName  string    `json:"file_name"`
 	FileSize  int64     `json:"file_size"`
 	MimeType  string    `json:"mime_type"`
+	Comments  []Comment `json:"comments" gorm:"foreignKey:AttachmentID"`
 	// Task      Task      `json:"Task" gorm:"foreignKey:TaskID"` // Removed to prevent recursive preload issues
 }
