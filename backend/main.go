@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -173,7 +171,11 @@ func main() {
 	defer sqliteFS.Close()
 
 	// Migrate all schemas
-	if err := db.Migrate(&models.User{}, &models.Project{}, &models.Feature{}, &models.SubFeature{}, &models.Task{}, &models.FeatureTag{}, &models.TaskAttachment{}, &models.Comment{}); err != nil {
+	if err := db.Migrate(
+		&models.User{}, &models.Project{}, &models.Feature{}, &models.SubFeature{},
+		&models.Task{}, &models.FeatureTag{}, &models.TaskAttachment{}, &models.Comment{},
+		&models.PullRequest{}, // <-- add this line
+	); err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}
 
@@ -185,6 +187,7 @@ func main() {
 	tagRepo := repositories.NewTagRepository(db.DB)
 	attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS)
 	commentRepo := repositories.NewCommentRepository(db.DB)
+	prRepo := repositories.NewPullRequestRepository(db.DB)
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
@@ -193,6 +196,7 @@ func main() {
 	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)
 	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
 	commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo)
+	prHandler := handlers.NewPullRequestHandler(prRepo)
 
 	router := gin.Default()
 
@@ -309,6 +313,13 @@ func main() {
 		web.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
 	}
 
+	// Register the PR modal route for tasks (for HTMX modal)
+	router.GET("/tasks/:id/prs/new", taskHandler.NewPullRequestModal)
+
+	// Register PR routes
+	router.POST("/tasks/:id/prs", prHandler.AddPullRequest)
+	router.POST("/prs/:id/mark-tested", prHandler.MarkTested)
+
 	// New fragment group for all HTMX fragments
 	fragments := router.Group("/web/fragments", FragmentHTMXGuard())
 	{
@@ -334,30 +345,6 @@ func main() {
 			"status":  "ok",
 			"version": "1.0.0",
 		})
-	})
-
-	// Serving static frontend files
-	staticDir := "../frontend/.next"
-	router.Static("/static", filepath.Join(staticDir, "static"))
-	router.Static("/_next", filepath.Join(staticDir, "static"))
-
-	// Handle unmatched routes
-	router.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "/api/") || strings.HasPrefix(c.Request.URL.Path, "/web/") {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Endpoint not found"})
-			return
-		}
-		path := filepath.Join(staticDir, c.Request.URL.Path)
-		if _, err := os.Stat(path); err == nil {
-			c.File(path)
-			return
-		}
-		indexPath := filepath.Join(staticDir, "server", "app", "index.html")
-		if _, err := os.Stat(indexPath); os.IsNotExist(err) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Frontend build not found"})
-			return
-		}
-		c.File(indexPath)
 	})
 
 	// Serve the minimal test upload page for debugging

@@ -55,6 +55,15 @@
   </div>
 </body>
 <script>
+// Debounce utility
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
 function tagInput() {
   return {
     input: '',
@@ -73,6 +82,7 @@ function tagInput() {
       this.suggestions = await resp.json();
       this.showDropdown = this.suggestions.length > 0;
     },
+    debouncedFetchSuggestions: null,
     addTag(tag) {
       tag = (tag || this.input).trim().replace(/[,;]$/, '');
       if (tag) {
@@ -89,7 +99,10 @@ function tagInput() {
       this.tags.splice(idx, 1);
     },
     onInput() {
-      this.fetchSuggestions();
+      if (!this.debouncedFetchSuggestions) {
+        this.debouncedFetchSuggestions = debounce(this.fetchSuggestions.bind(this), 4000);
+      }
+      this.debouncedFetchSuggestions();
     },
     onKeydown(e) {
       if ([',', ';', ' '].includes(e.key)) {
@@ -124,6 +137,7 @@ function tagInputEdit(initialTags) {
       this.suggestions = await resp.json();
       this.showDropdown = this.suggestions.length > 0;
     },
+    debouncedFetchSuggestions: null,
     addTag(tag) {
       tag = (tag || this.input).trim().replace(/[,;]$/, '');
       if (tag) {
@@ -140,7 +154,10 @@ function tagInputEdit(initialTags) {
       this.tags.splice(idx, 1);
     },
     onInput() {
-      this.fetchSuggestions();
+      if (!this.debouncedFetchSuggestions) {
+        this.debouncedFetchSuggestions = debounce(this.fetchSuggestions.bind(this), 6000);
+      }
+      this.debouncedFetchSuggestions();
     },
     onKeydown(e) {
       if ([',', ';', ' '].includes(e.key)) {

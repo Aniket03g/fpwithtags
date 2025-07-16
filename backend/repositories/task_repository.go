@@ -45,7 +45,7 @@ func (r *taskRepository) GetByID(taskID uint) (*models.Task, error) {
 
 func (r *taskRepository) GetByFeatureID(featureID uint) ([]models.Task, error) {
 	var tasks []models.Task
-	err := r.db.Unscoped().Preload("Attachments").Where("feature_id = ?", featureID).Find(&tasks).Error
+	err := r.db.Debug().Unscoped().Preload("Attachments").Where("feature_id = ?", featureID).Find(&tasks).Error
 	return tasks, err
 }
 

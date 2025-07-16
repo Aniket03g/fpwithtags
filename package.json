@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build-backend-css": ".\\tailwindcss.exe -i ./styles/input.css -o ./backend/static/css/style.css --watch"
+    "build-backend-css": "node ./node_modules/tailwindcss/lib/cli.js -i ./styles/input.css -o ./backend/static/css/style.css --watch"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -10,6 +10,6 @@
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^3.4.17"
   }
 }

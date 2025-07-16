@@ -12,4 +12,5 @@ type Task struct {
 	CreatedByUser uint             `json:"created_by_user"`
 	Attachments   []TaskAttachment `json:"attachments" gorm:"foreignKey:TaskID"`
 	Comments      []Comment        `json:"comments" gorm:"foreignKey:TaskID"`
+	PullRequests  []PullRequest    `json:"pull_requests" gorm:"-"`
 }

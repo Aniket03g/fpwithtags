@@ -164,6 +164,8 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 			attComments, _ := commentRepo.GetByAttachmentID(tasks[i].Attachments[j].ID)
 			tasks[i].Attachments[j].Comments = attComments
 		}
+		// Always set PullRequests to an empty slice for template rendering
+		tasks[i].PullRequests = []models.PullRequest{}
 	}
 
 	c.HTML(http.StatusOK, "task-list.html", gin.H{
@@ -258,6 +260,27 @@ func (h *TaskHandler) CreateTaskForFeature(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch tasks"})
 		return
+	}
+
+	// Preload comments for each task and each attachment (same as GetTasksByFeature)
+	commentRepo := repositories.NewCommentRepository(h.DB)
+	for i := range tasks {
+		comments, _ := commentRepo.GetByTaskID(tasks[i].ID)
+		// Only general comments (AttachmentID == nil)
+		var generalComments []models.Comment
+		for _, cm := range comments {
+			if cm.AttachmentID == nil {
+				generalComments = append(generalComments, cm)
+			}
+		}
+		tasks[i].Comments = generalComments
+		// Preload comments for each attachment
+		for j := range tasks[i].Attachments {
+			attComments, _ := commentRepo.GetByAttachmentID(tasks[i].Attachments[j].ID)
+			tasks[i].Attachments[j].Comments = attComments
+		}
+		// Always set PullRequests to an empty slice for template rendering
+		tasks[i].PullRequests = []models.PullRequest{}
 	}
 
 	// Render the updated task list
@@ -503,4 +526,14 @@ func (h *TaskHandler) ViewTaskCard(c *gin.Context) {
 		return
 	}
 	c.HTML(http.StatusOK, "task-card.html", gin.H{"Task": task, "FeatureID": featureID})
+}
+
+// Serve the PR modal for a task
+func (h *TaskHandler) NewPullRequestModal(c *gin.Context) {
+	taskID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.String(http.StatusBadRequest, "Invalid task ID")
+		return
+	}
+	c.HTML(http.StatusOK, "pr-modal.html", gin.H{"TaskID": taskID})
 }
