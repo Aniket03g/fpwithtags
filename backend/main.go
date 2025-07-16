@@ -71,7 +71,9 @@ func RenderAppShell(c *gin.Context) {
 
 	// Build fragment URL for new /web/fragments group
 	switch {
-	case path == "/dashboard" || path == "/projects":
+	case path == "/dashboard":
+		fragment = "/web/fragments/dashboard-status"
+	case path == "/projects":
 		fragment = "/web/fragments/projects"
 	case strings.HasPrefix(path, "/projects/") && strings.HasSuffix(path, "/features"):
 		// e.g. /projects/8/features -> /web/projects/8/features/content
@@ -148,6 +150,15 @@ func FragmentHTMXGuard() gin.HandlerFunc {
 		c.Redirect(http.StatusFound, "/web/dashboard")
 		c.Abort()
 	}
+}
+
+// Handler for dashboard status fragment
+func DashboardStatusFragment(c *gin.Context) {
+	// Example: check if user is logged in (replace with real auth logic)
+	_, loggedIn := c.Get("user_id")
+	c.HTML(http.StatusOK, "dashboard-status.html", gin.H{
+		"LoggedIn": loggedIn,
+	})
 }
 
 func main() {
@@ -349,6 +360,9 @@ func main() {
 
 	// Serve the minimal test upload page for debugging
 	router.StaticFile("/test-upload", "./templates/task-attachments-test.html")
+
+	// Register the dashboard status fragment
+	router.GET("/web/fragments/dashboard-status", DashboardStatusFragment)
 
 	// Start server
 	log.Println("Server starting on :8080...")
