@@ -149,6 +149,7 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 
 	// Preload comments for each task and each attachment
 	commentRepo := repositories.NewCommentRepository(h.DB)
+	prRepo := repositories.NewPullRequestRepository(h.DB)
 	for i := range tasks {
 		comments, _ := commentRepo.GetByTaskID(tasks[i].ID)
 		// Only general comments (AttachmentID == nil)
@@ -164,8 +165,9 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 			attComments, _ := commentRepo.GetByAttachmentID(tasks[i].Attachments[j].ID)
 			tasks[i].Attachments[j].Comments = attComments
 		}
-		// Always set PullRequests to an empty slice for template rendering
-		tasks[i].PullRequests = []models.PullRequest{}
+		// Load PullRequests for this task
+		prs, _ := prRepo.GetByTaskID(tasks[i].ID)
+		tasks[i].PullRequests = prs
 	}
 
 	c.HTML(http.StatusOK, "task-list.html", gin.H{

@@ -1,10 +1,12 @@
-<div x-data="{ open: false }" class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full" id="task-card-{{ .Task.ID }}">
+<div x-data="{ open: false }" class="card bg-base-100 shadow-md border border-base-300 group mb-4 w-full max-w-3xl mx-auto" id="task-card-{{ .Task.ID }}">
   <!-- Header -->
   <div class="card-body p-6 flex-row items-center justify-between w-full flex cursor-pointer select-none" @click="open = !open">
     <div class="flex items-center gap-4 w-full flex-1">
       <div class="badge badge-primary font-semibold text-base">{{ .Task.TaskType }}</div>
       <div class="flex-1">
-        <h4 class="font-bold text-base-content text-lg">{{ .Task.TaskName }}</h4>
+        <h4 class="font-bold text-base-content text-lg flex items-center gap-2">
+          {{ .Task.TaskName }}
+        </h4>
         <p class="text-base-content/70 mt-1">{{ .Task.Description }}</p>
       </div>
     </div>
@@ -122,6 +124,17 @@
           Add Pull Request
         </button>
       </div>
+      <!-- PR List Visual -->
+      {{ if .Task.PullRequests }}
+        <ul class="mb-2 ml-1 space-y-1">
+          {{ range .Task.PullRequests }}
+            <li class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 17v1a3 3 0 01-6 0v-1m6 0V7a2 2 0 00-2-2h-4a2 2 0 00-2 2v10m6 0a2 2 0 01-2 2m0-2a2 2 0 00-2-2m0 2a2 2 0 002 2" /></svg>
+              <span class="text-xs text-green-700 font-medium">{{ .Title }}</span>
+            </li>
+          {{ end }}
+        </ul>
+      {{ end }}
       <!-- Modal Target for PR Form -->
       <div id="pr-modal-{{.Task.ID}}"></div>
     </section>
