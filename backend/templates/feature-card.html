@@ -17,7 +17,14 @@
   {{ if $f.Tags }}
     <div class="flex flex-wrap gap-2 mt-2">
       {{ range $f.Tags }}
-        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm font-medium">{{ .TagName }}</span>
+        <a 
+          href="#"
+          hx-get="/web/fragments/features?tag={{ .TagName }}"
+          hx-target="#main-content"
+          hx-swap="innerHTML"
+          class="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-100 hover:text-blue-700 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          style="text-decoration:none;"
+          >{{ .TagName }}</a>
       {{ end }}
     </div>
   {{ end }}

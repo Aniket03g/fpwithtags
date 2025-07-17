@@ -166,6 +166,23 @@ func LoginPageHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", nil)
 }
 
+// Handler for features by tag (HTML fragment)
+func FeaturesByTagFragment(featureHandler *handlers.FeatureHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tag := c.Query("tag")
+		if tag == "" {
+			c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": []interface{}{}, "TagFilter": tag})
+			return
+		}
+		features, err := featureHandler.GetFeaturesByTagName(tag)
+		if err != nil || len(features) == 0 {
+			c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": []interface{}{}, "TagFilter": tag})
+			return
+		}
+		c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "TagFilter": tag})
+	}
+}
+
 func main() {
 	// Initialize DB
 	db, err := database.InitDB()
@@ -352,6 +369,7 @@ func main() {
 		// Add inline feature edit POST route
 		fragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 		fragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
+		fragments.GET("/features", FeaturesByTagFragment(featureHandler))
 	}
 	// ==========================================================
 

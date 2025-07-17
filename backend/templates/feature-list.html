@@ -14,7 +14,14 @@
   </div>
   <div id="new-feature-form-container"></div>
   <div id="feature-cards-container" class="flex flex-col gap-6 mt-4">
-    {{ template "feature-list-inner.html" . }}
+    {{ if .TagFilter }}
+      <div class="mb-4 text-lg text-blue-700 font-semibold">Filtering by tag: <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">{{ .TagFilter }}</span></div>
+    {{ end }}
+    {{ if not .Features }}
+      <div class="text-center text-gray-400 text-lg py-12">No features found{{ if .TagFilter }} with tag <span class="font-semibold">{{ .TagFilter }}</span>{{ end }}.</div>
+    {{ else }}
+      {{ template "feature-list-inner.html" . }}
+    {{ end }}
   </div>
 </div>
 </div> 

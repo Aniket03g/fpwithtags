@@ -779,3 +779,7 @@ func (h *FeatureHandler) TagAutocomplete(c *gin.Context) {
 	}
 	c.JSON(200, tagNames)
 }
+
+func (h *FeatureHandler) GetFeaturesByTagName(tag string) ([]models.Feature, error) {
+	return h.tagRepo.GetFeaturesByTagName(tag)
+}
