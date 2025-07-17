@@ -1,6 +1,51 @@
-{{ if .LoggedIn }}
-  <div class="text-2xl font-semibold text-green-700 mb-4">You are logged in.</div>
-{{ else }}
-  <div class="text-2xl font-semibold text-red-700 mb-4">You are not logged in.</div>
-{{ end }}
-<button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition" id="login-btn">Login</button> 
+<div id="dashboard-status-content">
+  <div id="status-message" class="text-2xl font-semibold mb-4"></div>
+  <button id="login-logout-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"></button>
+</div>
+<script>
+// Add JWT to all htmx requests
+  document.body.addEventListener('htmx:configRequest', function(evt) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      evt.detail.headers['Authorization'] = 'Bearer ' + token;
+    }
+  });
+
+  function showLoggedIn(username) {
+    document.getElementById('status-message').textContent = 'You are logged in as ' + username + '.';
+    const btn = document.getElementById('login-logout-btn');
+    btn.textContent = 'Logout';
+    btn.onclick = function() {
+      localStorage.removeItem('token');
+      window.location.reload();
+    };
+  }
+  function showLoggedOut() {
+    document.getElementById('status-message').textContent = 'You are not logged in.';
+    const btn = document.getElementById('login-logout-btn');
+    btn.textContent = 'Login';
+    btn.onclick = function() {
+      window.location.href = '/web/login';
+    };
+  }
+  // On load, check token and update UI
+  (function() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('/api/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.username) {
+          showLoggedIn(data.username);
+        } else {
+          showLoggedOut();
+        }
+      })
+      .catch(() => showLoggedOut());
+    } else {
+      showLoggedOut();
+    }
+  })();
+</script> 

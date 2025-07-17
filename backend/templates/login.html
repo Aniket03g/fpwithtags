@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In Page - HTMX Version</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Sans:wght@100;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Geist Sans', sans-serif;
+            background-color: #020817;
+            color: #f8fafc;
+        }
+        @keyframes fadeSlideIn {
+            to { opacity: 1; filter: blur(0px); transform: translateY(0px); }
+        }
+        @keyframes slideRightIn {
+            to { opacity: 1; filter: blur(0px); transform: translateX(0px); }
+        }
+        @keyframes testimonialIn {
+            to { opacity: 1; filter: blur(0px); transform: translateY(0px) scale(1); }
+        }
+        .animate-element {
+            opacity: 0;
+            filter: blur(4px);
+            transform: translateY(20px);
+            animation: fadeSlideIn 0.5s forwards;
+        }
+        .animate-slide-right {
+            opacity: 0;
+            filter: blur(4px);
+            transform: translateX(-20px);
+            animation: slideRightIn 0.5s forwards;
+        }
+        .animate-testimonial {
+            opacity: 0;
+            filter: blur(4px);
+            transform: translateY(20px) scale(0.95);
+            animation: testimonialIn 0.5s forwards;
+        }
+        .custom-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #4a5568;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            position: relative;
+        }
+        .custom-checkbox:checked {
+            background-color: #8b5cf6;
+            border-color: #8b5cf6;
+        }
+        .custom-checkbox:checked::after {
+            content: '✓';
+            font-size: 0.8rem;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .animation-delay-100 { animation-delay: 100ms; }
+        .animation-delay-200 { animation-delay: 200ms; }
+        .animation-delay-300 { animation-delay: 300ms; }
+        .animation-delay-400 { animation-delay: 400ms; }
+        .animation-delay-500 { animation-delay: 500ms; }
+        .animation-delay-600 { animation-delay: 600ms; }
+        .animation-delay-700 { animation-delay: 700ms; }
+        .animation-delay-800 { animation-delay: 800ms; }
+        .animation-delay-900 { animation-delay: 900ms; }
+        .animation-delay-1000 { animation-delay: 1000ms; }
+        .animation-delay-1200 { animation-delay: 1200ms; }
+        .animation-delay-1400 { animation-delay: 1400ms; }
+    </style>
+</head>
+<body>
+    <div class="h-[100dvh] flex flex-col md:flex-row w-[100dvw]">
+        <section class="flex-1 flex items-center justify-center p-8">
+            <div class="w-full max-w-md">
+                <div class="flex flex-col gap-6">
+                    <h1 id="form-title" class="animate-element animation-delay-100 text-4xl md:text-5xl font-semibold leading-tight tracking-tighter">Welcome</h1>
+                    <p id="form-desc" class="animate-element animation-delay-200 text-slate-400">Access your account and continue your journey with us</p>
+                    <form class="space-y-5" id="auth-form" onsubmit="return handleAuthFormSubmit(event)">
+                        <div class="animate-element animation-delay-300">
+                            <label class="text-sm font-medium text-slate-400">Email Address</label>
+                            <div class="rounded-2xl border border-slate-700 bg-slate-800/50 backdrop-blur-sm transition-colors focus-within:border-violet-400/70 focus-within:bg-violet-500/10">
+                                <input name="email" type="email" placeholder="Enter your email address" class="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none" required>
+                            </div>
+                        </div>
+                        <div id="username-field" class="animate-element animation-delay-350" style="display:none;">
+                            <label class="text-sm font-medium text-slate-400">Username</label>
+                            <div class="rounded-2xl border border-slate-700 bg-slate-800/50 backdrop-blur-sm transition-colors focus-within:border-violet-400/70 focus-within:bg-violet-500/10">
+                                <input name="username" type="text" placeholder="Enter your username" class="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="animate-element animation-delay-400" x-data="{ showPassword: false }">
+                            <label class="text-sm font-medium text-slate-400">Password</label>
+                            <div class="rounded-2xl border border-slate-700 bg-slate-800/50 backdrop-blur-sm transition-colors focus-within:border-violet-400/70 focus-within:bg-violet-500/10">
+                                <div class="relative">
+                                    <input name="password" :type="showPassword ? 'text' : 'password'" placeholder="Enter your password" class="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none" required>
+                                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-3 flex items-center">
+                                        <svg x-show="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 hover:text-white transition-colors"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                                        <svg x-show="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 hover:text-white transition-colors"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="animate-element animation-delay-500 flex items-center justify-between text-sm">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="rememberMe" class="custom-checkbox">
+                                <span class="text-slate-300">Keep me signed in</span>
+                            </label>
+                            <a href="#" @click.prevent="alert('Reset Password clicked')" class="hover:underline text-violet-400 transition-colors">Reset password</a>
+                        </div>
+                        <button type="submit" id="submit-btn" class="animate-element animation-delay-600 w-full rounded-2xl bg-white py-4 font-medium text-black hover:bg-slate-200 transition-colors">
+                            Sign In
+                        </button>
+                        <div id="form-response" class="text-center text-sm text-green-400"></div>
+                    </form>
+                    <script>
+                      let isSignUp = false;
+                      function switchAuthMode(signUp) {
+                        isSignUp = signUp;
+                        const form = document.getElementById('auth-form');
+                        const usernameField = document.getElementById('username-field');
+                        const formTitle = document.getElementById('form-title');
+                        const formDesc = document.getElementById('form-desc');
+                        const submitBtn = document.getElementById('submit-btn');
+                        const toggleAuth = document.getElementById('toggle-auth-mode');
+                        if (signUp) {
+                          usernameField.style.display = '';
+                          window.history.replaceState({}, '', '/web/signup');
+                          formTitle.textContent = 'Create Account';
+                          formDesc.textContent = 'Sign up to get started with FeaturePlus';
+                          submitBtn.textContent = 'Sign Up';
+                          toggleAuth.innerHTML = 'Already have an account? <a href="#" class="text-violet-400 hover:underline transition-colors">Sign In</a>';
+                        } else {
+                          usernameField.style.display = 'none';
+                          window.history.replaceState({}, '', '/web/login');
+                          formTitle.textContent = 'Welcome';
+                          formDesc.textContent = 'Access your account and continue your journey with us';
+                          submitBtn.textContent = 'Sign In';
+                          toggleAuth.innerHTML = 'New to our platform? <a href="#" class="text-violet-400 hover:underline transition-colors">Create Account</a>';
+                        }
+                        document.getElementById('form-response').innerHTML = '';
+                      }
+                      document.addEventListener('DOMContentLoaded', function() {
+                        document.getElementById('toggle-auth-mode').addEventListener('click', function(e) {
+                          e.preventDefault();
+                          switchAuthMode(!isSignUp);
+                        });
+                      });
+                      function handleAuthFormSubmit(event) {
+                        event.preventDefault();
+                        const form = event.target;
+                        const formData = new FormData(form);
+                        let data = {};
+                        formData.forEach((value, key) => { data[key] = value; });
+                        const url = isSignUp ? '/api/auth/signup' : '/api/auth/login';
+                        fetch(url, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(isSignUp ? {
+                            email: data.email,
+                            username: data.username,
+                            password: data.password
+                          } : {
+                            email: data.email,
+                            password: data.password
+                          })
+                        })
+                        .then(res => res.json())
+                        .then(response => {
+                          if (!isSignUp && response.token) {
+                            localStorage.setItem('token', response.token);
+                            window.location.href = '/web/projects';
+                          } else if (response.error) {
+                            document.getElementById('form-response').innerHTML = `<span class='text-red-500'>${response.error}</span>`;
+                          } else if (isSignUp && response.message) {
+                            document.getElementById('form-response').innerHTML = `<span class='text-green-500'>${response.message}. You can now <a href='/web/login' class='underline'>Sign In</a>.</span>`;
+                          }
+                        });
+                        return false;
+                      }
+                    </script>
+                    <div class="animate-element animation-delay-700 relative flex items-center justify-center">
+                        <span class="w-full border-t border-slate-700"></span>
+                        <span class="px-4 text-sm text-slate-400 bg-[#020817] absolute">Or continue with</span>
+                    </div>
+                    <button @click="alert('Continue with Google clicked')" class="animate-element animation-delay-800 w-full flex items-center justify-center gap-3 border border-slate-700 rounded-2xl py-4 hover:bg-slate-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s12-5.373 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-2.641-.21-5.236-.611-7.743z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.022 35.026 44 30.038 44 24c0-2.641-.21-5.236-.611-7.743z"/></svg>
+                        Continue with Google
+                    </button>
+                    <p class="animate-element animation-delay-900 text-center text-sm text-slate-400">
+                        <span id="toggle-auth-mode">New to our platform? <a href="#" class="text-violet-400 hover:underline transition-colors">Create Account</a></span>
+                    </p>
+                </div>
+            </div>
+        </section>
+        <section class="hidden md:block flex-1 relative p-4">
+            <div class="animate-slide-right animation-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center" style="background-image: url(https://images.unsplash.com/photo-1642615835477-d303d7dc9ee9?w=2160&q=80)"></div>
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 px-8 w-full justify-center">
+                <div class="animate-testimonial animation-delay-1000 flex items-start gap-3 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 w-64">
+                    <img src="https://randomuser.me/api/portraits/women/57.jpg" class="h-10 w-10 object-cover rounded-2xl" alt="avatar">
+                    <div class="text-sm leading-snug">
+                        <p class="flex items-center gap-1 font-medium">Sarah Chen</p>
+                        <p class="text-slate-400">@sarahdigital</p>
+                        <p class="mt-1 text-slate-300">Amazing platform! The user experience is seamless and the features are exactly what I needed.</p>
+                    </div>
+                </div>
+                <div class="animate-testimonial animation-delay-1200 hidden xl:flex items-start gap-3 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 w-64">
+                    <img src="https://randomuser.me/api/portraits/men/64.jpg" class="h-10 w-10 object-cover rounded-2xl" alt="avatar">
+                    <div class="text-sm leading-snug">
+                        <p class="flex items-center gap-1 font-medium">Marcus Johnson</p>
+                        <p class="text-slate-400">@marcustech</p>
+                        <p class="mt-1 text-slate-300">This service has transformed how I work. Clean design, powerful features, and excellent support.</p>
+                    </div>
+                </div>
+                <div class="animate-testimonial animation-delay-1400 hidden 2xl:flex items-start gap-3 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 w-64">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="h-10 w-10 object-cover rounded-2xl" alt="avatar">
+                    <div class="text-sm leading-snug">
+                        <p class="flex items-center gap-1 font-medium">David Martinez</p>
+                        <p class="text-slate-400">@davidcreates</p>
+                        <p class="mt-1 text-slate-300">I've tried many platforms, but this one stands out. Intuitive, reliable, and genuinely helpful for productivity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html> 

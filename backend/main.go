@@ -161,6 +161,11 @@ func DashboardStatusFragment(c *gin.Context) {
 	})
 }
 
+// Handler for login page
+func LoginPageHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", nil)
+}
+
 func main() {
 	// Initialize DB
 	db, err := database.InitDB()
@@ -363,6 +368,9 @@ func main() {
 
 	// Register the dashboard status fragment
 	router.GET("/web/fragments/dashboard-status", DashboardStatusFragment)
+
+	// Register the login page route
+	router.GET("/web/login", LoginPageHandler)
 
 	// Start server
 	log.Println("Server starting on :8080...")

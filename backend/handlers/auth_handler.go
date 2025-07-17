@@ -105,6 +105,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Debug: print the generated JWT token
+	fmt.Printf("[DEBUG] Generated JWT token for user %s (ID=%d): %s\n", user.Email, user.ID, token)
+
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"auth_info": map[string]interface{}{
