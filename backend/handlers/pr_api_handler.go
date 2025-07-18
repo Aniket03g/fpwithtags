@@ -25,7 +25,8 @@ func PRUploadAPIHandler(c *gin.Context) {
 	}
 	prRepo := repositories.NewPullRequestRepository(db.DB)
 
-	pr.Status = "Open" // Always set status to Open on upload
+	pr.Status = "Open"      // Always set status to Open on upload
+	pr.Version = pr.Version // Already set by JSON binding, but ensure it's not nil
 
 	if err := prRepo.Create(&pr); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save PR to database"})

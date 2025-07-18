@@ -11,6 +11,7 @@ type PullRequest struct {
 	Description string         `gorm:"type:text" form:"description" json:"description"`
 	Status      string         `gorm:"default:'Open'" json:"status"`
 	Tested      bool           `gorm:"default:false" json:"is_tested"`
+	Version     string         `gorm:"column:version" json:"version"`
 	CreatedAt   int64          `gorm:"autoCreateTime:milli" json:"created_at"`
 	UpdatedAt   int64          `gorm:"autoUpdateTime:milli" json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`

@@ -27,12 +27,14 @@ type UploadRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	IsTested    bool   `json:"is_tested"`
+	Version     string `json:"version"`
 }
 
 var (
 	featureID  int
 	taskID     int
 	markTested bool
+	version    string
 )
 
 var uploadCmd = &cobra.Command{
@@ -58,6 +60,7 @@ var uploadCmd = &cobra.Command{
 			Title:       prInfo.Title,
 			Description: prInfo.Body,
 			IsTested:    markTested,
+			Version:     version,
 		}
 
 		if err := sendToFeaturePlus(req); err != nil {
@@ -73,6 +76,7 @@ func init() {
 	uploadCmd.Flags().IntVar(&featureID, "feature-id", 0, "Feature ID to link this PR to (required)")
 	uploadCmd.Flags().IntVar(&taskID, "task-id", 0, "Task ID to link this PR to (required)")
 	uploadCmd.Flags().BoolVar(&markTested, "mark-tested", false, "Mark this PR as tested")
+	uploadCmd.Flags().StringVar(&version, "version", "", "Version or release to associate with this PR (optional)")
 	uploadCmd.MarkFlagRequired("feature-id")
 	uploadCmd.MarkFlagRequired("task-id")
 }

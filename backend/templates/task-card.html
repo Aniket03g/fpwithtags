@@ -157,6 +157,7 @@
                 <th class="pr-checkbox-col" style="display:none;"></th>
                 <th class="px-3 py-2 font-semibold">Title</th>
                 <th class="px-3 py-2 font-semibold">Branch</th>
+                <th class="px-3 py-2 font-semibold">Version</th>
                 <th class="px-3 py-2 font-semibold">Status</th>
                 <th class="px-3 py-2 font-semibold">Tested</th>
               </tr>
@@ -172,6 +173,7 @@
                     </a>
                   </td>
                   <td class="px-3 py-2 font-mono text-xs">{{ .Branch }}</td>
+                  <td class="px-3 py-2 font-mono text-xs">{{ .Version }}</td>
                   <td class="px-3 py-2">
                     <span class="inline-block px-2 py-1 rounded {{ if eq .Status "Open" }}bg-green-100 text-green-700{{ else if eq .Status "Closed" }}bg-gray-200 text-gray-500{{ else }}bg-yellow-100 text-yellow-700{{ end }} text-xs font-medium">{{ .Status }}</span>
                   </td>
