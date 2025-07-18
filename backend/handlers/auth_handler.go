@@ -21,15 +21,28 @@ func NewAuthHandler(db *gorm.DB) *AuthHandler {
 }
 
 func (h *AuthHandler) Signup(c *gin.Context) {
-	var user models.User
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var req struct {
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Role     string `json:"role"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	user := models.User{
+		Email:    req.Email,
+		Username: req.Username,
+		Password: req.Password,
+		Role:     req.Role,
+	}
+	if user.Role != "developer" && user.Role != "manager" {
+		user.Role = "developer"
+	}
 	// Debug log
-	fmt.Printf("Signup request: email=%s, username=%s, password_length=%d\n",
-		user.Email, user.Username, len(user.Password))
+	fmt.Printf("Signup request: email=%s, username=%s, password_length=%d, role=%s\n",
+		user.Email, user.Username, len(user.Password), user.Role)
 
 	// Make sure password is not empty
 	if user.Password == "" {

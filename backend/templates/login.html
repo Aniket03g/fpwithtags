@@ -114,6 +114,33 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="animate-element animation-delay-450 flex items-center gap-6 my-4" id="role-toggle-row">
+                            <label class="flex items-center gap-2">
+                                <input type="radio" name="role" value="developer" checked class="accent-blue-600">
+                                <span class="text-slate-400 text-sm font-medium">Developer</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="radio" name="role" value="manager" class="accent-blue-600">
+                                <span class="text-slate-400 text-sm font-medium">Manager</span>
+                            </label>
+                        </div>
+                        <script>
+                        // Ensure the role selection is visible only for signup
+                        function updateRoleToggleVisibility() {
+                          const row = document.getElementById('role-toggle-row');
+                          if (isSignUp) {
+                            row.style.display = '';
+                          } else {
+                            row.style.display = 'none';
+                          }
+                        }
+                        document.addEventListener('DOMContentLoaded', function() {
+                          updateRoleToggleVisibility();
+                          document.getElementById('toggle-auth-mode').addEventListener('click', function(e) {
+                            setTimeout(updateRoleToggleVisibility, 10);
+                          });
+                        });
+                        </script>
                         <div class="animate-element animation-delay-500 flex items-center justify-between text-sm">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" name="rememberMe" class="custom-checkbox">
@@ -172,7 +199,8 @@
                           body: JSON.stringify(isSignUp ? {
                             email: data.email,
                             username: data.username,
-                            password: data.password
+                            password: data.password,
+                            role: data.role // Ensure role is included for signup
                           } : {
                             email: data.email,
                             password: data.password
@@ -182,6 +210,10 @@
                         .then(response => {
                           if (!isSignUp && response.token) {
                             localStorage.setItem('token', response.token);
+                            // Store the user's role for use in the app
+                            if (response.auth_info && response.auth_info.role) {
+                              localStorage.setItem('role', response.auth_info.role);
+                            }
                             window.location.href = '/web/projects';
                           } else if (response.error) {
                             document.getElementById('form-response').innerHTML = `<span class='text-red-500'>${response.error}</span>`;
