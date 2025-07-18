@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -167,6 +168,7 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 		}
 		// Load PullRequests for this task
 		prs, _ := prRepo.GetByTaskID(tasks[i].ID)
+		fmt.Printf("[DEBUG] Task %d PRs: %+v\n", tasks[i].ID, prs)
 		tasks[i].PullRequests = prs
 	}
 

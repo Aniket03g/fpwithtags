@@ -126,14 +126,43 @@
       </div>
       <!-- PR List Visual -->
       {{ if .Task.PullRequests }}
-        <ul class="mb-2 ml-1 space-y-1">
-          {{ range .Task.PullRequests }}
-            <li class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 17v1a3 3 0 01-6 0v-1m6 0V7a2 2 0 00-2-2h-4a2 2 0 00-2 2v10m6 0a2 2 0 01-2 2m0-2a2 2 0 00-2-2m0 2a2 2 0 002 2" /></svg>
-              <span class="text-xs text-green-700 font-medium">{{ .Title }}</span>
-            </li>
-          {{ end }}
-        </ul>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs text-left text-gray-700 border border-gray-200 rounded-lg">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 font-semibold">Title</th>
+                <th class="px-3 py-2 font-semibold">Branch</th>
+                <th class="px-3 py-2 font-semibold">Status</th>
+                <th class="px-3 py-2 font-semibold">Tested</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .Task.PullRequests }}
+                <tr class="border-t border-gray-200">
+                  <td class="px-3 py-2">
+                    <a href="{{ .URL }}" target="_blank" class="text-blue-700 hover:underline flex items-center gap-1">
+                      <svg class="w-4 h-4 text-green-600 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 17v1a3 3 0 01-6 0v-1m6 0V7a2 2 0 00-2-2h-4a2 2 0 00-2 2v10m6 0a2 2 0 01-2 2m0-2a2 2 0 00-2-2m0 2a2 2 0 002 2" /></svg>
+                      <span>{{ .Title }}</span>
+                    </a>
+                  </td>
+                  <td class="px-3 py-2 font-mono text-xs">{{ .Branch }}</td>
+                  <td class="px-3 py-2">
+                    <span class="inline-block px-2 py-1 rounded {{ if eq .Status "Open" }}bg-green-100 text-green-700{{ else if eq .Status "Closed" }}bg-gray-200 text-gray-500{{ else }}bg-yellow-100 text-yellow-700{{ end }} text-xs font-medium">{{ .Status }}</span>
+                  </td>
+                  <td class="px-3 py-2">
+                    {{ if .Tested }}
+                      <span class="inline-flex items-center gap-1 text-green-700 font-semibold"><svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>Yes</span>
+                    {{ else }}
+                      <span class="text-gray-400">No</span>
+                    {{ end }}
+                  </td>
+                </tr>
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      {{ else }}
+        <div class="text-gray-400 text-sm mb-2">No pull requests yet.</div>
       {{ end }}
       <!-- Modal Target for PR Form -->
       <div id="pr-modal-{{.Task.ID}}"></div>
