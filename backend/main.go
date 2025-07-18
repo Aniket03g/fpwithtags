@@ -317,6 +317,8 @@ func main() {
 		api.GET("/attachments/:attachment_id/comments", commentHandler.GetAttachmentComments)
 		api.PUT("/comments/:comment_id", commentHandler.UpdateComment)
 		api.DELETE("/comments/:comment_id", commentHandler.DeleteComment)
+		// Register CLI PR upload endpoint
+		api.POST("/pr", handlers.PRUploadAPIHandler)
 	}
 
 	// ==========================================================
