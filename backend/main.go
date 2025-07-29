@@ -321,6 +321,8 @@ func main() {
 		api.POST("/pr", handlers.PRUploadAPIHandler)
 		// Register CLI PR list endpoint
 		api.GET("/pr", handlers.PRListAPIHandler)
+		// Register CLI PR get-by-id endpoint
+		api.GET("/prs/:id", handlers.PRGetByIDHandler)
 	}
 
 	// ==========================================================

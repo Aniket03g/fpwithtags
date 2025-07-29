@@ -79,3 +79,26 @@ func PRListAPIHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, prs)
 }
+
+func PRGetByIDHandler(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid PR id"})
+		return
+	}
+
+	db, err := database.InitDB()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to connect to database"})
+		return
+	}
+
+	var pr models.PullRequest
+	if err := db.DB.First(&pr, id).Error; err != nil {
+		c.JSON(404, gin.H{"error": "PR not found"})
+		return
+	}
+
+	c.JSON(200, pr)
+}
