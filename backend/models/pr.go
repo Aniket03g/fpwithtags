@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type PullRequest struct {
 	ID          uint           `gorm:"primaryKey" json:"id"`
 	TaskID      uint           `gorm:"index" json:"task_id"`
+	FeatureID   uint           `gorm:"index" json:"feature_id"`
 	URL         string         `gorm:"not null" form:"url" json:"pr_url"`
 	Title       string         `gorm:"not null" form:"title" json:"title"`
 	Branch      string         `gorm:"not null" form:"branch" json:"branch"`

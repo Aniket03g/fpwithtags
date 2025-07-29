@@ -8,6 +8,8 @@ import (
 type PullRequestRepository interface {
 	Create(pr *models.PullRequest) error
 	GetByTaskID(taskID uint) ([]models.PullRequest, error)
+	GetByFeatureID(featureID int) ([]models.PullRequest, error)
+	GetAll() ([]models.PullRequest, error)
 	MarkTested(prID uint) error
 }
 
@@ -26,6 +28,18 @@ func (r *prRepository) Create(pr *models.PullRequest) error {
 func (r *prRepository) GetByTaskID(taskID uint) ([]models.PullRequest, error) {
 	var prs []models.PullRequest
 	err := r.db.Where("task_id = ?", taskID).Order("created_at desc").Find(&prs).Error
+	return prs, err
+}
+
+func (r *prRepository) GetByFeatureID(featureID int) ([]models.PullRequest, error) {
+	var prs []models.PullRequest
+	err := r.db.Where("feature_id = ?", featureID).Order("created_at desc").Find(&prs).Error
+	return prs, err
+}
+
+func (r *prRepository) GetAll() ([]models.PullRequest, error) {
+	var prs []models.PullRequest
+	err := r.db.Order("created_at desc").Find(&prs).Error
 	return prs, err
 }
 
