@@ -14,10 +14,21 @@ featureplus-pr upload --feature-id=123 --task-id=456 --mark-tested
 - `--task-id` (required): The FeaturePlus task ID
 - `--mark-tested` (optional): Mark the PR as tested
 
+## Configuration
+
+The CLI reads the API URL from a `config.json` file in the current working directory. If not found, it defaults to `http://localhost:8080`.
+
+Create a `config.json` file:
+```json
+{
+  "api_url": "https://featureplus.onrender.com"
+}
+```
+
 ## How it works
 - Fetches PR info from the current branch using the GitHub CLI
 - Combines with your flags
-- Sends a POST request to your FeaturePlus backend at `http://localhost:8080/api/pr`
+- Sends a POST request to your FeaturePlus backend API
 
 ## Build & Install
 
@@ -32,7 +43,7 @@ mv featureplus-pr /usr/local/bin/
 ## Requirements
 - Go 1.20+
 - [GitHub CLI](https://cli.github.com/) (`gh`)
-- FeaturePlus backend running at `http://localhost:8080`
+- FeaturePlus backend running (default: `http://localhost:8080`)
 
 ## Example
 

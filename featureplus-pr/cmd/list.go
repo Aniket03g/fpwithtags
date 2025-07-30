@@ -54,7 +54,8 @@ func init() {
 }
 
 func getPRList() ([]PRListItem, error) {
-	url := "http://localhost:8080/api/pr"
+	apiURL := GetAPIURL()
+	url := apiURL + "/api/pr"
 	if listFeatureID > 0 {
 		url += "?feature_id=" + strconv.Itoa(listFeatureID)
 	}

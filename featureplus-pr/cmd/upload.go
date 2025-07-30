@@ -103,7 +103,8 @@ func sendToFeaturePlus(req UploadRequest) error {
 	fmt.Println("JSON payload being sent to FeaturePlus:")
 	fmt.Println(string(jsonData))
 
-	resp, err := http.Post("http://localhost:8080/api/pr", "application/json", bytes.NewBuffer(jsonData))
+	apiURL := GetAPIURL()
+	resp, err := http.Post(apiURL+"/api/pr", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}

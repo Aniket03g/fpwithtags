@@ -64,7 +64,8 @@ func init() {
 }
 
 func getPRCheckoutItem(id int) (*PRCheckoutItem, error) {
-	url := "http://localhost:8080/api/prs/" + strconv.Itoa(id)
+	apiURL := GetAPIURL()
+	url := apiURL + "/api/prs/" + strconv.Itoa(id)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
