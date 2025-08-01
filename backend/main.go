@@ -278,9 +278,6 @@ func main() {
 	// Add logging middleware
 	router.Use(LoggingMiddleware())
 
-	// Middleware to log request body for API routes
-	api.Use(BodyLoggingMiddleware())
-
 	// CORS middleware
 	router.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -298,25 +295,11 @@ func main() {
 	// Register auth routes
 	routes.RegisterAuthRoutes(router, db.DB)
 
-// BodyLoggingMiddleware logs the request body
-func BodyLoggingMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
-			bodyBytes, err := io.ReadAll(c.Request.Body)
-			if err != nil {
-				log.Printf("Error reading request body: %v", err)
-			} else {
-				log.Printf("Request Body: %s", string(bodyBytes))
-			}
-			// Restore the body for subsequent handlers
-			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		}
-		c.Next()
-	}
-}
 	// --- EXISTING API ROUTES FOR NEXT.JS (NO CHANGES) ---
 	api := router.Group("/api")
 	{
+		// Middleware to log request body for API routes
+		api.Use(BodyLoggingMiddleware())
 		userRoutes := api.Group("/users")
 		{
 			userRoutes.GET("", userHandler.GetAllUsers)
@@ -340,6 +323,7 @@ func BodyLoggingMiddleware() gin.HandlerFunc {
 		api.DELETE("/comments/:comment_id", commentHandler.DeleteComment)
 		// Register CLI PR upload endpoint
 		api.POST("/pr", handlers.PRUploadAPIHandler)
+
 		// Register CLI PR list endpoint
 		api.GET("/pr", handlers.PRListAPIHandler)
 		// Register CLI PR get-by-id endpoint
@@ -421,5 +405,22 @@ func BodyLoggingMiddleware() gin.HandlerFunc {
 	log.Println("Server starting on :8080...")
 	if err := router.Run("0.0.0.0:8080"); err != nil {
 		panic("failed to start server: " + err.Error())
+	}
+}
+
+// BodyLoggingMiddleware logs the request body
+func BodyLoggingMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
+			bodyBytes, err := io.ReadAll(c.Request.Body)
+			if err != nil {
+				log.Printf("Error reading request body: %v", err)
+			} else {
+				log.Printf("Request Body: %s", string(bodyBytes))
+			}
+			// Restore the body for subsequent handlers
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		}
+		c.Next()
 	}
 }
