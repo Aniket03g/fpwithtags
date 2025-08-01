@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -35,6 +36,7 @@ var (
 	taskID     int
 	markTested bool
 	version    string
+	verbose    bool
 )
 
 var uploadCmd = &cobra.Command{
@@ -77,6 +79,7 @@ func init() {
 	uploadCmd.Flags().IntVar(&taskID, "task-id", 0, "Task ID to link this PR to (required)")
 	uploadCmd.Flags().BoolVar(&markTested, "mark-tested", false, "Mark this PR as tested")
 	uploadCmd.Flags().StringVar(&version, "version", "", "Version or release to associate with this PR (optional)")
+	uploadCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output for debugging")
 	uploadCmd.MarkFlagRequired("feature-id")
 	uploadCmd.MarkFlagRequired("task-id")
 }
@@ -99,16 +102,27 @@ func sendToFeaturePlus(req UploadRequest) error {
 	if err != nil {
 		return err
 	}
-	// Print the JSON payload for debugging
-	fmt.Println("JSON payload being sent to FeaturePlus:")
-	fmt.Println(string(jsonData))
 
 	apiURL := GetAPIURL()
+
+	if verbose {
+		fmt.Printf("Sending request to: %s/api/pr\n", apiURL)
+		fmt.Printf("Request payload: %s\n", string(jsonData))
+	}
+
 	resp, err := http.Post(apiURL+"/api/pr", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+
+	if verbose {
+		responseBody, _ := io.ReadAll(resp.Body)
+		fmt.Printf("Server response status: %s\n", resp.Status)
+		fmt.Printf("Server response body: %s\n", string(responseBody))
+		resp.Body = io.NopCloser(bytes.NewBuffer(responseBody)) // Restore body for further reading if needed
+	}
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("API returned status: %s", resp.Status)
 	}
