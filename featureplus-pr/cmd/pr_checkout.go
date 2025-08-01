@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
+	"featureplus-pr/internal/config"
 )
 
 type PRCheckoutItem struct {
@@ -64,7 +65,7 @@ func init() {
 }
 
 func getPRCheckoutItem(id int) (*PRCheckoutItem, error) {
-	apiURL := GetAPIURL()
+	apiURL := config.GetAPIURL()
 	url := apiURL + "/api/prs/" + strconv.Itoa(id)
 	resp, err := http.Get(url)
 	if err != nil {

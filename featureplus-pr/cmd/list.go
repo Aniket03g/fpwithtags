@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"featureplus-pr/internal/config"
 )
 
 type PRListItem struct {
@@ -54,7 +55,7 @@ func init() {
 }
 
 func getPRList() ([]PRListItem, error) {
-	apiURL := GetAPIURL()
+	apiURL := config.GetAPIURL()
 	url := apiURL + "/api/pr"
 	if listFeatureID > 0 {
 		url += "?feature_id=" + strconv.Itoa(listFeatureID)
