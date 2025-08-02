@@ -1,8 +1,9 @@
 package repositories
 
 import (
-	"github.com/FeaturePlus/backend/models"
+	"log"
 
+	"github.com/FeaturePlus/backend/models"
 	"gorm.io/gorm"
 )
 
@@ -30,10 +31,16 @@ func (r *ProjectRepository) GetProjectByID(id int) (*models.Project, error) {
 
 // GetAllProjects gets all projects with owner details
 func (r *ProjectRepository) GetAllProjects() ([]models.Project, error) {
+	log.Println("DEBUG: Executing GetAllProjects query")
 	var projects []models.Project
-	if err := r.db.Preload("Owner").Find(&projects).Error; err != nil {
+	query := r.db.Preload("Owner")
+	log.Printf("DEBUG: SQL Query: %v\n", query.Statement.SQL.String())
+	
+	if err := query.Find(&projects).Error; err != nil {
+		log.Printf("ERROR: Database query failed: %v\n", err)
 		return nil, err
 	}
+	log.Printf("DEBUG: Found %d projects in database\n", len(projects))
 	return projects, nil
 }
 

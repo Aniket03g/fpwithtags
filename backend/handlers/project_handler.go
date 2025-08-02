@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -41,10 +42,16 @@ func (h *ProjectHandler) CreateProject(c *gin.Context) {
 
 // GetAllProjects handles getting all projects
 func (h *ProjectHandler) GetAllProjects(c *gin.Context) {
+	log.Println("DEBUG: Getting all projects from repository")
 	projects, err := h.repo.GetAllProjects()
 	if err != nil {
+		log.Printf("ERROR: Failed to get projects: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+	log.Printf("DEBUG: Retrieved %d projects from repository\n", len(projects))
+	for i, p := range projects {
+		log.Printf("DEBUG: Project %d: ID=%d, Name=%s, OwnerID=%d\n", i+1, p.ID, p.Name, p.OwnerID)
 	}
 	c.HTML(http.StatusOK, "project-list.html", gin.H{"Projects": projects})
 }
