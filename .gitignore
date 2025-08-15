@@ -4,3 +4,4 @@
 *.vscode
 */backend/bin
 tailwindcss.exe
+.env

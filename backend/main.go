@@ -5,9 +5,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv" // For loading .env files
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/handlers"
 	"github.com/FeaturePlus/backend/middleware"
@@ -186,6 +188,18 @@ func FeaturesByTagFragment(featureHandler *handlers.FeatureHandler) gin.HandlerF
 }
 
 func main() {
+	// --- Load environment variables from .env file at startup ---
+	// This allows you to securely store secrets (like GitHub tokens) outside of source code.
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: No .env file found (this is OK in production if env vars are set)")
+	}
+
+	// --- Check for required GitHub token ---
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	if githubToken == "" {
+		log.Fatal("GITHUB_TOKEN is not set. Please add it to your .env file or environment.")
+	}
+
 	// Initialize DB
 	db, err := database.InitDB()
 	if err != nil {
@@ -205,11 +219,17 @@ func main() {
 	}
 	defer sqliteFS.Close()
 
+	// Run upgrade to ensure releases have project-scoped unique tags BEFORE AutoMigrate
+	if err := db.MigrateReleasesToProjectScoped(); err != nil {
+		panic("failed to migrate releases to project-scoped tags: " + err.Error())
+	}
+
 	// Migrate all schemas
 	if err := db.Migrate(
 		&models.User{}, &models.Project{}, &models.Feature{}, &models.SubFeature{},
 		&models.Task{}, &models.FeatureTag{}, &models.TaskAttachment{}, &models.Comment{},
-		&models.PullRequest{}, // <-- add this line
+		&models.PullRequest{},
+		&models.ApprovedPR{},
 	); err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}
@@ -328,7 +348,15 @@ func main() {
 		api.GET("/pr", handlers.PRListAPIHandler)
 		// Register CLI PR get-by-id endpoint
 		api.GET("/prs/:id", handlers.PRGetByIDHandler)
+
+		// Register PR review endpoint
+		prReviewHandler := handlers.NewPRReviewHandler(prRepo)
+		api.POST("/pr/:id/review", prReviewHandler.ReviewPR)
+
 	}
+
+	// Register release routes at the root level (they already include /api prefix)
+	routes.RegisterReleaseRoutes(router, db.DB)
 
 	// ==========================================================
 	// ===== NEW WEB ROUTES FOR HTMX TESTING =====

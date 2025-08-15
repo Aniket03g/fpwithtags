@@ -11,6 +11,7 @@ type PullRequestRepository interface {
 	GetByFeatureID(featureID int) ([]models.PullRequest, error)
 	GetAll() ([]models.PullRequest, error)
 	MarkTested(prID uint) error
+	UpdatePR(pr *models.PullRequest) error
 }
 
 type prRepository struct {
@@ -45,4 +46,8 @@ func (r *prRepository) GetAll() ([]models.PullRequest, error) {
 
 func (r *prRepository) MarkTested(prID uint) error {
 	return r.db.Model(&models.PullRequest{}).Where("id = ?", prID).Update("tested", true).Error
+}
+
+func (r *prRepository) UpdatePR(pr *models.PullRequest) error {
+	return r.db.Save(pr).Error
 }
