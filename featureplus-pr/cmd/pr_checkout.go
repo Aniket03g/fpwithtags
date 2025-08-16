@@ -1,23 +1,16 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/spf13/cobra"
 )
 
-type PRCheckoutItem struct {
-	ID        int    `json:"id"`
-	Branch    string `json:"branch"`
-	FeatureID int    `json:"feature_id"`
-	TaskID    int    `json:"task_id"`
-}
+// No need to define types here as they're defined in the shared package
 
 var checkoutPRID int
 
@@ -30,7 +23,11 @@ var prCheckoutCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		pr, err := getPRCheckoutItem(checkoutPRID)
+		// Create client
+		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+
+		// Get PR info from FeaturePlus
+		pr, err := client.GetPR(checkoutPRID)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to fetch PR: %v\n", err)
 			os.Exit(1)
@@ -63,30 +60,7 @@ func init() {
 	prCheckoutCmd.MarkFlagRequired("id")
 }
 
-func getPRCheckoutItem(id int) (*PRCheckoutItem, error) {
-	apiURL := GetAPIURL()
-	url := apiURL + "/api/prs/" + strconv.Itoa(id)
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var pr PRCheckoutItem
-	if err := json.Unmarshal(body, &pr); err != nil {
-		return nil, err
-	}
-	return &pr, nil
-}
+// This function is no longer needed as we use the shared package
 
 func runGitFetch(branch string) error {
 	cmd := exec.Command("git", "fetch", "origin", branch)

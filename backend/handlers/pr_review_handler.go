@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-type ReviewRequest struct {
+// BackendReviewRequest is the internal review request structure
+// We keep this separate from the shared package's ReviewRequest to maintain API compatibility
+type BackendReviewRequest struct {
 	Status  string `json:"status" binding:"required,oneof=approved rejected changes_requested"`
 	Comment string `json:"comment"`
 }
@@ -37,13 +41,23 @@ func (h *PRReviewHandler) ReviewPR(c *gin.Context) {
 	}
 
 	// Parse request body
-	var req ReviewRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var backendReq BackendReviewRequest
+	if err := c.ShouldBindJSON(&backendReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid request: %v", err)})
 		return
 	}
 
-	// Get the PR from the database
+	// Create a client to use the shared package
+	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
+
+	// Convert to shared package ReviewRequest
+	reviewReq := &featureplus.ReviewRequest{
+		Status:     backendReq.Status,
+		Comment:    backendReq.Comment,
+		ApprovedAt: time.Now().Unix(),
+	}
+
+	// Get the PR from the database first to verify it exists
 	db, err := database.InitDB()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to database"})
@@ -60,15 +74,21 @@ func (h *PRReviewHandler) ReviewPR(c *gin.Context) {
 		return
 	}
 
-	// Update PR status and comment
-	pr.Status = req.Status
-	if req.Comment != "" {
-		pr.Description = req.Comment
+	// Use the shared package's ApprovePR function
+	if err := client.ApprovePR(int(prID), reviewReq); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update PR: " + err.Error()})
+		return
+	}
+
+	// Update PR status and comment in our database
+	pr.Status = backendReq.Status
+	if backendReq.Comment != "" {
+		pr.Description = backendReq.Comment
 	}
 
 	// Save the updated PR
 	if err := h.prRepo.UpdatePR(&pr); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update PR"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update PR in database"})
 		return
 	}
 

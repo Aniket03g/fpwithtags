@@ -1,22 +1,16 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/exec"
 	"strconv"
-	"strings"
 	"time"
-
-	"github.com/google/go-github/v55/github"
-	"golang.org/x/oauth2"
 
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/backend/services"
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -98,192 +92,15 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 		return
 	}
 
-	// Create a temporary directory for Git operations
-	log.Printf("%s [%s] Creating temp dir for git operations...", logPrefix, time.Now().Format(time.RFC3339))
-	tempDir, err := os.MkdirTemp("", "release-*")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create temporary directory"})
-		return
-	}
-	defer os.RemoveAll(tempDir)
-	log.Printf("%s [%s] Temp dir created: %s", logPrefix, time.Now().Format(time.RFC3339), tempDir)
+	// Create a client to use the shared package
+	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
 
-	// --- Begin GitHub and Git logic ---
-	if len(release.PRs) == 0 {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "No PRs found for this release"})
-		return
-	}
-	githubToken := os.Getenv("GITHUB_TOKEN")
-	if githubToken == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "GITHUB_TOKEN is required"})
-		return
-	}
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: githubToken})
-	client := github.NewClient(oauth2.NewClient(ctx, ts))
-
-	// Parse owner and repo from the first PR URL to determine the base repository
-	firstPRURL := release.PRs[0].URL
-	parts := strings.Split(firstPRURL, "/")
-	if len(parts) < 5 {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Malformed PR URL: " + firstPRURL})
-		return
-	}
-	owner := parts[3]
-	repo := parts[4]
-
-	// Clone the base repository
-	baseRepoURL := fmt.Sprintf("https://github.com/%s/%s.git", owner, repo)
-	log.Printf("%s [%s] Cloning base repo: %s", logPrefix, time.Now().Format(time.RFC3339), baseRepoURL)
-	cloneCmd := exec.Command("git", "clone", baseRepoURL, tempDir)
-	if err := cloneCmd.Run(); err != nil {
-		log.Printf("%s [%s] ERROR: Failed to clone repository. RepoURL: %s, TempDir: %s, Error: %v", logPrefix, time.Now().Format(time.RFC3339), baseRepoURL, tempDir, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clone repository"})
-		return
-	}
-
-	// **FIXED:** Create and checkout the new release branch BEFORE cherry-picking
-	branchName := "release/" + release.Tag
-	log.Printf("%s [%s] Creating and checking out branch: %s", logPrefix, time.Now().Format(time.RFC3339), branchName)
-	checkoutCmd := exec.Command("git", "checkout", "-b", branchName, "main")
-	checkoutCmd.Dir = tempDir
-	if err := checkoutCmd.Run(); err != nil {
-		log.Printf("%s [%s] ERROR: Failed to create branch. Branch: %s, Error: %v", logPrefix, time.Now().Format(time.RFC3339), branchName, err)
+	// Use the shared package to finalize the release
+	log.Printf("%s [%s] Calling shared package to finalize release: %d", logPrefix, time.Now().Format(time.RFC3339), releaseID)
+	if err := client.FinalizeRelease(releaseID); err != nil {
+		log.Printf("%s [%s] ERROR: Failed to finalize release: %v", logPrefix, time.Now().Format(time.RFC3339), err)
 		_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create branch"})
-		return
-	}
-
-	// Loop through PRs, fetch details, and cherry-pick real commits
-	for _, prModel := range release.PRs {
-		prURL := prModel.URL
-		parts := strings.Split(prURL, "/")
-		if len(parts) < 7 {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Malformed PR URL: " + prURL})
-			return
-		}
-		prNumStr := parts[6]
-		prNum, err := strconv.Atoi(prNumStr)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid PR number in URL: " + prURL})
-			return
-		}
-		log.Printf("%s [%s] Processing PR: %s/%s #%d", logPrefix, time.Now().Format(time.RFC3339), owner, repo, prNum)
-
-		pr, _, err := client.PullRequests.Get(ctx, owner, repo, prNum)
-		if err != nil {
-			_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch PR details for PR #" + prNumStr + ": " + err.Error()})
-			return
-		}
-
-		isMerged := pr.GetMerged()
-		log.Printf("%s [%s] PR #%d merged: %v", logPrefix, time.Now().Format(time.RFC3339), prNum, isMerged)
-		var shas []string
-
-		if isMerged {
-			mergeSHA := pr.GetMergeCommitSHA()
-			shas = []string{mergeSHA}
-			log.Printf("%s [%s] PR #%d merge commit: %s", logPrefix, time.Now().Format(time.RFC3339), prNum, mergeSHA[:8])
-		} else {
-			// Logic for unmerged PRs
-			baseSHA := pr.GetBase().GetSHA()
-			headSHA := pr.GetHead().GetSHA()
-			log.Printf("%s [%s] PR #%d base SHA: %s, head SHA: %s", logPrefix, time.Now().Format(time.RFC3339), prNum, baseSHA, headSHA)
-
-			// Fetch the head branch to make sure commits are available locally
-			headRepoOwner := pr.GetHead().GetRepo().GetOwner().GetLogin()
-			headRepoName := pr.GetHead().GetRepo().GetName()
-			headRef := pr.GetHead().GetRef()
-
-			fetchRemoteName := "origin"
-			if headRepoOwner != owner || headRepoName != repo {
-				fetchRemoteName = fmt.Sprintf("pr-%d-fork", prNum)
-				remoteURL := pr.GetHead().GetRepo().GetCloneURL()
-				addRemoteCmd := exec.Command("git", "remote", "add", fetchRemoteName, remoteURL)
-				addRemoteCmd.Dir = tempDir
-				if err := addRemoteCmd.Run(); err != nil {
-					log.Printf("%s [%s] WARN: Could not add remote %s. It might already exist. Error: %v", logPrefix, time.Now().Format(time.RFC3339), fetchRemoteName, err)
-				}
-			}
-
-			log.Printf("%s [%s] Fetching %s from %s", logPrefix, time.Now().Format(time.RFC3339), headRef, fetchRemoteName)
-			fetchCmd := exec.Command("git", "fetch", fetchRemoteName, headRef)
-			fetchCmd.Dir = tempDir
-			if err := fetchCmd.Run(); err != nil {
-				_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to fetch head branch for PR #%d: %v", prNum, err)})
-				return
-			}
-
-			// Use git rev-list to get commits instead of API compare
-			revListCmd := exec.Command("git", "rev-list", fmt.Sprintf("%s..%s", baseSHA, headSHA))
-			revListCmd.Dir = tempDir
-			out, err := revListCmd.Output()
-			if err != nil {
-				_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to list commits for PR #%d: %v", prNum, err)})
-				return
-			}
-
-			commitList := strings.Split(strings.TrimSpace(string(out)), "\n")
-			// Reverse the list so commits are cherry-picked in chronological order
-			for i := len(commitList) - 1; i >= 0; i-- {
-				shas = append(shas, commitList[i])
-			}
-
-			if len(shas) == 0 {
-				log.Printf("%s [%s] PR #%d has no new commits to cherry-pick", logPrefix, time.Now().Format(time.RFC3339), prNum)
-				continue
-			}
-		}
-
-		// Cherry-pick each SHA
-		for _, sha := range shas {
-			log.Printf("%s [%s] Cherry-picking SHA: %s", logPrefix, time.Now().Format(time.RFC3339), sha[:8])
-			cherryPickCmd := exec.Command("git", "cherry-pick", sha)
-			cherryPickCmd.Dir = tempDir
-			if err := cherryPickCmd.Run(); err != nil {
-				log.Printf("%s [%s] ERROR: Cherry-pick failed on SHA %s", logPrefix, time.Now().Format(time.RFC3339), sha[:8])
-				_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("cherry-pick failed on SHA %s. Please resolve conflicts manually.", sha[:8])})
-				return
-			}
-		}
-	}
-
-	// **FIXED:** The old, incorrect cherry-picking loop has been REMOVED.
-
-	// Create a tag on the new release branch
-	log.Printf("%s [%s] Creating tag: %s", logPrefix, time.Now().Format(time.RFC3339), release.Tag)
-	tagCmd := exec.Command("git", "tag", release.Tag)
-	tagCmd.Dir = tempDir
-	if err := tagCmd.Run(); err != nil {
-		log.Printf("%s [%s] ERROR: Failed to create tag. Tag: %s, Error: %v", logPrefix, time.Now().Format(time.RFC3339), release.Tag, err)
-		_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create tag"})
-		return
-	}
-
-	// Push the new branch to remote
-	log.Printf("%s [%s] Pushing branch to remote: %s", logPrefix, time.Now().Format(time.RFC3339), branchName)
-	pushBranchCmd := exec.Command("git", "push", "origin", branchName)
-	pushBranchCmd.Dir = tempDir
-	if err := pushBranchCmd.Run(); err != nil {
-		log.Printf("%s [%s] ERROR: Failed to push branch. Branch: %s, Error: %v", logPrefix, time.Now().Format(time.RFC3339), branchName, err)
-		_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to push branch"})
-		return
-	}
-
-	// Push the new tag to remote
-	log.Printf("%s [%s] Pushing tag to remote: %s", logPrefix, time.Now().Format(time.RFC3339), release.Tag)
-	pushTagCmd := exec.Command("git", "push", "origin", release.Tag)
-	pushTagCmd.Dir = tempDir
-	if err := pushTagCmd.Run(); err != nil {
-		log.Printf("%s [%s] ERROR: Failed to push tag. Tag: %s, Error: %v", logPrefix, time.Now().Format(time.RFC3339), release.Tag, err)
-		_ = h.releaseRepo.UpdateStatus(releaseID, models.ReleaseStatusFailed)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to push tag"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to finalize release: " + err.Error()})
 		return
 	}
 
@@ -334,22 +151,62 @@ type CreateReleaseRequest struct {
 	Notes string `json:"notes"`
 }
 
-// GetAllReleases handles listing all releases
-// @Summary Get all releases
-// @Description Get a list of all releases
+// GetReleases handles retrieving all releases or releases for a specific project
+// @Summary Get releases
+// @Description Get all releases or releases for a specific project
 // @Tags releases
+// @Accept json
 // @Produce json
+// @Param project_id query int false "Project ID"
 // @Success 200 {array} models.Release "List of releases"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/releases [get]
-func (h *ReleaseHandler) GetAllReleases(c *gin.Context) {
-	releases, err := h.releaseRepo.GetAll()
+func (h *ReleaseHandler) GetReleases(c *gin.Context) {
+	// Create a client to use the shared package
+	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
+
+	// Check if project_id is provided as a query parameter
+	projectIDStr := c.Query("project_id")
+
+	if projectIDStr != "" {
+		// Validate project_id is a valid uint
+		_, err := strconv.ParseUint(projectIDStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+			return
+		}
+
+		// Call the shared package to list all releases
+		// We'll filter by project ID later in our handler
+		_, err = client.ListReleases()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch releases: " + err.Error()})
+			return
+		}
+	}
+
+	// Get all releases from the database
+	// We still use the database directly since we need the full release details with PRs
+	dbReleases, err := h.releaseRepo.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch releases: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch releases"})
 		return
 	}
 
-	c.JSON(http.StatusOK, releases)
+	// Filter by project ID if needed
+	var filteredReleases []models.Release
+	if projectIDStr != "" {
+		projectID, _ := strconv.ParseUint(projectIDStr, 10, 32)
+		for _, release := range dbReleases {
+			if uint(release.ProjectID) == uint(projectID) {
+				filteredReleases = append(filteredReleases, release)
+			}
+		}
+		c.JSON(http.StatusOK, filteredReleases)
+	} else {
+		// Return all releases
+		c.JSON(http.StatusOK, dbReleases)
+	}
 }
 
 // CreateRelease handles the creation of a new release
@@ -376,6 +233,21 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		return
 	}
 
+	// Create a client to use the shared package
+	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
+
+	// Convert to shared package CreateReleaseRequest
+	sharedReq := &featureplus.CreateReleaseRequest{
+		Tag:   req.Tag,
+		Notes: req.Notes,
+	}
+
+	// Convert PR IDs to uint
+	for _, prID := range req.PRs {
+		sharedReq.PRIDs = append(sharedReq.PRIDs, uint(prID))
+	}
+
+	// Perform validations using the repository directly
 	// Derive ProjectID from PRs' features to scope the release per project
 	sameProject, err := h.releaseRepo.CheckPRsSameProject(req.PRs)
 	if err != nil {
@@ -428,7 +300,21 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		return
 	}
 
-	// Create the release
+	// Validate the PRs before creating the release
+	if err := h.releaseValidator.ValidatePRsForRelease(req.PRs); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Call the shared package to validate the request
+	// We don't use the returned release since we're managing our own database
+	_, err = client.CreateRelease(sharedReq)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create release: " + err.Error()})
+		return
+	}
+
+	// Create the release in our database
 	release := &models.Release{
 		ProjectID: projectID,
 		Tag:       req.Tag,
@@ -436,15 +322,9 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		Notes:     req.Notes,
 	}
 
-	// Validate the PRs before creating the release
-	if err := h.releaseValidator.ValidatePRsForRelease(req.PRs); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Create the release
+	// Create the release in the database
 	if err := h.releaseRepo.Create(release, req.PRs); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create release: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save release to database: " + err.Error()})
 		return
 	}
 

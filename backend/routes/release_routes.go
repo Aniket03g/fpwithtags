@@ -18,7 +18,7 @@ func RegisterReleaseRoutes(router *gin.Engine, db *gorm.DB) {
 	releases := router.Group("/api/releases")
 	{
 		releases.POST("", releaseHandler.CreateRelease)
-		releases.GET("", releaseHandler.GetAllReleases)
+		releases.GET("", releaseHandler.GetReleases)
 		releases.POST("/:id/finalize", releaseHandler.FinalizeRelease)
 	}
 }

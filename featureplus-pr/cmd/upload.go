@@ -1,35 +1,15 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-	"os/exec"
 
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/spf13/cobra"
 )
 
-type PRInfo struct {
-	Title       string `json:"title"`
-	URL         string `json:"url"`
-	Body        string `json:"body"`
-	HeadRefName string `json:"headRefName"`
-	BaseRefName string `json:"baseRefName"`
-}
-
-type UploadRequest struct {
-	FeatureID   int    `json:"feature_id"`
-	TaskID      int    `json:"task_id"`
-	PRURL       string `json:"pr_url"`
-	Branch      string `json:"branch"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	IsTested    bool   `json:"is_tested"`
-	Version     string `json:"version"`
-}
+// No need to define types here as they're defined in the shared package
 
 var (
 	featureID  int
@@ -48,13 +28,17 @@ var uploadCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		prInfo, err := getPRInfo()
+		prInfo, err := featureplus.GetPRInfo()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get PR info: %v\n", err)
 			os.Exit(1)
 		}
 
-		req := UploadRequest{
+		// Create client
+		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+
+		// Create upload request
+		req := &featureplus.UploadRequest{
 			FeatureID:   featureID,
 			TaskID:      taskID,
 			PRURL:       prInfo.URL,
@@ -65,7 +49,12 @@ var uploadCmd = &cobra.Command{
 			Version:     version,
 		}
 
-		if err := sendToFeaturePlus(req); err != nil {
+		// Use the shared package to upload PR
+		if verbose {
+			fmt.Printf("Uploading PR to %s/api/pr\n", GetAPIURL())
+		}
+
+		if err := client.UploadPR(req); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to upload PR: %v\n", err)
 			os.Exit(1)
 		}
@@ -84,47 +73,4 @@ func init() {
 	uploadCmd.MarkFlagRequired("task-id")
 }
 
-func getPRInfo() (*PRInfo, error) {
-	cmd := exec.Command("gh", "pr", "view", "--json", "title,url,body,baseRefName,headRefName")
-	out, err := cmd.Output()
-	if err != nil {
-		return nil, err
-	}
-	var pr PRInfo
-	if err := json.Unmarshal(out, &pr); err != nil {
-		return nil, err
-	}
-	return &pr, nil
-}
-
-func sendToFeaturePlus(req UploadRequest) error {
-	jsonData, err := json.Marshal(req)
-	if err != nil {
-		return err
-	}
-
-	apiURL := GetAPIURL()
-
-	if verbose {
-		fmt.Printf("Sending request to: %s/api/pr\n", apiURL)
-		fmt.Printf("Request payload: %s\n", string(jsonData))
-	}
-
-	resp, err := http.Post(apiURL+"/api/pr", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if verbose {
-		responseBody, _ := io.ReadAll(resp.Body)
-		fmt.Printf("Server response status: %s\n", resp.Status)
-		fmt.Printf("Server response body: %s\n", string(responseBody))
-		resp.Body = io.NopCloser(bytes.NewBuffer(responseBody)) // Restore body for further reading if needed
-	}
-
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("API returned status: %s", resp.Status)
-	}
-	return nil
-}
+// These functions are no longer needed as they're provided by the shared package

@@ -1,25 +1,19 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/spf13/cobra"
 )
 
-type ReviewRequest struct {
-	Status     string `json:"status"`
-	Comment    string `json:"comment,omitempty"`
-	ApprovedAt int64  `json:"approved_at,omitempty"`
-	Version    string `json:"version,omitempty"`
-}
+// No need to define types here as they're defined in the shared package
 
 var (
 	approvePRID   int
@@ -54,14 +48,19 @@ Example:
 			}
 		}
 
-		reqBody := ReviewRequest{
+		// Create client
+		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+
+		// Create review request
+		reqBody := &featureplus.ReviewRequest{
 			Status:     "approved",
 			Comment:    approveComment,
 			ApprovedAt: time.Now().Unix(),
 			Version:    getGitVersion(),
 		}
 
-		if err := sendApproveRequest(approvePRID, reqBody); err != nil {
+		// Use the shared package to approve PR
+		if err := client.ApprovePR(approvePRID, reqBody); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -73,35 +72,7 @@ Example:
 	},
 }
 
-func sendApproveRequest(prID int, reqBody ReviewRequest) error {
-	apiURL := GetAPIURL()
-	url := fmt.Sprintf("%s/api/pr/%d/review", apiURL, prID)
-
-	jsonData, err := json.Marshal(reqBody)
-	if err != nil {
-		return fmt.Errorf("failed to encode request: %v", err)
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("request failed: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API request failed with status %s: %s", resp.Status, string(body))
-	}
-
-	return nil
-}
+// This function is no longer needed as we use the shared package
 
 func getCurrentPRNumber() (string, error) {
 	// Get the current branch name

@@ -2,42 +2,17 @@ package cmd
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 
-	"featureplus-pr/internal/config"
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/spf13/cobra"
 )
 
-// Release represents a release from the API
-type Release struct {
-	ID      uint        `json:"id"`
-	Tag     string      `json:"tag"`
-	PRs     []PRDetails `json:"prs"`
-	Status  string      `json:"status"`
-	Notes   string      `json:"notes"`
-	Created string      `json:"created_at"`
-}
-
-// PRDetails represents a PR in a release
-type PRDetails struct {
-	ID          int    `json:"id"`
-	TaskID      int    `json:"task_id"`
-	FeatureID   int    `json:"feature_id"`
-	PRURL       string `json:"pr_url"`
-	Title       string `json:"title"`
-	Branch      string `json:"branch"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
-	IsTested    bool   `json:"is_tested"`
-	Version     string `json:"version"`
-}
+// No need to define types here as they're defined in the shared package
 
 var (
 	releaseTag   string
@@ -81,8 +56,25 @@ Example:
 		// Get release notes
 		notes := getReleaseNotes()
 
-		// Create and send the release request
-		if err := createRelease(releaseTag, prs, notes); err != nil {
+		// Create client
+		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+
+		// Convert PR IDs to uint
+		prIDs := make([]uint, len(prs))
+		for i, id := range prs {
+			prIDs[i] = uint(id)
+		}
+
+		// Create release request
+		req := &featureplus.CreateReleaseRequest{
+			Tag:   releaseTag,
+			PRIDs: prIDs,
+			Notes: notes,
+		}
+
+		// Use the shared package to create release
+		_, err := client.CreateRelease(req)
+		if err != nil {
 			return fmt.Errorf("error creating release: %v", err)
 		}
 
@@ -158,73 +150,9 @@ func getReleaseNotes() string {
 	return releaseNotes
 }
 
-type releaseRequest struct {
-	Tag   string `json:"tag"`
-	PRs   []int  `json:"prs"`
-	Notes string `json:"notes"`
-}
+// These functions are no longer needed as they're provided by the shared package
 
-func createRelease(tag string, prs []int, notes string) error {
-	// Prepare request payload
-	reqBody := releaseRequest{
-		Tag:   tag,
-		PRs:   prs,
-		Notes: notes,
-	}
-
-	jsonData, err := json.Marshal(reqBody)
-	if err != nil {
-		return fmt.Errorf("failed to marshal request: %v", err)
-	}
-
-	// Get API base URL from config
-	baseURL, err := loadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %v", err)
-	}
-
-	// Create HTTP request
-	// Ensure we don't have a trailing slash in the base URL
-	baseURL = strings.TrimSuffix(baseURL, "/")
-	url := fmt.Sprintf("%s/releases", baseURL)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("request failed: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response: %v", err)
-	}
-
-	// Check for error response
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("API error (%d): %s", resp.StatusCode, string(body))
-	}
-
-	return nil
-}
-
-// loadConfig loads the configuration and returns the API base URL
-func loadConfig() (string, error) {
-	// Use the config package to load configuration
-	config.LoadConfig()
-	baseURL := config.GetAPIURL()
-	
-	// Ensure the API path is included
-	return baseURL + "/api", nil
-}
+// This function is no longer needed as we use GetAPIURL from cmd package
 
 // ReleaseCmd represents the release command
 var ReleaseCmd = &cobra.Command{
@@ -248,45 +176,13 @@ func init() {
 
 // listReleases fetches and displays all releases
 func listReleases() error {
-	// Get API base URL from config
-	baseURL, err := loadConfig()
+	// Create client
+	client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+
+	// Use the shared package to list releases
+	releases, err := client.ListReleases()
 	if err != nil {
-		return fmt.Errorf("failed to load config: %v", err)
-	}
-
-	// Create HTTP request
-	baseURL = strings.TrimSuffix(baseURL, "/")
-	url := fmt.Sprintf("%s/releases", baseURL)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-
-	req.Header.Set("Accept", "application/json")
-
-	// Send request
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("request failed: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response: %v", err)
-	}
-
-	// Check for error response
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("API error (%d): %s", resp.StatusCode, string(body))
-	}
-
-	// Parse response
-	var releases []Release
-	if err := json.Unmarshal(body, &releases); err != nil {
-		return fmt.Errorf("failed to parse response: %v", err)
+		return fmt.Errorf("failed to list releases: %v", err)
 	}
 
 	// Display releases in a table
@@ -308,9 +204,9 @@ func listReleases() error {
 		}
 
 		// Format PRs as comma-separated string
-		prs := make([]string, len(r.PRs))
-		for i, pr := range r.PRs {
-			prs[i] = strconv.Itoa(pr.ID)
+		prs := make([]string, len(r.PRIDs))
+		for i, prID := range r.PRIDs {
+			prs[i] = strconv.Itoa(int(prID))
 		}
 		prsStr := strings.Join(prs, ", ")
 		if len(prsStr) > 10 {

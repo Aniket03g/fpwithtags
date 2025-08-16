@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/spf13/cobra"
 )
 
@@ -37,15 +38,23 @@ Example:
 			os.Exit(1)
 		}
 
-		// Get the current git branch to find the PR number if not provided
-		prNumber, err := getCurrentPRNumber()
+		// Get PR info from FeaturePlus
+		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		pr, err := client.GetPR(mergePRID)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error getting PR info: %v\n", err)
 			os.Exit(1)
 		}
 
-		// Run GitHub CLI to merge the PR
-		if err := runGitHubMerge(prNumber, mergeMethod, mergeDelete, mergeComment); err != nil {
+		// Extract PR number from URL
+		prNumber := extractPRNumber(pr.URL)
+		if prNumber == "" {
+			fmt.Fprintf(os.Stderr, "Error: Could not extract PR number from URL: %s\n", pr.URL)
+			os.Exit(1)
+		}
+
+		// Use the shared package to merge the PR
+		if err := client.MergePR(prNumber, mergeMethod, mergeDelete, mergeComment); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Failed to merge PR: %v\n", err)
 			os.Exit(1)
 		}
@@ -54,39 +63,14 @@ Example:
 	},
 }
 
-func runGitHubMerge(prNumber, method string, deleteBranch bool, comment string) error {
-	args := []string{"pr", "merge", prNumber, "--merge"}
-
-	// Add merge method if specified
-	switch strings.ToLower(method) {
-	case "merge", "":
-		// Default is merge commit, no flag needed
-	case "squash":
-		args = append(args, "--squash")
-	case "rebase":
-		args = append(args, "--rebase")
-	default:
-		return fmt.Errorf("invalid merge method: %s. Must be one of: merge, squash, rebase", method)
+// extractPRNumber extracts the PR number from a GitHub PR URL
+func extractPRNumber(url string) string {
+	// URL format: https://github.com/org/repo/pull/123
+	parts := strings.Split(url, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1]
 	}
-
-	// Add delete branch flag if specified
-	if deleteBranch {
-		args = append(args, "--delete-branch")
-	}
-
-	// Add comment if provided
-	if comment != "" {
-		args = append(args, "--body", fmt.Sprintf(`"%s"`, comment))
-	}
-
-	// Add auto-confirm flag
-	args = append(args, "--auto")
-
-	cmd := exec.Command("gh", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	
-	return cmd.Run()
+	return ""
 }
 
 func init() {

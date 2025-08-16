@@ -1,29 +1,16 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
+	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/spf13/cobra"
 )
 
-type PRListItem struct {
-	ID        uint   `json:"id"`
-	Title     string `json:"title"`
-	Status    string `json:"status"`
-	FeatureID int    `json:"feature_id"`
-	TaskID    int    `json:"task_id"`
-	URL       string `json:"pr_url"`
-	Branch    string `json:"branch"`
-	Tested    bool   `json:"is_tested"`
-	Version   string `json:"version"`
-	CreatedAt int64  `json:"created_at"`
-}
+// No need to define types here as they're defined in the shared package
 
 var (
 	listFeatureID int
@@ -33,7 +20,11 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List pull requests from FeaturePlus",
 	Run: func(cmd *cobra.Command, args []string) {
-		prs, err := getPRList()
+		// Create client
+		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+
+		// Use the shared package to list PRs
+		prs, err := client.ListPRs(uint(listFeatureID))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get PR list: %v\n", err)
 			os.Exit(1)
@@ -53,37 +44,9 @@ func init() {
 	listCmd.Flags().IntVar(&listFeatureID, "feature-id", 0, "Filter PRs by feature ID (optional)")
 }
 
-func getPRList() ([]PRListItem, error) {
-	apiURL := GetAPIURL()
-	url := apiURL + "/api/pr"
-	if listFeatureID > 0 {
-		url += "?feature_id=" + strconv.Itoa(listFeatureID)
-	}
+// This function is no longer needed as it's provided by the shared package
 
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status: %s", resp.Status)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var prs []PRListItem
-	if err := json.Unmarshal(body, &prs); err != nil {
-		return nil, err
-	}
-
-	return prs, nil
-}
-
-func displayPRTable(prs []PRListItem) {
+func displayPRTable(prs []featureplus.PullRequest) {
 	// Print header
 	fmt.Printf("%-6s %-40s %-10s %-10s %-10s\n", "ID", "Title", "Status", "TaskID", "FeatureID")
 	fmt.Println(strings.Repeat("-", 80))
@@ -101,7 +64,7 @@ func displayPRTable(prs []PRListItem) {
 			title,
 			pr.Status,
 			pr.TaskID,
-			pr.FeatureID)
+			int(pr.FeatureID))
 	}
 
 	fmt.Printf("\nTotal: %d pull request(s)\n", len(prs))
