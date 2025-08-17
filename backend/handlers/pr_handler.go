@@ -19,17 +19,14 @@ func NewPullRequestHandler(prRepo repositories.PullRequestRepository) *PullReque
 	return &PullRequestHandler{prRepo: prRepo}
 }
 
-// MarkTested marks a pull request as tested
-func (h *PullRequestHandler) MarkTested(c *gin.Context) {
+// MarkAsTested marks a pull request as tested and returns the updated PR row HTML
+func (h *PullRequestHandler) MarkAsTested(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid PR ID"})
 		return
 	}
-
-	// We'll use the shared package types but not the client in this handler
-	// since we're directly accessing the database
 
 	// Get the PR from the database
 	db, err := database.InitDB()
@@ -53,10 +50,8 @@ func (h *PullRequestHandler) MarkTested(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "PR marked as tested",
-		"pr":      pr,
-	})
+	// Return the updated PR row HTML using the _pr_row.html template
+	c.HTML(http.StatusOK, "_pr_row.html", pr)
 }
 
 // AddPullRequest handles the creation of a new pull request
@@ -79,7 +74,7 @@ func (h *PullRequestHandler) AddPullRequest(c *gin.Context) {
 		Title:       uploadReq.Title,
 		Branch:      uploadReq.Branch,
 		Description: uploadReq.Description,
-		Status:      "Open", // Always set status to Open on creation
+		Status:      string(featureplus.StatusOpen), // Always set status to Open on creation
 		Tested:      uploadReq.IsTested,
 		Version:     uploadReq.Version,
 	}

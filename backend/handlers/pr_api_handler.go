@@ -45,7 +45,7 @@ func PRUploadAPIHandler(c *gin.Context) {
 		Title:       uploadReq.Title,
 		Branch:      uploadReq.Branch,
 		Description: uploadReq.Description,
-		Status:      "Open", // Always set status to Open on upload
+		Status:      string(featureplus.StatusOpen), // Always set status to Open on upload
 		Tested:      uploadReq.IsTested,
 		Version:     uploadReq.Version,
 	}
@@ -126,7 +126,7 @@ func PRGetByIDHandler(c *gin.Context) {
 		Title:       pr.Title,
 		Branch:      pr.Branch,
 		Description: pr.Description,
-		Status:      pr.Status,
+		Status:      featureplus.PRStatus(pr.Status),
 		Tested:      pr.Tested,
 		Version:     pr.Version,
 		CreatedAt:   pr.CreatedAt,

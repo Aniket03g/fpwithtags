@@ -21,6 +21,20 @@ type BackendReviewRequest struct {
 	Comment string `json:"comment"`
 }
 
+// GetPRStatus converts a string status to PRStatus type
+func GetPRStatus(status string) featureplus.PRStatus {
+	switch status {
+	case "approved":
+		return featureplus.StatusApproved
+	case "rejected":
+		return featureplus.StatusRejected
+	case "changes_requested":
+		return featureplus.StatusChangesRequested
+	default:
+		return featureplus.StatusOpen
+	}
+}
+
 // PRReviewHandler handles PR review operations
 type PRReviewHandler struct {
 	prRepo repositories.PullRequestRepository
@@ -52,7 +66,7 @@ func (h *PRReviewHandler) ReviewPR(c *gin.Context) {
 
 	// Convert to shared package ReviewRequest
 	reviewReq := &featureplus.ReviewRequest{
-		Status:     backendReq.Status,
+		Status:     GetPRStatus(backendReq.Status),
 		Comment:    backendReq.Comment,
 		ApprovedAt: time.Now().Unix(),
 	}
@@ -81,7 +95,7 @@ func (h *PRReviewHandler) ReviewPR(c *gin.Context) {
 	}
 
 	// Update PR status and comment in our database
-	pr.Status = backendReq.Status
+	pr.Status = string(GetPRStatus(backendReq.Status))
 	if backendReq.Comment != "" {
 		pr.Description = backendReq.Comment
 	}

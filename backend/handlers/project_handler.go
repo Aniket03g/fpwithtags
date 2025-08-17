@@ -141,3 +141,16 @@ func (h *ProjectHandler) ShowDashboard(c *gin.Context) {
 	}
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{"Projects": projects})
 }
+
+// GetAllProjectsFragment handles getting all projects for HTMX fragment requests
+func (h *ProjectHandler) GetAllProjectsFragment(c *gin.Context) {
+	log.Println("DEBUG: Getting all projects for fragment")
+	projects, err := h.repo.GetAllProjects()
+	if err != nil {
+		log.Printf("ERROR: Failed to get projects for fragment: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	log.Printf("DEBUG: Retrieved %d projects for fragment\n", len(projects))
+	c.HTML(http.StatusOK, "project-list.html", gin.H{"Projects": projects})
+}

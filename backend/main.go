@@ -2,6 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -9,19 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joho/godotenv" // For loading .env files
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/handlers"
 	"github.com/FeaturePlus/backend/middleware"
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/backend/routes"
-	"github.com/jilio/sqlitefs"
-
-	"encoding/json"
-	"html/template"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jilio/sqlitefs"
+	"github.com/joho/godotenv" // For loading .env files
 )
 
 // Simple logging middleware to print requests
@@ -48,19 +47,9 @@ func LoggingMiddleware() gin.HandlerFunc {
 			path,
 		)
 		if raw != "" {
-			log.Printf("      Raw query: %s", raw)
+			log.Printf("       Raw query: %s", raw)
 		}
 	}
-}
-
-// RenderDashboardShell renders the main dashboard.html shell for all main web pages
-func RenderDashboardShell(c *gin.Context) {
-	c.HTML(http.StatusOK, "dashboard.html", gin.H{})
-}
-
-// ProjectsFragmentHandler returns the projects list fragment (placeholder for now)
-func ProjectsFragmentHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "project-list.html", gin.H{})
 }
 
 // RenderAppShell renders the dashboard.html shell and passes the correct initial fragment URL
@@ -189,7 +178,6 @@ func FeaturesByTagFragment(featureHandler *handlers.FeatureHandler) gin.HandlerF
 
 func main() {
 	// --- Load environment variables from .env file at startup ---
-	// This allows you to securely store secrets (like GitHub tokens) outside of source code.
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: No .env file found (this is OK in production if env vars are set)")
 	}
@@ -315,25 +303,20 @@ func main() {
 	// Register auth routes
 	routes.RegisterAuthRoutes(router, db.DB)
 
-	// --- EXISTING API ROUTES FOR NEXT.JS (NO CHANGES) ---
+	// --- EXISTING API ROUTES ---
 	api := router.Group("/api")
 	{
-		// Middleware to log request body for API routes
 		api.Use(BodyLoggingMiddleware())
 		userRoutes := api.Group("/users")
 		{
 			userRoutes.GET("", userHandler.GetAllUsers)
-			// ... etc
 		}
 		projectRoutes := api.Group("/projects", middleware.AuthMiddleware())
 		{
-			// Note: This GET is the original JSON route for Next.js
 			projectRoutes.GET("", projectHandler.GetAllProjects)
-			// ... etc
 		}
 		api.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
 		api.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
-		// Change file serving route to avoid conflict
 		api.GET("/attachments/file/:filename", attachmentHandler.ServeAttachment)
 		api.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)
 		api.POST("/tasks/:task_id/comments", commentHandler.CreateComment)
@@ -341,29 +324,20 @@ func main() {
 		api.GET("/attachments/:attachment_id/comments", commentHandler.GetAttachmentComments)
 		api.PUT("/comments/:comment_id", commentHandler.UpdateComment)
 		api.DELETE("/comments/:comment_id", commentHandler.DeleteComment)
-		// Register CLI PR upload endpoint
 		api.POST("/pr", handlers.PRUploadAPIHandler)
-
-		// Register CLI PR list endpoint
 		api.GET("/pr", handlers.PRListAPIHandler)
-		// Register CLI PR get-by-id endpoint
 		api.GET("/prs/:id", handlers.PRGetByIDHandler)
 
-		// Register PR review endpoint
 		prReviewHandler := handlers.NewPRReviewHandler(prRepo)
 		api.POST("/pr/:id/review", prReviewHandler.ReviewPR)
-
 	}
 
-	// Register release routes at the root level (they already include /api prefix)
+	// Register release routes
 	routes.RegisterReleaseRoutes(router, db.DB)
 
-	// ==========================================================
-	// ===== NEW WEB ROUTES FOR HTMX TESTING =====
-	// ==========================================================
+	// --- NEW WEB ROUTES FOR HTMX ---
 	web := router.Group("/web")
 	{
-		// Main web page routes: always render dashboard.html shell
 		web.GET("/dashboard", RenderAppShell)
 		web.GET("/projects", RenderAppShell)
 		web.GET("/projects/:id", RenderAppShell)
@@ -373,11 +347,6 @@ func main() {
 		web.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 		web.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
 		web.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
-
-		// New fragment route for project list only
-		web.GET("/projects-fragment", ProjectsFragmentHandler)
-
-		// HTMX fragment and API routes (do not change)
 		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
 		web.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
 		web.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
@@ -385,18 +354,12 @@ func main() {
 		web.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
 	}
 
-	// Register the PR modal route for tasks (for HTMX modal)
-	router.GET("/tasks/:id/prs/new", taskHandler.NewPullRequestModal)
-
-	// Register PR routes
-	router.POST("/tasks/:id/prs", prHandler.AddPullRequest)
-	router.POST("/prs/:id/mark-tested", prHandler.MarkTested)
-
-	// New fragment group for all HTMX fragments
-	fragments := router.Group("/web/fragments", FragmentHTMXGuard())
+	fragments := web.Group("/fragments")
+	fragments.Use(FragmentHTMXGuard())
 	{
-		fragments.GET("/projects", projectHandler.GetAllProjects)
-		fragments.GET("/projects/:id", projectHandler.GetProject)
+		// THIS IS THE NEWLY ADDED ROUTE
+		fragments.GET("/projects", projectHandler.GetAllProjectsFragment)
+
 		fragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
 		fragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 		fragments.GET("/features/:id", featureHandler.GetFeature)
@@ -405,12 +368,10 @@ func main() {
 		fragments.GET("/features/:id/tasks/:task_id/view", taskHandler.ViewTaskCard)
 		fragments.GET("/features/:id/view", featureHandler.ViewFeatureCard)
 		fragments.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
-		// Add inline feature edit POST route
 		fragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 		fragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
 		fragments.GET("/features", FeaturesByTagFragment(featureHandler))
 	}
-	// ==========================================================
 
 	// Health check
 	router.GET("/api/health", func(c *gin.Context) {
@@ -428,6 +389,25 @@ func main() {
 
 	// Register the login page route
 	router.GET("/web/login", LoginPageHandler)
+
+	// Register PR routes
+	prGroup := router.Group("/prs")
+	{
+		prGroup.POST("/:id/test", prHandler.MarkAsTested)
+	}
+
+	// Debug: List all registered routes
+	log.Println("Listing all registered routes:")
+	routesFile, err := os.Create("routes.txt")
+	if err != nil {
+		log.Printf("Error creating routes file: %v\n", err)
+	} else {
+		defer routesFile.Close()
+		fmt.Fprintln(routesFile, "Registered Routes:")
+		for _, route := range router.Routes() {
+			fmt.Fprintf(routesFile, "Method: %s, Path: %s\n", route.Method, route.Path)
+		}
+	}
 
 	// Start server
 	log.Println("Server starting on :8080...")

@@ -35,7 +35,7 @@ func TestListPRs(t *testing.T) {
 				URL:       "https://github.com/org/repo/pull/1",
 				Title:     "Test PR",
 				Branch:    "feature/test",
-				Status:    "Open",
+				Status:    StatusOpen,
 			},
 		}
 		
@@ -146,7 +146,7 @@ func TestGetPR(t *testing.T) {
 			Title:       "Test PR",
 			Branch:      "feature/test",
 			Description: "Test description",
-			Status:      "Open",
+			Status:      StatusOpen,
 			Tested:      true,
 			Version:     "1.0.0",
 			CreatedAt:   1629123456,
@@ -200,7 +200,7 @@ func TestApprovePR(t *testing.T) {
 		}
 		
 		// Verify request fields
-		if req.Status != "approved" {
+		if req.Status != StatusApproved {
 			t.Errorf("Expected status 'approved', got: %s", req.Status)
 		}
 		if req.Comment != "LGTM" {
@@ -217,7 +217,7 @@ func TestApprovePR(t *testing.T) {
 	
 	// Create review request
 	req := &ReviewRequest{
-		Status:     "approved",
+		Status:     StatusApproved,
 		Comment:    "LGTM",
 		ApprovedAt: 1629123456,
 		Version:    "abc123",
