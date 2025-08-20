@@ -145,6 +145,11 @@ func (h *ProjectHandler) ShowDashboard(c *gin.Context) {
 // GetAllProjectsFragment handles getting all projects for HTMX fragment requests
 func (h *ProjectHandler) GetAllProjectsFragment(c *gin.Context) {
 	log.Println("DEBUG: Getting all projects for fragment")
+
+	// Get the user's role from the context (set by the AuthMiddleware)
+	userRole, _ := c.Get("user_role")
+	isManager := userRole == "manager"
+
 	projects, err := h.repo.GetAllProjects()
 	if err != nil {
 		log.Printf("ERROR: Failed to get projects for fragment: %v\n", err)
@@ -152,5 +157,12 @@ func (h *ProjectHandler) GetAllProjectsFragment(c *gin.Context) {
 		return
 	}
 	log.Printf("DEBUG: Retrieved %d projects for fragment\n", len(projects))
-	c.HTML(http.StatusOK, "project-list.html", gin.H{"Projects": projects})
+
+	// Pass both the Projects and the CurrentUser's role to the template
+	c.HTML(http.StatusOK, "project-list.html", gin.H{
+		"Projects": projects,
+		"CurrentUser": gin.H{
+			"IsManager": isManager,
+		},
+	})
 }

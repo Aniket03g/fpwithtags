@@ -38,14 +38,26 @@
     {{ end }}
   </td>
   <td class="px-3 py-2">
-    {{ if not .Tested }}
-      <button 
-        class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition"
-        hx-post="/prs/{{.ID}}/test"
-        hx-target="#pr-row-{{.ID}}"
-        hx-swap="outerHTML">
-        Mark as Tested
-      </button>
-    {{ end }}
+    {{if .CurrentUser.IsManager}}
+      {{if ne .Status "Approved"}}
+        <button 
+          class="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition mr-2"
+          hx-post="/prs/{{.ID}}/approve"
+          hx-target="#pr-row-{{.ID}}"
+          hx-swap="outerHTML">
+          Approve
+        </button>
+      {{end}}
+    {{else}}
+      {{ if not .Tested }}
+        <button 
+          class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition"
+          hx-post="/prs/{{.ID}}/test"
+          hx-target="#pr-row-{{.ID}}"
+          hx-swap="outerHTML">
+          Mark as Tested
+        </button>
+      {{ end }}
+    {{end}}
   </td>
 </tr>

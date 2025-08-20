@@ -28,7 +28,13 @@ func (h *PullRequestHandler) MarkAsTested(c *gin.Context) {
 		return
 	}
 
-	// Get the PR from the database
+	// Mark the PR as tested
+	if err := h.prRepo.MarkTested(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to mark PR as tested"})
+		return
+	}
+
+	// Get the updated PR
 	db, err := database.InitDB()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to database"})
@@ -41,17 +47,25 @@ func (h *PullRequestHandler) MarkAsTested(c *gin.Context) {
 		return
 	}
 
-	// Update PR tested status
-	pr.Tested = true
+	// Get user role from context (set by RoleMiddleware)
+	userRole, exists := c.Get("user_role")
+	var isManager bool
 
-	// Save the updated PR
-	if err := h.prRepo.UpdatePR(&pr); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update PR"})
-		return
+	if exists {
+		isManager = userRole == "manager"
 	}
 
 	// Return the updated PR row HTML using the _pr_row.html template
-	c.HTML(http.StatusOK, "_pr_row.html", pr)
+	c.HTML(http.StatusOK, "_pr_row.html", gin.H{
+		"ID":          pr.ID,
+		"URL":         pr.URL,
+		"Title":       pr.Title,
+		"Branch":      pr.Branch,
+		"Version":     pr.Version,
+		"Status":      pr.Status,
+		"Tested":      pr.Tested,
+		"CurrentUser": gin.H{"IsManager": isManager},
+	})
 }
 
 // AddPullRequest handles the creation of a new pull request
@@ -85,4 +99,56 @@ func (h *PullRequestHandler) AddPullRequest(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, pr)
+}
+
+// ApprovePR approves a pull request and returns the updated PR row HTML
+func (h *PullRequestHandler) ApprovePR(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid PR ID"})
+		return
+	}
+
+	// Get the PR from the database
+	db, err := database.InitDB()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to database"})
+		return
+	}
+
+	var pr models.PullRequest
+	if err := db.DB.First(&pr, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "PR not found"})
+		return
+	}
+
+	// Update PR status to Approved
+	pr.Status = string(featureplus.StatusApproved)
+
+	// Save the updated PR
+	if err := h.prRepo.UpdatePR(&pr); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update PR"})
+		return
+	}
+
+	// Get user role from context (set by RoleMiddleware)
+	userRole, exists := c.Get("user_role")
+	var isManager bool
+
+	if exists {
+		isManager = userRole == "manager"
+	}
+
+	// Return the updated PR row HTML using the _pr_row.html template
+	c.HTML(http.StatusOK, "_pr_row.html", gin.H{
+		"ID":          pr.ID,
+		"URL":         pr.URL,
+		"Title":       pr.Title,
+		"Branch":      pr.Branch,
+		"Version":     pr.Version,
+		"Status":      pr.Status,
+		"Tested":      pr.Tested,
+		"CurrentUser": gin.H{"IsManager": isManager},
+	})
 }

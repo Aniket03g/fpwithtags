@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF--8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FeaturePlus Dashboard</title>
-  <!-- Tailwind CSS (standalone for CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body class="flex min-h-screen bg-gray-100">
-  <!-- Sidebar -->
   <aside>
     <ul class="flex flex-col gap-2 p-4 w-72 min-h-full bg-white border-r border-gray-200 text-gray-800 shadow-lg">
       <li class="text-lg font-bold tracking-wide mb-4">FeaturePlus</li>
@@ -26,9 +23,7 @@
       {{ end }}
     </ul>
   </aside>
-  <!-- Main Area Wrapper -->
   <div class="flex-1 flex flex-col">
-    <!-- Top Navbar -->
     <header>
       <div class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 shadow-sm">
         <div class="flex-1"></div>
@@ -53,131 +48,141 @@
         </div>
       </div>
     </header>
-    <!-- Main Content Area -->
     <main id="main-content" class="flex-1 p-6" hx-get="{{ .InitialURL }}" hx-trigger="load"></main>
   </div>
 </body>
 <script>
-// Debounce utility
-function debounce(func, wait) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
+    // This script tells HTMX to add the auth token to every request.
+    document.body.addEventListener('htmx:configRequest', function(evt) {
+        // Get the token from localStorage using the correct key 'token'.
+        const token = localStorage.getItem('token');
 
-function tagInput() {
-  return {
-    input: '',
-    tags: [],
-    suggestions: [],
-    showDropdown: false,
-    async fetchSuggestions() {
-      if (this.input.length < 2) {
-        this.suggestions = [];
-        this.showDropdown = false;
-        return;
-      }
-      const resp = await fetch(`/web/fragments/tags/autocomplete?query=${encodeURIComponent(this.input)}`, {
-        headers: { 'HX-Request': 'true' }
-      });
-      this.suggestions = await resp.json();
-      this.showDropdown = this.suggestions.length > 0;
-    },
-    debouncedFetchSuggestions: null,
-    addTag(tag) {
-      tag = (tag || this.input).trim().replace(/[,;]$/, '');
-      if (tag) {
-        tag.split(/[,;\s]+/).forEach(t => {
-          t = t.trim();
-          if (t && !this.tags.includes(t)) this.tags.push(t);
-        });
-      }
-      this.input = '';
-      this.suggestions = [];
-      this.showDropdown = false;
-    },
-    removeTag(idx) {
-      this.tags.splice(idx, 1);
-    },
-    onInput() {
-      if (!this.debouncedFetchSuggestions) {
-        this.debouncedFetchSuggestions = debounce(this.fetchSuggestions.bind(this), 4000);
-      }
-      this.debouncedFetchSuggestions();
-    },
-    onKeydown(e) {
-      if ([',', ';', ' '].includes(e.key)) {
-        e.preventDefault();
-        this.addTag();
-      }
-    },
-    selectSuggestion(tag) {
-      this.addTag(tag);
+        // If the token exists, add it to the request's Authorization header.
+        if (token) {
+            evt.detail.headers['Authorization'] = 'Bearer ' + token;
+        }
+    });
+
+    // Debounce utility
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
     }
-  }
-}
-function tagInputEdit(initialTags) {
-  let tags = [];
-  if (Array.isArray(initialTags)) {
-    tags = initialTags.map(t => typeof t === "string" ? t : (t.tag_name || ""));
-  }
-  return {
-    input: '',
-    tags: tags,
-    suggestions: [],
-    showDropdown: false,
-    async fetchSuggestions() {
-      if (this.input.length < 2) {
-        this.suggestions = [];
-        this.showDropdown = false;
-        return;
+
+    function tagInput() {
+      return {
+        input: '',
+        tags: [],
+        suggestions: [],
+        showDropdown: false,
+        async fetchSuggestions() {
+          if (this.input.length < 2) {
+            this.suggestions = [];
+            this.showDropdown = false;
+            return;
+          }
+          const resp = await fetch(`/web/fragments/tags/autocomplete?query=${encodeURIComponent(this.input)}`, {
+            headers: { 'HX-Request': 'true' }
+          });
+          this.suggestions = await resp.json();
+          this.showDropdown = this.suggestions.length > 0;
+        },
+        debouncedFetchSuggestions: null,
+        addTag(tag) {
+          tag = (tag || this.input).trim().replace(/[,;]$/, '');
+          if (tag) {
+            tag.split(/[,;\s]+/).forEach(t => {
+              t = t.trim();
+              if (t && !this.tags.includes(t)) this.tags.push(t);
+            });
+          }
+          this.input = '';
+          this.suggestions = [];
+          this.showDropdown = false;
+        },
+        removeTag(idx) {
+          this.tags.splice(idx, 1);
+        },
+        onInput() {
+          if (!this.debouncedFetchSuggestions) {
+            this.debouncedFetchSuggestions = debounce(this.fetchSuggestions.bind(this), 4000);
+          }
+          this.debouncedFetchSuggestions();
+        },
+        onKeydown(e) {
+          if ([',', ';', ' '].includes(e.key)) {
+            e.preventDefault();
+            this.addTag();
+          }
+        },
+        selectSuggestion(tag) {
+          this.addTag(tag);
+        }
       }
-      const resp = await fetch(`/web/fragments/tags/autocomplete?query=${encodeURIComponent(this.input)}`, {
-        headers: { 'HX-Request': 'true' }
-      });
-      this.suggestions = await resp.json();
-      this.showDropdown = this.suggestions.length > 0;
-    },
-    debouncedFetchSuggestions: null,
-    addTag(tag) {
-      tag = (tag || this.input).trim().replace(/[,;]$/, '');
-      if (tag) {
-        tag.split(/[,;\s]+/).forEach(t => {
-          t = t.trim();
-          if (t && !this.tags.includes(t)) this.tags.push(t);
-        });
-      }
-      this.input = '';
-      this.suggestions = [];
-      this.showDropdown = false;
-    },
-    removeTag(idx) {
-      this.tags.splice(idx, 1);
-    },
-    onInput() {
-      if (!this.debouncedFetchSuggestions) {
-        this.debouncedFetchSuggestions = debounce(this.fetchSuggestions.bind(this), 6000);
-      }
-      this.debouncedFetchSuggestions();
-    },
-    onKeydown(e) {
-      if ([',', ';', ' '].includes(e.key)) {
-        e.preventDefault();
-        this.addTag();
-      }
-    },
-    selectSuggestion(tag) {
-      this.addTag(tag);
     }
-  }
-}
-// Ensure Alpine re-inits after htmx swaps
-if (window.Alpine) {
-  document.body.addEventListener('htmx:afterSwap', () => {
-    window.Alpine.initTree(document.body);
-  });
-}
+    function tagInputEdit(initialTags) {
+      let tags = [];
+      if (Array.isArray(initialTags)) {
+        tags = initialTags.map(t => typeof t === "string" ? t : (t.tag_name || ""));
+      }
+      return {
+        input: '',
+        tags: tags,
+        suggestions: [],
+        showDropdown: false,
+        async fetchSuggestions() {
+          if (this.input.length < 2) {
+            this.suggestions = [];
+            this.showDropdown = false;
+            return;
+          }
+          const resp = await fetch(`/web/fragments/tags/autocomplete?query=${encodeURIComponent(this.input)}`, {
+            headers: { 'HX-Request': 'true' }
+          });
+          this.suggestions = await resp.json();
+          this.showDropdown = this.suggestions.length > 0;
+        },
+        debouncedFetchSuggestions: null,
+        addTag(tag) {
+          tag = (tag || this.input).trim().replace(/[,;]$/, '');
+          if (tag) {
+            tag.split(/[,;\s]+/).forEach(t => {
+              t = t.trim();
+              if (t && !this.tags.includes(t)) this.tags.push(t);
+            });
+          }
+          this.input = '';
+          this.suggestions = [];
+          this.showDropdown = false;
+        },
+        removeTag(idx) {
+          this.tags.splice(idx, 1);
+        },
+        onInput() {
+          if (!this.debouncedFetchSuggestions) {
+            this.debouncedFetchSuggestions = debounce(this.fetchSuggestions.bind(this), 6000);
+          }
+          this.debouncedFetchSuggestions();
+        },
+        onKeydown(e) {
+          if ([',', ';', ' '].includes(e.key)) {
+            e.preventDefault();
+            this.addTag();
+          }
+        },
+        selectSuggestion(tag) {
+          this.addTag(tag);
+        }
+      }
+    }
+    // Ensure Alpine re-inits after htmx swaps
+    if (window.Alpine) {
+      document.body.addEventListener('htmx:afterSwap', () => {
+        window.Alpine.initTree(document.body);
+      });
+    }
 </script>
-</html> 
+</html>

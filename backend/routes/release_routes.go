@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/FeaturePlus/backend/handlers"
+	"github.com/FeaturePlus/backend/middleware"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/backend/services"
 	"github.com/gin-gonic/gin"
@@ -14,11 +15,21 @@ func RegisterReleaseRoutes(router *gin.Engine, db *gorm.DB) {
 	releaseValidator := services.NewReleaseValidator(db)
 	releaseHandler := handlers.NewReleaseHandler(releaseRepo, releaseValidator)
 
+	// Create role middleware with database instance
+	roleMiddleware := middleware.CreateRoleMiddleware(db)
+
 	// Register the release routes directly under /api/releases
-	releases := router.Group("/api/releases")
+	releases := router.Group("/api/releases", middleware.AuthMiddleware())
+	releases.Use(roleMiddleware()) // Apply role middleware to all release routes
 	{
-		releases.POST("", releaseHandler.CreateRelease)
+		// GET releases is available to all authenticated users
 		releases.GET("", releaseHandler.GetReleases)
-		releases.POST("/:id/finalize", releaseHandler.FinalizeRelease)
+
+		// Create and finalize releases are restricted to managers only
+		managerRoutes := releases.Group("/", roleMiddleware("manager"))
+		{
+			managerRoutes.POST("", releaseHandler.CreateRelease)
+			managerRoutes.POST("/:id/finalize", releaseHandler.FinalizeRelease)
+		}
 	}
 }

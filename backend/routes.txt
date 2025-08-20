@@ -12,6 +12,7 @@ Method: POST, Path: /web/fragments/features/:id/edit-inline
 Method: POST, Path: /web/features/:id/tasks
 Method: POST, Path: /web/projects/:id/features
 Method: POST, Path: /prs/:id/test
+Method: POST, Path: /prs/:id/approve
 Method: GET, Path: /web/fragments/features
 Method: GET, Path: /web/fragments/features/cancel
 Method: GET, Path: /web/fragments/features/:id

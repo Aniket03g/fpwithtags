@@ -303,33 +303,45 @@ func main() {
 	// Register auth routes
 	routes.RegisterAuthRoutes(router, db.DB)
 
+	// Create role middleware with database instance
+	roleMiddleware := middleware.CreateRoleMiddleware(db.DB)
+
 	// --- EXISTING API ROUTES ---
 	api := router.Group("/api")
 	{
 		api.Use(BodyLoggingMiddleware())
+		
+		// Public routes (no auth required)
 		userRoutes := api.Group("/users")
 		{
 			userRoutes.GET("", userHandler.GetAllUsers)
 		}
-		projectRoutes := api.Group("/projects", middleware.AuthMiddleware())
+		
+		// Protected routes (auth required)
+		authApi := api.Group("/", middleware.AuthMiddleware())
+		authApi.Use(roleMiddleware()) // Apply role middleware to all authenticated routes
+		
+		projectRoutes := authApi.Group("/projects")
 		{
 			projectRoutes.GET("", projectHandler.GetAllProjects)
 		}
-		api.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
-		api.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
-		api.GET("/attachments/file/:filename", attachmentHandler.ServeAttachment)
-		api.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)
-		api.POST("/tasks/:task_id/comments", commentHandler.CreateComment)
-		api.GET("/tasks/:task_id/comments", commentHandler.GetTaskComments)
-		api.GET("/attachments/:attachment_id/comments", commentHandler.GetAttachmentComments)
-		api.PUT("/comments/:comment_id", commentHandler.UpdateComment)
-		api.DELETE("/comments/:comment_id", commentHandler.DeleteComment)
-		api.POST("/pr", handlers.PRUploadAPIHandler)
-		api.GET("/pr", handlers.PRListAPIHandler)
-		api.GET("/prs/:id", handlers.PRGetByIDHandler)
+		
+		// Regular authenticated routes
+		authApi.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
+		authApi.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
+		authApi.GET("/attachments/file/:filename", attachmentHandler.ServeAttachment)
+		authApi.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)
+		authApi.POST("/tasks/:task_id/comments", commentHandler.CreateComment)
+		authApi.GET("/tasks/:task_id/comments", commentHandler.GetTaskComments)
+		authApi.GET("/attachments/:attachment_id/comments", commentHandler.GetAttachmentComments)
+		authApi.PUT("/comments/:comment_id", commentHandler.UpdateComment)
+		authApi.DELETE("/comments/:comment_id", commentHandler.DeleteComment)
+		authApi.POST("/pr", handlers.PRUploadAPIHandler)
+		authApi.GET("/pr", handlers.PRListAPIHandler)
+		authApi.GET("/prs/:id", handlers.PRGetByIDHandler)
 
 		prReviewHandler := handlers.NewPRReviewHandler(prRepo)
-		api.POST("/pr/:id/review", prReviewHandler.ReviewPR)
+		authApi.POST("/pr/:id/review", prReviewHandler.ReviewPR)
 	}
 
 	// Register release routes
@@ -338,39 +350,56 @@ func main() {
 	// --- NEW WEB ROUTES FOR HTMX ---
 	web := router.Group("/web")
 	{
+		// Public web routes
 		web.GET("/dashboard", RenderAppShell)
-		web.GET("/projects", RenderAppShell)
-		web.GET("/projects/:id", RenderAppShell)
-		web.GET("/projects/:id/features", RenderAppShell)
-		web.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
-		web.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
-		web.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
-		web.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
-		web.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
-		web.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
-		web.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
-		web.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
-		web.GET("/tasks/cancel", taskHandler.CancelTaskForm)
-		web.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
+		web.GET("/login", LoginPageHandler)
+		
+		// Protected web routes
+		authWeb := web.Group("/", middleware.AuthMiddleware())
+		authWeb.Use(roleMiddleware()) // Apply role middleware to all authenticated web routes
+		{
+			authWeb.GET("/projects", RenderAppShell)
+			authWeb.GET("/projects/:id", RenderAppShell)
+			authWeb.GET("/projects/:id/features", RenderAppShell)
+			authWeb.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
+			authWeb.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
+			authWeb.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
+			authWeb.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
+			authWeb.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
+			authWeb.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
+			authWeb.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
+			authWeb.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
+			authWeb.GET("/tasks/cancel", taskHandler.CancelTaskForm)
+			authWeb.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
+		}
 	}
 
+	// Fragments routes - most require authentication
 	fragments := web.Group("/fragments")
 	fragments.Use(FragmentHTMXGuard())
 	{
-		// THIS IS THE NEWLY ADDED ROUTE
-		fragments.GET("/projects", projectHandler.GetAllProjectsFragment)
-
-		fragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
-		fragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
-		fragments.GET("/features/:id", featureHandler.GetFeature)
-		fragments.GET("/features/:id/tasks/:task_id/edit", taskHandler.EditTaskForm)
-		fragments.POST("/features/:id/tasks/:task_id/edit", taskHandler.UpdateTaskInline)
-		fragments.GET("/features/:id/tasks/:task_id/view", taskHandler.ViewTaskCard)
-		fragments.GET("/features/:id/view", featureHandler.ViewFeatureCard)
-		fragments.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
-		fragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
-		fragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
-		fragments.GET("/features", FeaturesByTagFragment(featureHandler))
+		// Public fragment routes
+		fragments.GET("/dashboard-status", DashboardStatusFragment)
+		
+		// Protected fragment routes
+		authFragments := fragments.Group("/", middleware.AuthMiddleware())
+		authFragments.Use(roleMiddleware()) // Apply role middleware to all authenticated fragment routes
+		{
+			// THIS IS THE NEWLY ADDED ROUTE
+			authFragments.GET("/projects", projectHandler.GetAllProjectsFragment)
+			
+			authFragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
+			authFragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
+			authFragments.GET("/features/:id", featureHandler.GetFeature)
+			authFragments.GET("/features/:id/tasks/:task_id/edit", taskHandler.EditTaskForm)
+			authFragments.POST("/features/:id/tasks/:task_id/edit", taskHandler.UpdateTaskInline)
+			authFragments.GET("/features/:id/tasks/:task_id/view", taskHandler.ViewTaskCard)
+			authFragments.GET("/features/:id/view", featureHandler.ViewFeatureCard)
+			authFragments.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
+			authFragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
+			authFragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
+			authFragments.GET("/features", FeaturesByTagFragment(featureHandler))
+		}
 	}
 
 	// Health check
@@ -384,16 +413,13 @@ func main() {
 	// Serve the minimal test upload page for debugging
 	router.StaticFile("/test-upload", "./templates/task-attachments-test.html")
 
-	// Register the dashboard status fragment
-	router.GET("/web/fragments/dashboard-status", DashboardStatusFragment)
-
-	// Register the login page route
-	router.GET("/web/login", LoginPageHandler)
-
 	// Register PR routes
-	prGroup := router.Group("/prs")
+	prGroup := router.Group("/prs", middleware.AuthMiddleware())
+	prGroup.Use(roleMiddleware()) // Apply role middleware to all PR routes
 	{
 		prGroup.POST("/:id/test", prHandler.MarkAsTested)
+		// Restrict approve action to managers only
+		prGroup.POST("/:id/approve", roleMiddleware("manager"), prHandler.ApprovePR)
 	}
 
 	// Debug: List all registered routes
