@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"os"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -12,7 +13,13 @@ type Database struct {
 }
 
 func InitDB() (*Database, error) {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	// Get database path from environment variable with fallback to test.db
+	dbPath := os.Getenv("FP_DB_PATH")
+	if dbPath == "" {
+		dbPath = "test.db"
+	}
+
+	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
