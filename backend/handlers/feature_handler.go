@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -101,6 +102,10 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 }
 
 func (h *FeatureHandler) GetFeature(c *gin.Context) {
+	// Debug log to print the user_role received from context
+	userRole, exists := c.Get("user_role")
+	log.Printf("[GetFeature] user_role from context: '%v' (exists: %v)", userRole, exists)
+
 	featureIDStr := c.Param("featureid")
 	if featureIDStr == "" {
 		featureIDStr = c.Param("id")
@@ -117,13 +122,27 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 		return
 	}
 
+	// Get user ID and role from context (set by AuthMiddleware and RoleMiddleware)
+	userID, _ := c.Get("user_id")
+	userRole, _ = c.Get("user_role") // Using = instead of := since userRole is already declared above
+	
+	// Create CurrentUser object for template
+	currentUser := map[string]interface{}{
+		"ID":   userID,
+		"Role": userRole,
+	}
+
 	if c.GetHeader("HX-Request") == "true" {
-		c.HTML(http.StatusOK, "feature-detail.html", gin.H{"Feature": feature})
+		c.HTML(http.StatusOK, "feature-detail.html", gin.H{
+			"Feature":     feature,
+			"CurrentUser": currentUser,
+		})
 		return
 	}
 	// Non-HTMX: render dashboard shell with InitialURL for this feature
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"InitialURL": "/web/fragments/features/" + featureIDStr,
+		"InitialURL":   "/web/fragments/features/" + featureIDStr,
+		"CurrentUser":  currentUser,
 	})
 }
 

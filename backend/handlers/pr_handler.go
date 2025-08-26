@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -53,6 +54,7 @@ func (h *PullRequestHandler) MarkAsTested(c *gin.Context) {
 
 	if exists {
 		isManager = userRole == "manager"
+		log.Printf("[MarkAsTested] user_role from context: '%v', isManager: %v", userRole, isManager)
 	}
 
 	// Return the updated PR row HTML using the _pr_row.html template
@@ -64,7 +66,7 @@ func (h *PullRequestHandler) MarkAsTested(c *gin.Context) {
 		"Version":     pr.Version,
 		"Status":      pr.Status,
 		"Tested":      pr.Tested,
-		"CurrentUser": gin.H{"IsManager": isManager},
+		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }
 
@@ -138,6 +140,7 @@ func (h *PullRequestHandler) ApprovePR(c *gin.Context) {
 
 	if exists {
 		isManager = userRole == "manager"
+		log.Printf("[ApprovePR] user_role from context: '%v', isManager: %v", userRole, isManager)
 	}
 
 	// Return the updated PR row HTML using the _pr_row.html template
@@ -149,6 +152,6 @@ func (h *PullRequestHandler) ApprovePR(c *gin.Context) {
 		"Version":     pr.Version,
 		"Status":      pr.Status,
 		"Tested":      pr.Tested,
-		"CurrentUser": gin.H{"IsManager": isManager},
+		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }

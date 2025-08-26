@@ -101,7 +101,8 @@
     </div>
     
     <section class="mt-8">
-      <div class="flex justify-end mb-2">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold">Pull Requests</h3>
         <button 
           id="add-pr-btn-{{.Task.ID}}"
           class="flex items-center text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
@@ -113,17 +114,20 @@
           Add Pull Request
         </button>
       </div>
-
+      
+      {{if .CurrentUser.IsManager}}
+        <h4 class="text-lg font-bold text-green-500 mb-3">-- Manager View --</h4>
+      {{else}}
+        <h4 class="text-lg font-bold text-yellow-500 mb-3">-- Developer View --</h4>
+      {{end}}
+      
       {{ if .Task.PullRequests }}
-        <div id="create-release-row-{{.Task.ID}}" style="display:none;" class="mb-3">
+        {{ if .CurrentUser.IsManager }}
+        <div id="create-release-row-{{.Task.ID}}" class="mb-3">
           <button id="create-release-btn-{{.Task.ID}}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-semibold">Create Release</button>
         </div>
         <script>
           (function() {
-            var row = document.getElementById('create-release-row-{{.Task.ID}}');
-            if (row && localStorage.getItem('role') === 'manager') {
-              row.style.display = '';
-            }
             var releaseMode = false;
             var btn = document.getElementById('create-release-btn-{{.Task.ID}}');
             if (btn) {
@@ -139,6 +143,7 @@
             }
           })();
         </script>
+        {{ end }}
         
         <div class="overflow-x-auto">
           <table id="pr-table-{{.Task.ID}}" class="min-w-full text-xs text-left text-gray-700 border border-gray-200 rounded-lg">
@@ -155,57 +160,7 @@
             </thead>
             <tbody>
               {{ range .Task.PullRequests }}
-                <tr id="pr-row-{{.ID}}" class="border-t border-gray-200">
-                  <td class="pr-checkbox-col" style="display:none;">
-                    <input type="checkbox" class="pr-select-checkbox">
-                  </td>
-                  <td class="px-3 py-2">
-                    <a href="{{ .URL }}" target="_blank" class="text-blue-700 hover:underline flex items-center gap-1">
-                      <svg class="w-4 h-4 text-green-600 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 17v1a3 3 0 01-6 0v-1m6 0V7a2 2 0 00-2-2h-4a2 2 0 00-2 2v10m6 0a2 2 0 01-2 2m0-2a2 2 0 00-2-2m0 2a2 2 0 002 2" /></svg>
-                      <span>{{ .Title }}</span>
-                    </a>
-                  </td>
-                  <td class="px-3 py-2 font-mono text-xs">
-                    <div class="flex items-center">
-                      <span>{{ .Branch }}</span>
-                      <button 
-                        class="ml-1.5 text-gray-400 hover:text-gray-600 copy-branch" 
-                        data-branch="{{ .Branch }}"
-                        title="Copy checkout command">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                  <td class="px-3 py-2 font-mono text-xs">{{ .Version }}</td>
-                  <td class="px-3 py-2">
-                    <span class="inline-block px-2 py-1 rounded {{ if eq .Status "Open" }}bg-green-100 text-green-700{{ else if eq .Status "Closed" }}bg-gray-200 text-gray-500{{ else }}bg-yellow-100 text-yellow-700{{ end }} text-xs font-medium">{{ .Status }}</span>
-                  </td>
-                  <td class="px-3 py-2">
-                    {{ if .Tested }}
-                      <span class="inline-flex items-center gap-1 text-green-700 font-semibold">
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Yes
-                      </span>
-                    {{ else }}
-                      <span class="text-gray-400">No</span>
-                    {{ end }}
-                  </td>
-                  <td class="px-3 py-2">
-                    {{ if not .Tested }}
-                      <button 
-                        class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition"
-                        hx-post="/prs/{{.ID}}/test"
-                        hx-target="#pr-row-{{.ID}}"
-                        hx-swap="outerHTML">
-                        Mark as Tested
-                      </button>
-                    {{ end }}
-                  </td>
-                </tr>
+                {{ template "_pr_row.html" (dict "ID" .ID "URL" .URL "Title" .Title "Branch" .Branch "Version" .Version "Status" .Status "Tested" .Tested "CurrentUser" $.CurrentUser) }}
               {{ end }}
             </tbody>
           </table>

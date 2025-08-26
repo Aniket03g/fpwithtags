@@ -1,0 +1,101 @@
+<!-- Release List Template with Role-Based UI -->
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Releases</h1>
+    
+    {{ if .CurrentUser.IsManager }}
+    <!-- Only managers can create new releases -->
+    <button 
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
+      hx-get="/web/releases/new"
+      hx-target="#modal-container"
+      hx-swap="innerHTML">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      New Release
+    </button>
+    {{ end }}
+  </div>
+  
+  {{ if .Releases }}
+    <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Features</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {{ range .Releases }}
+            <tr id="release-row-{{ .ID }}">
+              <td class="px-6 py-4 whitespace-nowrap font-medium">{{ .Version }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-block px-2 py-1 rounded {{ if eq .Status "Draft" }}bg-yellow-100 text-yellow-700{{ else if eq .Status "Released" }}bg-green-100 text-green-700{{ else }}bg-blue-100 text-blue-700{{ end }} text-xs font-medium">
+                  {{ .Status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ .CreatedAt.Format "Jan 02, 2006" }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ len .Features }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <div class="flex space-x-2">
+                  <a href="/web/releases/{{ .ID }}" class="text-blue-600 hover:text-blue-900">View</a>
+                  
+                  {{ if $.CurrentUser.IsManager }}
+                    {{ if eq .Status "Draft" }}
+                      <button 
+                        class="text-green-600 hover:text-green-900"
+                        hx-post="/releases/{{ .ID }}/finalize"
+                        hx-target="#release-row-{{ .ID }}"
+                        hx-swap="outerHTML">
+                        Finalize
+                      </button>
+                    {{ end }}
+                    
+                    <button 
+                      class="text-red-600 hover:text-red-900"
+                      hx-delete="/releases/{{ .ID }}"
+                      hx-confirm="Are you sure you want to delete this release?"
+                      hx-target="#release-row-{{ .ID }}"
+                      hx-swap="outerHTML">
+                      Delete
+                    </button>
+                  {{ end }}
+                </div>
+              </td>
+            </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </div>
+  {{ else }}
+    <div class="bg-white p-8 rounded-lg shadow text-center border border-gray-200">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No releases yet</h3>
+      <p class="text-gray-500 mb-6">Create your first release to start tracking feature deployments</p>
+      
+      {{ if .CurrentUser.IsManager }}
+      <button 
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition inline-flex items-center gap-2"
+        hx-get="/web/releases/new"
+        hx-target="#modal-container"
+        hx-swap="innerHTML">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Create First Release
+      </button>
+      {{ else }}
+      <p class="text-sm text-gray-500">Contact a manager to create a new release</p>
+      {{ end }}
+    </div>
+  {{ end }}
+  
+  <div id="modal-container"></div>
+</div>

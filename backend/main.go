@@ -52,8 +52,22 @@ func LoggingMiddleware() gin.HandlerFunc {
 	}
 }
 
+// AppHandler handles app shell rendering and common functionality
+type AppHandler struct {
+	db *database.Database
+	projectRepo *repositories.ProjectRepository
+}
+
+// NewAppHandler creates a new app handler with database access
+func NewAppHandler(db *database.Database) *AppHandler {
+	return &AppHandler{
+		db: db,
+		projectRepo: repositories.NewProjectRepository(db.DB),
+	}
+}
+
 // RenderAppShell renders the dashboard.html shell and passes the correct initial fragment URL
-func RenderAppShell(c *gin.Context) {
+func (h *AppHandler) RenderAppShell(c *gin.Context) {
 	path := c.Request.URL.Path
 	fragment := ""
 
@@ -90,8 +104,24 @@ func RenderAppShell(c *gin.Context) {
 		fragment = "/web/fragments/projects"
 	}
 
+	// Get user ID and role from context (set by AuthMiddleware and RoleMiddleware)
+	userID, _ := c.Get("user_id")
+	userRole, _ := c.Get("user_role")
+	
+	// Create CurrentUser object for template
+	currentUser := map[string]interface{}{
+		"ID":   userID,
+		"Role": userRole,
+	}
+
+	// Get projects for sidebar
+	var projects []models.Project
+	h.db.DB.Find(&projects)
+
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"InitialURL": fragment,
+		"InitialURL":   fragment,
+		"CurrentUser":  currentUser,
+		"Projects":     projects,
 	})
 }
 
@@ -147,10 +177,22 @@ func FragmentHTMXGuard() gin.HandlerFunc {
 
 // Handler for dashboard status fragment
 func DashboardStatusFragment(c *gin.Context) {
-	// Example: check if user is logged in (replace with real auth logic)
-	_, loggedIn := c.Get("user_id")
+	// Check if user is logged in
+	userID, loggedIn := c.Get("user_id")
+	
+	// Get user role from context (set by RoleMiddleware)
+	userRole, hasRole := c.Get("user_role")
+	
+	// Create CurrentUser object for template
+	currentUser := map[string]interface{}{
+		"ID":   userID,
+		"Role": userRole,
+	}
+	
 	c.HTML(http.StatusOK, "dashboard-status.html", gin.H{
-		"LoggedIn": loggedIn,
+		"LoggedIn":    loggedIn,
+		"CurrentUser": currentUser,
+		"HasRole":     hasRole,
 	})
 }
 
@@ -280,6 +322,9 @@ func main() {
 
 	router.LoadHTMLGlob("templates/*")
 
+	// Serve static files
+	router.Static("/static", "./static")
+
 	// Configure multipart form handling
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
 
@@ -288,10 +333,20 @@ func main() {
 
 	// CORS middleware
 	router.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		// Get the origin from the request
+		origin := c.Request.Header.Get("Origin")
+		if origin == "" {
+			// Default to localhost if no origin is provided
+			origin = "http://localhost:8080"
+		}
+
+		// Set the requesting origin instead of wildcard
+		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		// Add Vary header to indicate that response varies based on Origin
+		c.Writer.Header().Set("Vary", "Origin")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusOK)
@@ -310,22 +365,22 @@ func main() {
 	api := router.Group("/api")
 	{
 		api.Use(BodyLoggingMiddleware())
-		
+
 		// Public routes (no auth required)
 		userRoutes := api.Group("/users")
 		{
 			userRoutes.GET("", userHandler.GetAllUsers)
 		}
-		
+
 		// Protected routes (auth required)
 		authApi := api.Group("/", middleware.AuthMiddleware())
 		authApi.Use(roleMiddleware()) // Apply role middleware to all authenticated routes
-		
+
 		projectRoutes := authApi.Group("/projects")
 		{
 			projectRoutes.GET("", projectHandler.GetAllProjects)
 		}
-		
+
 		// Regular authenticated routes
 		authApi.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
 		authApi.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
@@ -348,19 +403,22 @@ func main() {
 	routes.RegisterReleaseRoutes(router, db.DB)
 
 	// --- NEW WEB ROUTES FOR HTMX ---
+	// Create app handler for web routes
+	appHandler := NewAppHandler(db)
+
 	web := router.Group("/web")
 	{
 		// Public web routes
-		web.GET("/dashboard", RenderAppShell)
+		web.GET("/dashboard", appHandler.RenderAppShell)
 		web.GET("/login", LoginPageHandler)
-		
+
 		// Protected web routes
 		authWeb := web.Group("/", middleware.AuthMiddleware())
 		authWeb.Use(roleMiddleware()) // Apply role middleware to all authenticated web routes
 		{
-			authWeb.GET("/projects", RenderAppShell)
-			authWeb.GET("/projects/:id", RenderAppShell)
-			authWeb.GET("/projects/:id/features", RenderAppShell)
+			authWeb.GET("/projects", appHandler.RenderAppShell)
+			authWeb.GET("/projects/:id", appHandler.RenderAppShell)
+			authWeb.GET("/projects/:id/features", appHandler.RenderAppShell)
 			authWeb.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
 			authWeb.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
 			authWeb.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
@@ -380,14 +438,14 @@ func main() {
 	{
 		// Public fragment routes
 		fragments.GET("/dashboard-status", DashboardStatusFragment)
-		
+
 		// Protected fragment routes
 		authFragments := fragments.Group("/", middleware.AuthMiddleware())
 		authFragments.Use(roleMiddleware()) // Apply role middleware to all authenticated fragment routes
 		{
 			// THIS IS THE NEWLY ADDED ROUTE
 			authFragments.GET("/projects", projectHandler.GetAllProjectsFragment)
-			
+
 			authFragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
 			authFragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 			authFragments.GET("/features/:id", featureHandler.GetFeature)

@@ -1,0 +1,218 @@
+<!-- 
+  ROLE-BASED UI RENDERING EXAMPLES
+  
+  This file contains examples of how to implement role-based UI rendering
+  in FeaturePlus HTMX templates. Use these patterns consistently across templates.
+-->
+
+<!-- Example 1: Basic Role Check -->
+<div class="example-block">
+  <h3>Basic Role Check</h3>
+  <pre><code>
+    {{ if .CurrentUser.IsManager }}
+      <!-- Manager-only content here -->
+      <button class="manager-button">Manager Action</button>
+    {{ else }}
+      <!-- Developer content here -->
+      <button class="developer-button">Developer Action</button>
+    {{ end }}
+  </code></pre>
+</div>
+
+<!-- Example 2: Multiple Role Options -->
+<div class="example-block">
+  <h3>Multiple Role Options</h3>
+  <pre><code>
+    {{ if .CurrentUser.IsManager }}
+      <!-- Manager-only content -->
+    {{ else if not .CurrentUser.IsManager }}
+      <!-- Developer-specific content -->
+    {{ else }}
+      <!-- Default content for other roles -->
+    {{ end }}
+  </code></pre>
+</div>
+
+<!-- Example 3: Conditional Element Attributes -->
+<div class="example-block">
+  <h3>Conditional Element Attributes</h3>
+  <pre><code>
+    <button 
+      class="base-button {{ if .CurrentUser.IsManager }}manager-button{{ else }}developer-button{{ end }}"
+      {{ if not .CurrentUser.IsManager }}disabled{{ end }}>
+      Action Button
+    </button>
+  </code></pre>
+</div>
+
+<!-- Example 4: Conditional Visibility with CSS -->
+<div class="example-block">
+  <h3>Conditional Visibility with CSS</h3>
+  <pre><code>
+    <div class="{{ if not .CurrentUser.IsManager }}hidden{{ end }}">
+      This content is only visible to managers
+    </div>
+  </code></pre>
+</div>
+
+<!-- Example 5: Role-Based Navigation Items -->
+<div class="example-block">
+  <h3>Role-Based Navigation Items</h3>
+  <pre><code>
+    <ul class="nav-menu">
+      <!-- Common items for all roles -->
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="/projects">Projects</a></li>
+      <li><a href="/tasks">Tasks</a></li>
+      
+      <!-- Manager-only items -->
+      {{ if .CurrentUser.IsManager }}
+        <li><a href="/releases">Releases</a></li>
+        <li><a href="/team">Team Management</a></li>
+      {{ end }}
+    </ul>
+  </code></pre>
+</div>
+
+<!-- Example 6: Role-Based Dashboard Widgets -->
+<div class="example-block">
+  <h3>Role-Based Dashboard Widgets</h3>
+  <pre><code>
+    <div class="dashboard-grid">
+      <!-- Common widgets -->
+      <div class="widget">Common Widget</div>
+      
+      {{ if .CurrentUser.IsManager }}
+        <!-- Manager-specific widgets -->
+        <div class="widget">
+          <h3>PRs Pending Approval</h3>
+          <!-- Widget content -->
+        </div>
+        <div class="widget">
+          <h3>Team Overview</h3>
+          <!-- Widget content -->
+        </div>
+      {{ else }}
+        <!-- Developer-specific widgets -->
+        <div class="widget">
+          <h3>My Assigned Tasks</h3>
+          <!-- Widget content -->
+        </div>
+        <div class="widget">
+          <h3>My PRs</h3>
+          <!-- Widget content -->
+        </div>
+      {{ end }}
+    </div>
+  </code></pre>
+</div>
+
+<!-- Example 7: Role-Based Action Buttons -->
+<div class="example-block">
+  <h3>Role-Based Action Buttons</h3>
+  <pre><code>
+    <div class="action-buttons">
+      {{ if .CurrentUser.IsManager }}
+        <button 
+          hx-post="/prs/{{.PR.ID}}/approve"
+          hx-target="#pr-container"
+          hx-swap="outerHTML">
+          Approve PR
+        </button>
+      {{ else }}
+        {{ if not .PR.Tested }}
+          <button 
+            hx-post="/prs/{{.PR.ID}}/test"
+            hx-target="#pr-container"
+            hx-swap="outerHTML">
+            Mark as Tested
+          </button>
+        {{ end }}
+      {{ end }}
+    </div>
+  </code></pre>
+</div>
+
+<!-- Example 8: Combining Role and State Conditions -->
+<div class="example-block">
+  <h3>Combining Role and State Conditions</h3>
+  <pre><code>
+    {{ if and .CurrentUser.IsManager (ne .PR.Status "Approved") }}
+      <!-- Show approve button only for managers and only if PR is not already approved -->
+      <button class="approve-button">Approve PR</button>
+    {{ end }}
+  </code></pre>
+</div>
+
+<!-- Example 9: Nested Role-Based Conditions -->
+<div class="example-block">
+  <h3>Nested Role-Based Conditions</h3>
+  <pre><code>
+    <div class="feature-card">
+      <h3>{{ .Feature.Title }}</h3>
+      <p>{{ .Feature.Description }}</p>
+      
+      <div class="actions">
+        <!-- Common actions for all -->
+        <button>View Details</button>
+        
+        {{ if .CurrentUser.IsManager }}
+          <!-- Manager actions -->
+          <button>Edit Feature</button>
+          <button>Assign Feature</button>
+          
+          {{ if .Feature.HasRelease }}
+            <button>Manage Release</button>
+          {{ end }}
+        {{ else }}
+          <!-- Developer actions -->
+          {{ if .Feature.IsAssignedToCurrentUser }}
+            <button>Update Status</button>
+          {{ end }}
+        {{ end }}
+      </div>
+    </div>
+  </code></pre>
+</div>
+
+<!-- Example 10: Role-Based Form Fields -->
+<div class="example-block">
+  <h3>Role-Based Form Fields</h3>
+  <pre><code>
+    <form hx-post="/features/new">
+      <!-- Fields visible to all roles -->
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" name="title">
+      </div>
+      
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description"></textarea>
+      </div>
+      
+      <!-- Manager-only fields -->
+      {{ if .CurrentUser.IsManager }}
+        <div class="form-group">
+          <label>Priority</label>
+          <select name="priority">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Target Release</label>
+          <select name="release_id">
+            {{ range .Releases }}
+              <option value="{{ .ID }}">{{ .Version }}</option>
+            {{ end }}
+          </select>
+        </div>
+      {{ end }}
+      
+      <button type="submit">Submit</button>
+    </form>
+  </code></pre>
+</div>

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/FeaturePlus/backend/models"
@@ -29,8 +30,15 @@ func RoleMiddleware(db *gorm.DB, requiredRoles ...string) gin.HandlerFunc {
 			return
 		}
 
+		// Debug log to print the role found in database
+		log.Printf("[RoleMiddleware] User ID %v has role '%s' in database", userID, user.Role)
+
 		// Set user_role in context for downstream handlers
 		c.Set("user_role", user.Role)
+
+		// Debug log to confirm what role is being set in context
+		userRole, _ := c.Get("user_role")
+		log.Printf("[RoleMiddleware] Setting user_role in context: '%v'", userRole)
 
 		// If specific roles are required, check them
 		if len(requiredRoles) > 0 {

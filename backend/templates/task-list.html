@@ -15,7 +15,7 @@
 
   {{ if .Tasks }}
     {{ range .Tasks }}
-      {{ template "task-card.html" (dict "Task" . "FeatureID" $.Feature.ID) }}
+      {{ template "task-card.html" (dict "Task" . "FeatureID" $.Feature.ID "CurrentUser" $.CurrentUser) }}
     {{ end }}
   {{ else }}
     <div class="text-center p-8 bg-white rounded-lg shadow-md border border-gray-200">

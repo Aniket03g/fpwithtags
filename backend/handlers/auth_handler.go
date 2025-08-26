@@ -121,6 +121,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// Debug: print the generated JWT token
 	fmt.Printf("[DEBUG] Generated JWT token for user %s (ID=%d): %s\n", user.Email, user.ID, token)
 
+	// Set secure HTTP-only cookie with the JWT token
+	c.SetCookie(
+		"token",      // Name
+		token,        // Value
+		3600,         // MaxAge (1 hour in seconds)
+		"/",          // Path
+		"localhost",  // Domain
+		false,        // Secure (false for http)
+		true,         // HttpOnly
+	)
+
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 		"auth_info": map[string]interface{}{

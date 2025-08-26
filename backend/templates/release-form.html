@@ -1,0 +1,56 @@
+<!-- Release Form Template - Only accessible to managers -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+  <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 w-full max-w-lg border border-gray-200 dark:border-gray-800">
+    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+      {{ if .Release }}Edit Release{{ else }}Create New Release{{ end }}
+    </h2>
+    
+    <form 
+      {{ if .Release }}
+        hx-put="/releases/{{ .Release.ID }}"
+      {{ else }}
+        hx-post="/releases"
+      {{ end }}
+      hx-target="#modal-container"
+      hx-swap="outerHTML"
+      class="space-y-5"
+    >
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Version</label>
+        <input 
+          name="version" 
+          type="text" 
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition" 
+          required
+          {{ if .Release }}value="{{ .Release.Version }}"{{ end }}
+          placeholder="e.g. 1.0.0"
+        >
+      </div>
+      
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Notes</label>
+        <textarea 
+          name="notes" 
+          rows="5" 
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition"
+          placeholder="Release notes and changelog information..."
+        >{{ if .Release }}{{ .Release.Notes }}{{ end }}</textarea>
+      </div>
+      
+      <div class="flex justify-end gap-3 pt-2">
+        <button 
+          type="button" 
+          class="px-5 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+          hx-get="about:blank"
+          hx-target="#modal-container"
+          hx-swap="outerHTML"
+        >Cancel</button>
+        
+        <button 
+          type="submit" 
+          class="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition"
+        >{{ if .Release }}Update{{ else }}Create{{ end }}</button>
+      </div>
+    </form>
+  </div>
+</div>

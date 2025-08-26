@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In Page - HTMX Version</title>
+    <title>Sign In Page - FeaturePlus</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Authentication Utilities -->
+    <script src="/static/js/auth.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -209,10 +212,11 @@
                         .then(res => res.json())
                         .then(response => {
                           if (!isSignUp && response.token) {
-                            localStorage.setItem('token', response.token);
+                            // Store JWT token using our Auth utility
+                            Auth.storeToken(response.token);
                             // Store the user's role for use in the app
                             if (response.auth_info && response.auth_info.role) {
-                              localStorage.setItem('role', response.auth_info.role);
+                              Auth.storeRole(response.auth_info.role);
                             }
                             window.location.href = '/web/projects';
                           } else if (response.error) {

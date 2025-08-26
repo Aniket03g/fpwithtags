@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
-	"github.com/go-playground/validator/v10"
-
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
@@ -172,10 +172,19 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 		tasks[i].PullRequests = prs
 	}
 
+	// Get user role from context (set by RoleMiddleware)
+	userRole, exists := c.Get("user_role")
+	var isManager bool
+	if exists {
+		isManager = userRole == "manager"
+		log.Printf("[GetTasksByFeature] user_role from context: '%v', isManager: %v", userRole, isManager)
+	}
+
 	c.HTML(http.StatusOK, "task-list.html", gin.H{
-		"Tasks":      tasks,
-		"Feature":    gin.H{"ID": featureID},
-		"FilterType": filterType,
+		"Tasks":       tasks,
+		"Feature":     gin.H{"ID": featureID},
+		"FilterType":  filterType,
+		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }
 
@@ -516,8 +525,20 @@ func (h *TaskHandler) UpdateTaskInline(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Could not update task")
 		return
 	}
+	// Get user role from context (set by RoleMiddleware)
+	userRole, exists := c.Get("user_role")
+	var isManager bool
+	if exists {
+		isManager = userRole == "manager"
+		log.Printf("[UpdateTaskInline] user_role from context: '%v', isManager: %v", userRole, isManager)
+	}
+
 	// Re-render the updated card (reuse the card HTML from task-list.html)
-	c.HTML(http.StatusOK, "task-card.html", gin.H{"Task": task, "FeatureID": featureID})
+	c.HTML(http.StatusOK, "task-card.html", gin.H{
+		"Task":        task,
+		"FeatureID":   featureID,
+		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
+	})
 }
 
 // ViewTaskCard serves the card partial for a single task (for cancel)
@@ -529,7 +550,19 @@ func (h *TaskHandler) ViewTaskCard(c *gin.Context) {
 		c.String(http.StatusNotFound, "Task not found")
 		return
 	}
-	c.HTML(http.StatusOK, "task-card.html", gin.H{"Task": task, "FeatureID": featureID})
+	// Get user role from context (set by RoleMiddleware)
+	userRole, exists := c.Get("user_role")
+	var isManager bool
+	if exists {
+		isManager = userRole == "manager"
+		log.Printf("[ViewTaskCard] user_role from context: '%v', isManager: %v", userRole, isManager)
+	}
+
+	c.HTML(http.StatusOK, "task-card.html", gin.H{
+		"Task":        task,
+		"FeatureID":   featureID,
+		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
+	})
 }
 
 // Serve the PR modal for a task
