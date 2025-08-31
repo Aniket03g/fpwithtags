@@ -76,18 +76,36 @@ Example:
 
 func getCurrentPRNumber() (string, error) {
 	// Get the current branch name
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Executing git command: git branch --show-current\n")
+	}
 	branchCmd := exec.Command("git", "branch", "--show-current")
 	branchOut, err := branchCmd.Output()
 	if err != nil {
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error executing git branch command: %v\n", err)
+		}
 		return "", fmt.Errorf("failed to get current branch: %v", err)
 	}
 	branchName := strings.TrimSpace(string(branchOut))
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Current branch: %s\n", branchName)
+	}
 
 	// Get PR number from branch name using GitHub CLI
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Executing GitHub CLI command: gh pr view %s --json number\n", branchName)
+	}
 	prCmd := exec.Command("gh", "pr", "view", branchName, "--json", "number")
 	prOut, err := prCmd.Output()
 	if err != nil {
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error executing GitHub CLI command: %v\n", err)
+		}
 		return "", fmt.Errorf("failed to get PR info: %v", err)
+	}
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] GitHub CLI command output: %s\n", string(prOut))
 	}
 
 	// Parse the JSON output to get the PR number
@@ -107,21 +125,42 @@ func runGitHubApprove(prNumber, comment string) error {
 		args = append(args, "--body", fmt.Sprintf(`"%s"`, comment))
 	}
 
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Executing GitHub CLI command: gh %s\n", strings.Join(args, " "))
+	}
 	cmd := exec.Command("gh", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	
-	return cmd.Run()
+	err := cmd.Run()
+	if os.Getenv("DEBUG") == "1" {
+		if err != nil {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error executing GitHub CLI approve command: %v\n", err)
+		} else {
+			fmt.Printf("[DEBUG][PR_RELEASE] GitHub PR approval successful for PR #%s\n", prNumber)
+		}
+	}
+	return err
 }
 
 func getGitVersion() string {
 	// Get the current git commit hash
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Executing git command: git rev-parse --short HEAD\n")
+	}
 	cmd := exec.Command("git", "rev-parse", "--short", "HEAD")
 	out, err := cmd.Output()
 	if err != nil {
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error executing git rev-parse command: %v\n", err)
+		}
 		return "unknown"
 	}
-	return strings.TrimSpace(string(out))
+	version := strings.TrimSpace(string(out))
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Current git commit hash: %s\n", version)
+	}
+	return version
 }
 
 func init() {

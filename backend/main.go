@@ -23,6 +23,13 @@ import (
 	"github.com/joho/godotenv" // For loading .env files
 )
 
+// Debug helper function
+func debug(msg string, args ...interface{}) {
+	if os.Getenv("DEBUG") != "" {
+		log.Printf("[DEBUG] "+msg, args...)
+	}
+}
+
 // Simple logging middleware to print requests
 func LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -223,6 +230,11 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: No .env file found (this is OK in production if env vars are set)")
 	}
+	
+	// Check if debug mode is enabled
+	if os.Getenv("DEBUG") == "1" {
+		log.Println("DEBUG mode enabled - detailed logging will be shown")
+	}
 
 	// --- Check for required GitHub token ---
 	githubToken := os.Getenv("GITHUB_TOKEN")
@@ -273,6 +285,7 @@ func main() {
 	attachmentRepo := repositories.NewTaskAttachmentRepository(db.DB, sqliteFS)
 	commentRepo := repositories.NewCommentRepository(db.DB)
 	prRepo := repositories.NewPullRequestRepository(db.DB)
+	releaseRepo := repositories.NewReleaseRepository(db.DB)
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
@@ -282,6 +295,8 @@ func main() {
 	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
 	commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo)
 	prHandler := handlers.NewPullRequestHandler(prRepo)
+	webPRHandler := handlers.NewWebPRHandler(prRepo)
+	webReleaseHandler := handlers.NewWebReleaseHandler(releaseRepo, prRepo)
 
 	router := gin.Default()
 
@@ -429,6 +444,11 @@ func main() {
 			authWeb.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
 			authWeb.GET("/tasks/cancel", taskHandler.CancelTaskForm)
 			authWeb.GET("/features/cancel", func(c *gin.Context) { c.String(200, "") })
+
+			// Release web routes
+			authWeb.GET("/releases", webReleaseHandler.RenderReleasesList)
+			authWeb.GET("/releases/:id", webReleaseHandler.RenderReleaseDetail)
+			authWeb.GET("/releases/:id/row", webReleaseHandler.RenderReleaseRow)
 		}
 	}
 
@@ -457,6 +477,8 @@ func main() {
 			authFragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 			authFragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
 			authFragments.GET("/features", FeaturesByTagFragment(featureHandler))
+			authFragments.GET("/release-modal", webReleaseHandler.NewReleaseModal)
+			authFragments.POST("/api/releases", webReleaseHandler.CreateRelease)
 		}
 	}
 
@@ -478,6 +500,14 @@ func main() {
 		prGroup.POST("/:id/test", prHandler.MarkAsTested)
 		// Restrict approve action to managers only
 		prGroup.POST("/:id/approve", roleMiddleware("manager"), prHandler.ApprovePR)
+	}
+	
+	// Register Task PR routes
+	taskPRGroup := router.Group("/tasks", middleware.AuthMiddleware())
+	taskPRGroup.Use(roleMiddleware()) // Apply role middleware to all task PR routes
+	{
+		taskPRGroup.GET("/:id/pr-form", webPRHandler.GetPRForm)
+		taskPRGroup.POST("/:id/prs", webPRHandler.AddTaskPR)
 	}
 
 	// Debug: List all registered routes

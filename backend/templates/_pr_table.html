@@ -1,0 +1,18 @@
+<table id="pr-table-{{.TaskID}}" class="min-w-full text-xs text-left text-gray-700 border border-gray-200 rounded-lg">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="pr-checkbox-col" style="display:none;"></th>
+      <th class="px-3 py-2 font-semibold">Title</th>
+      <th class="px-3 py-2 font-semibold">Branch</th>
+      <th class="px-3 py-2 font-semibold">Version</th>
+      <th class="px-3 py-2 font-semibold">Status</th>
+      <th class="px-3 py-2 font-semibold">Tested</th>
+      <th class="px-3 py-2 font-semibold">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{ range .PullRequests }}
+      {{ template "_pr_row.html" (dict "ID" .ID "URL" .URL "Title" .Title "Branch" .Branch "Version" .Version "Status" .Status "Tested" .Tested "CurrentUser" $.CurrentUser) }}
+    {{ end }}
+  </tbody>
+</table>

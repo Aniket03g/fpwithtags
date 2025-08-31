@@ -32,4 +32,6 @@ func RegisterReleaseRoutes(router *gin.Engine, db *gorm.DB) {
 			managerRoutes.POST("/:id/finalize", releaseHandler.FinalizeRelease)
 		}
 	}
+	
+	// Web release routes are registered in main.go
 }

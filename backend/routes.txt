@@ -10,6 +10,7 @@ Method: GET, Path: /web/fragments/projects/:id/features
 Method: GET, Path: /web/fragments/projects/:id/features/new
 Method: GET, Path: /web/fragments/dashboard-status
 Method: GET, Path: /web/fragments/tags/autocomplete
+Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/features/cancel
 Method: GET, Path: /web/features/:id/tasks
 Method: GET, Path: /web/features/:id/tasks/new
@@ -20,6 +21,9 @@ Method: GET, Path: /web/projects/:id/features
 Method: GET, Path: /web/projects/:id/features/content
 Method: GET, Path: /web/projects/:id/features/new
 Method: GET, Path: /web/projects/:id/features/:featureid
+Method: GET, Path: /web/releases
+Method: GET, Path: /web/releases/:id
+Method: GET, Path: /web/releases/:id/row
 Method: GET, Path: /web/dashboard
 Method: GET, Path: /web/login
 Method: GET, Path: /web/tasks/cancel
@@ -34,8 +38,9 @@ Method: GET, Path: /api/features/project/:project_id
 Method: GET, Path: /api/tasks/:task_id/comments
 Method: GET, Path: /api/releases
 Method: GET, Path: /api/health
-Method: GET, Path: /static/*filepath
 Method: GET, Path: /test-upload
+Method: GET, Path: /tasks/:id/pr-form
+Method: GET, Path: /static/*filepath
 Method: HEAD, Path: /static/*filepath
 Method: HEAD, Path: /test-upload
 Method: POST, Path: /api/auth/signup
@@ -48,10 +53,12 @@ Method: POST, Path: /api/releases/
 Method: POST, Path: /api/releases/:id/finalize
 Method: POST, Path: /web/fragments/features/:id/tasks/:task_id/edit
 Method: POST, Path: /web/fragments/features/:id/edit-inline
+Method: POST, Path: /web/fragments/api/releases
 Method: POST, Path: /web/features/:id/tasks
 Method: POST, Path: /web/projects/:id/features
 Method: POST, Path: /prs/:id/test
 Method: POST, Path: /prs/:id/approve
+Method: POST, Path: /tasks/:id/prs
 Method: DELETE, Path: /api/attachments/:id
 Method: DELETE, Path: /api/comments/:comment_id
 Method: PUT, Path: /api/comments/:comment_id

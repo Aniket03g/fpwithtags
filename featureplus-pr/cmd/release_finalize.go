@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/FeaturePlus/pkg/featureplus"
@@ -33,11 +34,23 @@ Example:
 		}
 
 		// Create client
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Creating featureplus client with API URL: %s\n", GetAPIURL())
+		}
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
 
 		// Use the shared package to finalize release
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Calling client.FinalizeRelease() with releaseID: %d\n", uint(releaseIDInt))
+		}
 		if err := client.FinalizeRelease(uint(releaseIDInt)); err != nil {
+			if os.Getenv("DEBUG") == "1" {
+				fmt.Printf("[DEBUG][PR_RELEASE] Error finalizing release: %v\n", err)
+			}
 			return fmt.Errorf("error finalizing release: %v", err)
+		}
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Release %d finalized successfully\n", uint(releaseIDInt))
 		}
 
 		// Print success message

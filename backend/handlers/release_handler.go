@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/FeaturePlus/backend/models"
@@ -93,7 +95,7 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 	}
 
 	// Create a client to use the shared package
-	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
+	client := featureplus.NewClient("http://localhost:8080", http.DefaultClient) // Local server URL
 
 	// Use the shared package to finalize the release
 	log.Printf("%s [%s] Calling shared package to finalize release: %d", logPrefix, time.Now().Format(time.RFC3339), releaseID)
@@ -111,7 +113,24 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 		return
 	}
 
-	// Return success response
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Get the updated release for the template
+		updatedRelease, err := h.releaseRepo.GetByID(releaseID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Release finalized but failed to get updated data"})
+			return
+		}
+
+		// Return the updated release row fragment for HTMX
+		c.HTML(http.StatusOK, "_release_row.html", gin.H{
+			"Release":     updatedRelease,
+			"CurrentUser": c.MustGet("user"),
+		})
+		return
+	}
+
+	// For non-HTMX requests, return JSON
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"tag":    release.Tag,
@@ -147,7 +166,8 @@ func parseUintParam(c *gin.Context, param string) (uint, error) {
 
 type CreateReleaseRequest struct {
 	Tag   string `json:"tag" binding:"required"`
-	PRs   []int  `json:"prs" binding:"required,gt=0"`
+	PRs   []int  `json:"prs,omitempty"`
+	PRIDs []uint `json:"pr_ids,omitempty" binding:"omitempty"`
 	Notes string `json:"notes"`
 }
 
@@ -163,7 +183,7 @@ type CreateReleaseRequest struct {
 // @Router /api/releases [get]
 func (h *ReleaseHandler) GetReleases(c *gin.Context) {
 	// Create a client to use the shared package
-	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
+	client := featureplus.NewClient("http://localhost:8080", http.DefaultClient) // Local server URL
 
 	// Check if project_id is provided as a query parameter
 	projectIDStr := c.Query("project_id")
@@ -215,55 +235,125 @@ func (h *ReleaseHandler) GetReleases(c *gin.Context) {
 // @Tags releases
 // @Accept json
 // @Produce json
-// @Param input body CreateReleaseRequest true "Release information"
+// @Param request body CreateReleaseRequest true "Release creation request"
 // @Success 200 {object} map[string]interface{} "Success response"
 // @Failure 400 {object} map[string]string "Invalid input"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/releases [post]
 func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
+	logPrefix := "[CreateRelease]"
+	log.Printf("%s Request received with content type: %s", logPrefix, c.ContentType())
+	log.Printf("%s Headers: %v", logPrefix, c.Request.Header)
+	
+	// Create a request struct
 	var req CreateReleaseRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	
+	// Try to bind based on content type
+	contentType := c.ContentType()
+	var err error
+	
+	if strings.Contains(contentType, "application/json") {
+		// Parse as JSON
+		log.Printf("%s Parsing as JSON", logPrefix)
+		err = c.ShouldBindJSON(&req)
+	} else if strings.Contains(contentType, "application/x-www-form-urlencoded") {
+		// Parse as form data
+		log.Printf("%s Parsing as form data", logPrefix)
+		
+		// First bind the form data
+		if err = c.ShouldBind(&req); err != nil {
+			log.Printf("%s Form binding error: %v", logPrefix, err)
+			
+			// Try to manually extract form values
+			log.Printf("%s Attempting manual form extraction", logPrefix)
+			req.Tag = c.PostForm("tag")
+			if req.Tag == "" {
+				req.Tag = c.PostForm("version") // Try alternate field name
+			}
+			req.Notes = c.PostForm("notes")
+			
+			// Try to extract PR IDs
+			prIdsStr := c.PostFormArray("prs[]")
+			if len(prIdsStr) == 0 {
+				prIdsStr = c.PostFormArray("prs")
+			}
+			
+			for _, idStr := range prIdsStr {
+				id, convErr := strconv.Atoi(idStr)
+				if convErr == nil {
+					req.PRs = append(req.PRs, id)
+				}
+			}
+			
+			// Check if we have the minimum required data
+			if req.Tag == "" || len(req.PRs) == 0 {
+				log.Printf("%s Manual extraction failed to get required fields", logPrefix)
+				err = errors.New("missing required fields: tag and prs")
+			} else {
+				// We successfully extracted the data manually
+				err = nil
+			}
+		}
+	} else {
+		// Unknown content type
+		log.Printf("%s Unsupported content type: %s", logPrefix, contentType)
+		err = errors.New("unsupported content type")
+	}
+	
+	if err != nil {
+		log.Printf("%s Binding error: %v", logPrefix, err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
 		return
 	}
-
-	// Validate tag format (vX.Y.Z)
-	if !repositories.ValidateTag(req.Tag) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag format. Must be in format vX.Y.Z"})
+	
+	// Log the parsed request
+	log.Printf("%s Parsed request: Tag=%s, Notes=%s", logPrefix, req.Tag, req.Notes)
+	
+	// Handle both PR field formats (prs from UI, pr_ids from CLI)
+	prIDs := make([]int, 0)
+	if len(req.PRs) > 0 {
+		log.Printf("%s Using PRs field: %v", logPrefix, req.PRs)
+		prIDs = req.PRs
+	} else if len(req.PRIDs) > 0 {
+		log.Printf("%s Using PRIDs field: %v", logPrefix, req.PRIDs)
+		// Convert uint to int for database operations
+		for _, id := range req.PRIDs {
+			prIDs = append(prIDs, int(id))
+		}
+	} else {
+		log.Printf("%s No PR IDs provided in request", logPrefix)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No PR IDs provided"})
 		return
 	}
-
-	// Create a client to use the shared package
-	client := featureplus.NewClient("", http.DefaultClient) // Empty base URL for local operations
-
-	// Convert to shared package CreateReleaseRequest
-	sharedReq := &featureplus.CreateReleaseRequest{
-		Tag:   req.Tag,
-		Notes: req.Notes,
-	}
-
-	// Convert PR IDs to uint
-	for _, prID := range req.PRs {
-		sharedReq.PRIDs = append(sharedReq.PRIDs, uint(prID))
-	}
-
+	
 	// Perform validations using the repository directly
 	// Derive ProjectID from PRs' features to scope the release per project
-	sameProject, err := h.releaseRepo.CheckPRsSameProject(req.PRs)
+	sameProject, err := h.releaseRepo.CheckPRsSameProject(prIDs)
 	if err != nil {
+		log.Printf("%s Failed to validate PRs: %v", logPrefix, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate PRs: " + err.Error()})
 		return
 	}
 	if !sameProject {
+		log.Printf("%s PRs belong to different projects", logPrefix)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "All PRs in a release must belong to the same project"})
 		return
 	}
 
 	// Fetch one PR to compute the ProjectID via its Feature
-	var firstPRID = req.PRs[0]
+	if len(prIDs) == 0 {
+		log.Printf("%s No PR IDs available for validation", logPrefix)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid PR IDs provided"})
+		return
+	}
+	
+	var firstPRID = prIDs[0]
+	log.Printf("%s Using first PR ID for project validation: %d", logPrefix, firstPRID)
+	
 	var pr models.PullRequest
 	db := getDB(h.releaseRepo)
 	if db == nil {
+		log.Printf("%s Failed to get database connection", logPrefix)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
 		return
 	}
@@ -290,41 +380,40 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 	}
 
 	// Verify all PRs exist
-	prsExist, err := h.releaseRepo.PRsExist(req.PRs)
+	prsExist, err := h.releaseRepo.PRsExist(prIDs)
 	if err != nil {
+		log.Printf("%s Failed to check if PRs exist: %v", logPrefix, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate PRs"})
 		return
 	}
 	if !prsExist {
+		log.Printf("%s One or more PRs do not exist", logPrefix)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "One or more PRs do not exist"})
 		return
 	}
 
 	// Validate the PRs before creating the release
-	if err := h.releaseValidator.ValidatePRsForRelease(req.PRs); err != nil {
+	if err := h.releaseValidator.ValidatePRsForRelease(prIDs); err != nil {
+		log.Printf("%s PR validation failed: %v", logPrefix, err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Call the shared package to validate the request
-	// We don't use the returned release since we're managing our own database
-	_, err = client.CreateRelease(sharedReq)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create release: " + err.Error()})
-		return
-	}
-
-	// Create the release in our database
+	// Create the release directly in our database
 	release := &models.Release{
 		ProjectID: projectID,
 		Tag:       req.Tag,
-		Status:    models.ReleaseStatusDraft,
 		Notes:     req.Notes,
+		Status:    models.ReleaseStatusDraft,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
-
-	// Create the release in the database
-	if err := h.releaseRepo.Create(release, req.PRs); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save release to database: " + err.Error()})
+	
+	// Save the release
+	err = h.releaseRepo.Create(release, prIDs)
+	if err != nil {
+		log.Printf("%s Failed to create release: %v", logPrefix, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create release: " + err.Error()})
 		return
 	}
 
@@ -333,6 +422,6 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		"status":     "success",
 		"release_id": release.ID,
 		"tag":        release.Tag,
-		"prs":        req.PRs,
+		"prs":        prIDs,
 	})
 }

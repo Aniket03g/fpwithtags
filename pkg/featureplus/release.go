@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 // Release represents a release in FeaturePlus
@@ -24,115 +28,217 @@ type CreateReleaseRequest struct {
 	PRIDs []uint `json:"pr_ids"`
 }
 
+// isDebugEnabled checks if DEBUG environment variable is set to 1
+func isDebugEnabled() bool {
+	return os.Getenv("DEBUG") == "1"
+}
+
+// debugLog logs a message if debug mode is enabled
+func debugLog(format string, args ...interface{}) {
+	if isDebugEnabled() {
+		logPrefix := "[pkg/featureplus]" 
+		timestamp := time.Now().Format(time.RFC3339)
+		log.Printf(logPrefix+" ["+timestamp+"] "+format, args...)
+	}
+}
+
 // CreateRelease creates a new release in FeaturePlus
 func (c *Client) CreateRelease(req *CreateReleaseRequest) (*Release, error) {
+	debugLog("CreateRelease called with request: %+v", req)
+	
 	url := fmt.Sprintf("%s/api/releases", c.BaseURL)
+	debugLog("Using API URL: %s", url)
 	
 	reqBody, err := json.Marshal(req)
 	if err != nil {
+		debugLog("ERROR: Failed to marshal request: %v", err)
 		return nil, fmt.Errorf("error marshaling request: %w", err)
 	}
+	debugLog("Request body JSON: %s", string(reqBody))
 	
 	httpReq, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
 	if err != nil {
+		debugLog("ERROR: Failed to create HTTP request: %v", err)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
+	debugLog("Request headers: %v", httpReq.Header)
 	
+	debugLog("Sending HTTP request to %s", url)
 	resp, err := c.HTTPClient.Do(httpReq)
 	if err != nil {
+		debugLog("ERROR: HTTP request failed: %v", err)
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
+	debugLog("Received response with status code: %d", resp.StatusCode)
+	debugLog("Response headers: %v", resp.Header)
+	
+	// Read the response body for logging
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		debugLog("ERROR: Failed to read response body: %v", err)
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+	debugLog("Response body: %s", string(respBody))
+	
+	// Check status code
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		debugLog("ERROR: API returned non-success status: %d, body: %s", resp.StatusCode, string(respBody))
 		return nil, fmt.Errorf("API returned non-success status: %d", resp.StatusCode)
 	}
 	
+	// Re-create the reader for JSON decoding
 	var release Release
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+	if err := json.Unmarshal(respBody, &release); err != nil {
+		debugLog("ERROR: Failed to decode response JSON: %v", err)
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 	
+	debugLog("Successfully created release with ID: %d, Tag: %s", release.ID, release.Tag)
 	return &release, nil
 }
 
 // ListReleases retrieves all releases from FeaturePlus
 func (c *Client) ListReleases() ([]Release, error) {
+	debugLog("ListReleases called")
+	
 	url := fmt.Sprintf("%s/api/releases", c.BaseURL)
+	debugLog("Using API URL: %s", url)
 	
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		debugLog("ERROR: Failed to create HTTP request: %v", err)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
+	debugLog("Request headers: %v", req.Header)
 	
+	debugLog("Sending HTTP request to %s", url)
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
+		debugLog("ERROR: HTTP request failed: %v", err)
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
+	debugLog("Received response with status code: %d", resp.StatusCode)
+	debugLog("Response headers: %v", resp.Header)
+	
+	// Read the response body for logging
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		debugLog("ERROR: Failed to read response body: %v", err)
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+	debugLog("Response body: %s", string(respBody))
+	
 	if resp.StatusCode != http.StatusOK {
+		debugLog("ERROR: API returned non-OK status: %d, body: %s", resp.StatusCode, string(respBody))
 		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 	
 	var releases []Release
-	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+	if err := json.Unmarshal(respBody, &releases); err != nil {
+		debugLog("ERROR: Failed to decode response JSON: %v", err)
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 	
+	debugLog("Successfully retrieved %d releases", len(releases))
 	return releases, nil
 }
 
 // GetRelease retrieves a specific release by ID
 func (c *Client) GetRelease(id uint) (*Release, error) {
+	debugLog("GetRelease called for release ID: %d", id)
+	
 	url := fmt.Sprintf("%s/api/releases/%d", c.BaseURL, id)
+	debugLog("Using API URL: %s", url)
 	
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		debugLog("ERROR: Failed to create HTTP request: %v", err)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
+	debugLog("Request headers: %v", req.Header)
 	
+	debugLog("Sending HTTP request to %s", url)
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
+		debugLog("ERROR: HTTP request failed: %v", err)
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
+	debugLog("Received response with status code: %d", resp.StatusCode)
+	debugLog("Response headers: %v", resp.Header)
+	
+	// Read the response body for logging
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		debugLog("ERROR: Failed to read response body: %v", err)
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+	debugLog("Response body: %s", string(respBody))
+	
 	if resp.StatusCode != http.StatusOK {
+		debugLog("ERROR: API returned non-OK status: %d, body: %s", resp.StatusCode, string(respBody))
 		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 	
 	var release Release
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+	if err := json.Unmarshal(respBody, &release); err != nil {
+		debugLog("ERROR: Failed to decode response JSON: %v", err)
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 	
+	debugLog("Successfully retrieved release with ID: %d, Tag: %s", release.ID, release.Tag)
 	return &release, nil
 }
 
 // FinalizeRelease finalizes a release in FeaturePlus
 func (c *Client) FinalizeRelease(id uint) error {
+	debugLog("FinalizeRelease called for release ID: %d", id)
+	
 	url := fmt.Sprintf("%s/api/releases/%d/finalize", c.BaseURL, id)
+	debugLog("Using API URL: %s", url)
 	
 	// Empty JSON body
 	emptyBody := []byte("{}")
+	debugLog("Request body: %s", string(emptyBody))
 	
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(emptyBody))
 	if err != nil {
+		debugLog("ERROR: Failed to create HTTP request: %v", err)
 		return fmt.Errorf("error creating request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	debugLog("Request headers: %v", req.Header)
 	
+	debugLog("Sending HTTP request to %s", url)
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
+		debugLog("ERROR: HTTP request failed: %v", err)
 		return fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
+	debugLog("Received response with status code: %d", resp.StatusCode)
+	debugLog("Response headers: %v", resp.Header)
+	
+	// Read the response body for logging
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		debugLog("ERROR: Failed to read response body: %v", err)
+		return fmt.Errorf("error reading response body: %w", err)
+	}
+	debugLog("Response body: %s", string(respBody))
+	
 	if resp.StatusCode != http.StatusOK {
+		debugLog("ERROR: API returned non-OK status: %d, body: %s", resp.StatusCode, string(respBody))
 		return fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 	
+	debugLog("Successfully finalized release with ID: %d", id)
 	return nil
 }

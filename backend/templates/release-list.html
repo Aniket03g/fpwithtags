@@ -7,9 +7,10 @@
     <!-- Only managers can create new releases -->
     <button 
       class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
-      hx-get="/web/releases/new"
+      hx-get="/web/fragments/release-modal"
       hx-target="#modal-container"
-      hx-swap="innerHTML">
+      hx-swap="innerHTML"
+      hx-vals='{"pr_ids": ""}'>
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
       </svg>
@@ -19,7 +20,7 @@
   </div>
   
   {{ if .Releases }}
-    <div class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+    <div id="releases-list-container" class="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -73,7 +74,7 @@
       </table>
     </div>
   {{ else }}
-    <div class="bg-white p-8 rounded-lg shadow text-center border border-gray-200">
+    <div id="releases-list-container" class="bg-white p-8 rounded-lg shadow text-center border border-gray-200">
       <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
       </svg>
@@ -83,7 +84,8 @@
       {{ if .CurrentUser.IsManager }}
       <button 
         class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition inline-flex items-center gap-2"
-        hx-get="/web/releases/new"
+        hx-get="/web/fragments/release-modal"
+        hx-vals='{"pr_ids": ""}'
         hx-target="#modal-container"
         hx-swap="innerHTML">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

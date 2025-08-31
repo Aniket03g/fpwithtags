@@ -63,15 +63,39 @@ func init() {
 // This function is no longer needed as we use the shared package
 
 func runGitFetch(branch string) error {
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Executing git command: git fetch origin %s\n", branch)
+	}
 	cmd := exec.Command("git", "fetch", "origin", branch)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	
+	err := cmd.Run()
+	if os.Getenv("DEBUG") == "1" {
+		if err != nil {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error executing git fetch command: %v\n", err)
+		} else {
+			fmt.Printf("[DEBUG][PR_RELEASE] Git fetch completed successfully for branch: %s\n", branch)
+		}
+	}
+	return err
 }
 
 func runGitCheckout(branch string) error {
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Executing git command: git checkout %s\n", branch)
+	}
 	cmd := exec.Command("git", "checkout", branch)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	
+	err := cmd.Run()
+	if os.Getenv("DEBUG") == "1" {
+		if err != nil {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error executing git checkout command: %v\n", err)
+		} else {
+			fmt.Printf("[DEBUG][PR_RELEASE] Git checkout completed successfully for branch: %s\n", branch)
+		}
+	}
+	return err
 }

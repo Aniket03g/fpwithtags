@@ -1,0 +1,37 @@
+<!-- Single Release Row Template -->
+<tr id="release-row-{{ .Release.ID }}">
+  <td class="px-6 py-4 whitespace-nowrap font-medium">{{ .Release.Version }}</td>
+  <td class="px-6 py-4 whitespace-nowrap">
+    <span class="inline-block px-2 py-1 rounded {{ if eq .Release.Status "Draft" }}bg-yellow-100 text-yellow-700{{ else if eq .Release.Status "Released" }}bg-green-100 text-green-700{{ else }}bg-blue-100 text-blue-700{{ end }} text-xs font-medium">
+      {{ .Release.Status }}
+    </span>
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ .Release.CreatedAt.Format "Jan 02, 2006" }}</td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ len .Release.Features }}</td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <div class="flex space-x-2">
+      <a href="/web/releases/{{ .Release.ID }}" class="text-blue-600 hover:text-blue-900">View</a>
+      
+      {{ if $.CurrentUser.IsManager }}
+        {{ if eq .Release.Status "Draft" }}
+          <button 
+            class="text-green-600 hover:text-green-900"
+            hx-post="/api/releases/{{ .Release.ID }}/finalize"
+            hx-target="#release-row-{{ .Release.ID }}"
+            hx-swap="outerHTML">
+            Finalize
+          </button>
+        {{ end }}
+        
+        <button 
+          class="text-red-600 hover:text-red-900"
+          hx-delete="/api/releases/{{ .Release.ID }}"
+          hx-confirm="Are you sure you want to delete this release?"
+          hx-target="#release-row-{{ .Release.ID }}"
+          hx-swap="outerHTML">
+          Delete
+        </button>
+      {{ end }}
+    </div>
+  </td>
+</tr>

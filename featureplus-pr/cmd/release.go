@@ -57,12 +57,18 @@ Example:
 		notes := getReleaseNotes()
 
 		// Create client
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Creating featureplus client with API URL: %s\n", GetAPIURL())
+		}
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
 
 		// Convert PR IDs to uint
 		prIDs := make([]uint, len(prs))
 		for i, id := range prs {
 			prIDs[i] = uint(id)
+		}
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Converted PR IDs: %v\n", prIDs)
 		}
 
 		// Create release request
@@ -72,10 +78,24 @@ Example:
 			Notes: notes,
 		}
 
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Creating release with request: Tag=%s, PRIDs=%v, Notes length=%d\n", 
+				req.Tag, req.PRIDs, len(req.Notes))
+		}
+
 		// Use the shared package to create release
-		_, err := client.CreateRelease(req)
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Calling client.CreateRelease()\n")
+		}
+		release, err := client.CreateRelease(req)
 		if err != nil {
+			if os.Getenv("DEBUG") == "1" {
+				fmt.Printf("[DEBUG][PR_RELEASE] Error creating release: %v\n", err)
+			}
 			return fmt.Errorf("error creating release: %v", err)
+		}
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Release created successfully with ID: %d\n", release.ID)
 		}
 
 		// Print success message
@@ -177,12 +197,24 @@ func init() {
 // listReleases fetches and displays all releases
 func listReleases() error {
 	// Create client
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Creating featureplus client with API URL: %s\n", GetAPIURL())
+	}
 	client := featureplus.NewClient(GetAPIURL(), &http.Client{})
 
 	// Use the shared package to list releases
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Calling client.ListReleases()\n")
+	}
 	releases, err := client.ListReleases()
 	if err != nil {
+		if os.Getenv("DEBUG") == "1" {
+			fmt.Printf("[DEBUG][PR_RELEASE] Error listing releases: %v\n", err)
+		}
 		return fmt.Errorf("failed to list releases: %v", err)
+	}
+	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("[DEBUG][PR_RELEASE] Successfully retrieved %d releases\n", len(releases))
 	}
 
 	// Display releases in a table

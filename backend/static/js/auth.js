@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (token && (url.startsWith('/web/') || url.startsWith('/api/'))) {
       event.detail.headers['Authorization'] = `Bearer ${token}`;
       // Add credentials mode to ensure cookies are sent
-      event.detail.xhr.withCredentials = true;
+      event.detail.withCredentials = true;
     }
   });
 
