@@ -1,209 +1,201 @@
-# FeaturePlus
+# FeaturePlus CLI
 
-A modern project management application that allows teams to track features and sub-features of their projects. It provides a hierarchical structure for organizing tasks, with features containing sub-features, and supports user assignment, priority management, and status tracking.
+A comprehensive command-line interface tool for managing the integration between GitHub Pull Requests and the FeaturePlus project management system. This CLI streamlines the workflow for developers by providing commands to link PRs with features and tasks, manage releases, approve PRs, and more.
 
-## Features
+## Overview
 
-### Feature Management
-- Create, read, update, and delete features
-- Assign features to projects
-- Set feature priority (low, medium, high)
-- Track feature status (todo, in_progress, done)
-- Assign features to users
+FeaturePlus CLI helps development teams maintain a clear connection between code changes (PRs) and project management items (features and tasks). It enables:
 
-### Sub-feature Management
-- Create, read, update, and delete sub-features
-- Link sub-features to parent features
-- Set sub-feature priority
-- Track sub-feature status
-- Assign sub-features to users
-
-### User Management
-- User registration and authentication
-- Role-based access control
-- User assignment to features and sub-features
-
-### Project Organization
-- Hierarchical structure: Projects → Features → Sub-features
-- Project ownership and management
-- Project-specific feature tracking
-
-## Tech Stack
-
-### Frontend
-- Next.js
-- TypeScript
-- CSS Modules
-- Component-based architecture
-
-### Backend
-- Go
-- Gin framework
-- GORM (SQLite)
-- RESTful API
-
-## Prerequisites
-- Node.js and npm for frontend
-- Go for backend
-- SQLite database
+- Linking GitHub PRs to FeaturePlus features and tasks
+- Managing PR approvals and testing status
+- Creating and finalizing releases
+- Checking out PR branches locally
+- Listing and filtering PRs by feature
 
 ## Installation
 
-1. Clone the repository:
+### Prerequisites
+
+- Go 1.20+
+- [GitHub CLI](https://cli.github.com/) (`gh`) for GitHub integration
+- FeaturePlus backend running (default: `http://localhost:8080`)
+
+### Build & Install
+
 ```bash
-git clone [repository-url]
-cd FeaturePlus
+# Clone the repository
+git clone https://github.com/your-org/featureplus-pr.git
+cd featureplus-pr
+
+# Build the binary
+go build -o featureplus-pr .
+
+# Move to a directory in your PATH (Linux/macOS)
+mv featureplus-pr /usr/local/bin/
+
+# For Windows, add the binary location to your PATH or move to a directory in your PATH
 ```
 
-2. Install frontend dependencies:
-```bash
-cd frontend
-npm install
-```
+## Configuration
 
-3. Install backend dependencies:
-```bash
-cd backend
-go mod download
-```
+The CLI reads configuration from a `config.json` file in the current working directory:
 
-## Running the Application
-
-1. Start the backend server:
-```bash
-cd backend
-go run main.go
-```
-
-2. Start the frontend development server:
-```bash
-cd frontend
-npm run dev
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8080
-
-## API Endpoints
-
-### Users
-```
-GET    /users              - Get all users
-GET    /users/:id          - Get user by ID
-POST   /users              - Create new user
-PUT    /users/:id          - Update user
-DELETE /users/:id          - Delete user
-```
-
-### Projects
-```
-POST   /projects           - Create new project
-GET    /projects           - Get all projects
-GET    /projects/:id       - Get project by ID
-PUT    /projects/:id       - Update project
-DELETE /projects/:id       - Delete project
-GET    /projects/user/:user_id - Get projects by user
-```
-
-### Features
-```
-POST   /features           - Create new feature
-GET    /features/:id       - Get feature by ID
-GET    /features/project/:project_id - Get project features
-PUT    /features/:id       - Update feature
-DELETE /features/:id       - Delete feature
-```
-
-### Sub-features
-```
-POST   /api/sub-features   - Create new sub-feature
-PUT    /api/sub-features/:id - Update sub-feature
-GET    /api/sub-features   - Get sub-features by feature
-```
-
-## Data Models
-
-### User
-```typescript
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
+```json
+{
+  "api_url": "https://your-featureplus-instance.com"
 }
 ```
 
-### Project
-```typescript
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
+If no config file is found, it defaults to `http://localhost:8080`.
+
+## Authentication
+
+Before using most commands, you need to authenticate with the FeaturePlus backend:
+
+```bash
+featureplus-pr login
 ```
 
-### Feature
-```typescript
-interface Feature {
-  id: number;
-  project_id: number;
-  title: string;
-  description: string;
-  status: 'todo' | 'in_progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  assignee_id: number;
-  created_at: string;
-  updated_at: string;
-}
+This will prompt for your username/email and password, then store an authentication token locally.
+
+## Available Commands
+
+### Login
+
+Authenticate with the FeaturePlus backend:
+
+```bash
+featureplus-pr login
 ```
 
-### SubFeature
-```typescript
-interface SubFeature {
-  id: number;
-  feature_id: number;
-  title: string;
-  description: string;
-  status: 'todo' | 'in_progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  assignee_id: number;
-  created_at: string;
-  updated_at: string;
-}
+### List Pull Requests
+
+List all pull requests or filter by feature ID:
+
+```bash
+# List all PRs
+featureplus-pr list
+
+# Filter by feature ID
+featureplus-pr list --feature-id=42
 ```
 
-## Development
+### Upload PR Information
 
-### Frontend Development
-The frontend is built using Next.js and follows a component-based architecture. Key components include:
+Link the current branch's PR with a FeaturePlus feature and task:
 
-- `FeatureCard`: Displays individual features and manages sub-features
-- `SubFeatureCard`: Displays sub-features and provides edit functionality
-- CSS Modules for styling
-- TypeScript for type safety
+```bash
+featureplus-pr upload --feature-id=123 --task-id=456 --mark-tested
+```
 
-### Backend Development
-The backend is built using Go with the following components:
+Options:
+- `--feature-id` (required): The FeaturePlus feature ID
+- `--task-id` (required): The FeaturePlus task ID
+- `--mark-tested` (optional): Mark the PR as tested
+- `--version` (optional): Specify a version for the PR
 
-- Gin framework for routing and middleware
-- GORM for database operations
-- RESTful API design
-- Structured error handling
+### Approve a PR
+
+Approve a pull request in FeaturePlus (and optionally on GitHub):
+
+```bash
+featureplus-pr approve --id=42 --comment="Looks good!"
+```
+
+Options:
+- `--id` (required): The PR ID to approve
+- `--comment` (optional): Add a comment with your approval
+
+### Checkout a PR Branch
+
+Fetch and checkout a PR's branch locally:
+
+```bash
+featureplus-pr checkout --id=21
+```
+
+Options:
+- `--id` (required): The PR ID to checkout
+
+### Release Management
+
+Create a new release:
+
+```bash
+featureplus-pr release create --name="v1.2.0" --prs=21,22,23
+```
+
+List releases:
+
+```bash
+featureplus-pr release list
+```
+
+Finalize a release:
+
+```bash
+featureplus-pr release finalize --id=5
+```
+
+## Workflow Examples
+
+### Complete PR Workflow
+
+```bash
+# 1. Create a PR on GitHub
+gh pr create --title "Add new feature" --body "Implements feature XYZ"
+
+# 2. Link the PR to FeaturePlus
+featureplus-pr upload --feature-id=123 --task-id=456
+
+# 3. After testing, mark as tested
+featureplus-pr upload --feature-id=123 --task-id=456 --mark-tested
+
+# 4. List PRs for the feature
+featureplus-pr list --feature-id=123
+
+# 5. Approve the PR (assuming ID is 42)
+featureplus-pr approve --id=42 --comment="Approved after testing"
+```
+
+### Release Management Workflow
+
+```bash
+# 1. List all approved PRs
+featureplus-pr list
+
+# 2. Create a release with selected PRs
+featureplus-pr release create --name="v1.2.0" --prs=21,22,23
+
+# 3. Finalize the release (assuming release ID is 5)
+featureplus-pr release finalize --id=5
+```
+
+### Collaborative Development Workflow
+
+```bash
+# 1. List PRs to review
+featureplus-pr list
+
+# 2. Checkout a colleague's PR to review locally
+featureplus-pr checkout --id=21
+
+# 3. After review, approve the PR
+featureplus-pr approve --id=21 --comment="Code looks good, tests pass"
+```
+
+## Debugging
+
+Set the `DEBUG` environment variable to enable verbose output:
+
+```bash
+DEBUG=1 featureplus-pr list
+```
 
 ## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
-[Add your license information here]
 
-## Support
-For support, please open an issue in the repository or contact the maintainers. 
+[MIT License](LICENSE)
