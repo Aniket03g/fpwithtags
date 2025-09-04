@@ -6,3 +6,8 @@ import "featureplus-pr/internal/config"
 func GetAPIURL() string {
 	return config.GetAPIURL()
 }
+
+// GetAuthToken returns the authentication token
+func GetAuthToken() string {
+	return config.GetAuthToken()
+}

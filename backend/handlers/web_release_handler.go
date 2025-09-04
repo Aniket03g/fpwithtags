@@ -8,9 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type WebReleaseHandler struct {
@@ -25,8 +27,37 @@ func NewWebReleaseHandler(releaseRepo repositories.ReleaseRepository, prRepo rep
 	}
 }
 
-// RenderReleasesList renders the releases list page
+// RenderReleasesList renders the releases list page as part of the app shell
 func (h *WebReleaseHandler) RenderReleasesList(c *gin.Context) {
+	// This method is called when navigating directly to /web/releases
+	// It should render the app shell with the initial URL set to the releases fragment
+	// The actual content will be loaded via HTMX from the fragments endpoint
+	
+	// Get user ID and role from context (set by AuthMiddleware and RoleMiddleware)
+	userID, _ := c.Get("user_id")
+	userRole, _ := c.Get("user_role")
+	
+	// Create CurrentUser object for template
+	currentUser := map[string]interface{}{
+		"ID":   userID,
+		"Role": userRole,
+	}
+
+	// Get projects for sidebar (same as in AppHandler.RenderAppShell)
+	var projects []models.Project
+	db := h.releaseRepo.(interface{ DB() *gorm.DB }).DB()
+	db.Find(&projects)
+
+	// Render the dashboard shell with the initial URL pointing to releases fragment
+	c.HTML(http.StatusOK, "dashboard.html", gin.H{
+		"InitialURL":   "/web/fragments/releases",
+		"CurrentUser":  currentUser,
+		"Projects":     projects,
+	})
+}
+
+// RenderReleasesListFragment renders just the releases list content for HTMX requests
+func (h *WebReleaseHandler) RenderReleasesListFragment(c *gin.Context) {
 	// Get all releases
 	releases, err := h.releaseRepo.GetAll()
 	if err != nil {
@@ -36,10 +67,21 @@ func (h *WebReleaseHandler) RenderReleasesList(c *gin.Context) {
 		return
 	}
 
+	// Get user ID from context
+	userID, _ := c.Get("user_id")
+	userRole, _ := c.Get("user_role")
+	
+	// Create CurrentUser object for template
+	currentUser := map[string]interface{}{
+		"ID":   userID,
+		"Role": userRole,
+		"IsManager": userRole == "manager",
+	}
+
 	// Render the releases list template
 	c.HTML(http.StatusOK, "release-list.html", gin.H{
 		"Releases":    releases,
-		"CurrentUser": c.GetUint("user_id"),
+		"CurrentUser": currentUser,
 	})
 }
 

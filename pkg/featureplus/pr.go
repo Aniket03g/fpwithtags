@@ -96,13 +96,18 @@ func (c *Client) UploadPR(req *UploadRequest) error {
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
+	// Add authentication header
+	c.addAuthHeader(httpReq)
+
 	resp, err := c.HTTPClient.Do(httpReq)
 	if err != nil {
 		return fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("API returned non-success status: %d", resp.StatusCode)
 	}
 
@@ -116,18 +121,34 @@ func (c *Client) ListPRs(featureID uint) ([]PullRequest, error) {
 		url = fmt.Sprintf("%s?feature_id=%d", url, featureID)
 	}
 
+	fmt.Printf("DEBUG PR: Making request to URL: %s\n", url)
+	fmt.Printf("DEBUG PR: Auth token present: %v\n", c.authToken != "")
+	if c.authToken != "" {
+		fmt.Printf("DEBUG PR: Auth token: %s...\n", c.authToken[:10])
+	}
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		fmt.Printf("DEBUG PR: Error creating request: %v\n", err)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
+	// Add authentication header
+	c.addAuthHeader(req)
+	fmt.Printf("DEBUG PR: Request headers: %v\n", req.Header)
+
+	fmt.Printf("DEBUG PR: Sending request...\n")
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
+		fmt.Printf("DEBUG PR: Error making request: %v\n", err)
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
+	fmt.Printf("DEBUG PR: Got response with status code: %d\n", resp.StatusCode)
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 
@@ -148,13 +169,18 @@ func (c *Client) GetPR(id int) (*PullRequest, error) {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
+	// Add authentication header
+	c.addAuthHeader(req)
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 
@@ -181,13 +207,18 @@ func (c *Client) ApprovePR(prID int, req *ReviewRequest) error {
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 
+	// Add authentication header
+	c.addAuthHeader(httpReq)
+
 	resp, err := c.HTTPClient.Do(httpReq)
 	if err != nil {
 		return fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 

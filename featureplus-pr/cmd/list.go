@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 
@@ -20,15 +19,17 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List pull requests from FeaturePlus",
 	Run: func(cmd *cobra.Command, args []string) {
-		// Create client
-		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		// Create authenticated client
+		client := CreateAuthenticatedClient()
 
 		// Use the shared package to list PRs
+		fmt.Println("Debug: Calling client.ListPRs()")
 		prs, err := client.ListPRs(uint(listFeatureID))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to get PR list: %v\n", err)
 			os.Exit(1)
 		}
+		fmt.Printf("Debug: Got %d PRs\n", len(prs))
 
 		if len(prs) == 0 {
 			fmt.Println("No pull requests found.")

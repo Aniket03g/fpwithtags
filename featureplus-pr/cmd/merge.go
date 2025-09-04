@@ -40,6 +40,8 @@ Example:
 
 		// Get PR info from FeaturePlus
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		// Set auth token from config
+		client.SetAuthToken(GetAuthToken())
 		pr, err := client.GetPR(mergePRID)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error getting PR info: %v\n", err)

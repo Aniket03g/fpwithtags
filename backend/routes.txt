@@ -8,9 +8,10 @@ Method: GET, Path: /web/fragments/features/:id/view
 Method: GET, Path: /web/fragments/projects
 Method: GET, Path: /web/fragments/projects/:id/features
 Method: GET, Path: /web/fragments/projects/:id/features/new
+Method: GET, Path: /web/fragments/releases
+Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/fragments/dashboard-status
 Method: GET, Path: /web/fragments/tags/autocomplete
-Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/features/cancel
 Method: GET, Path: /web/features/:id/tasks
 Method: GET, Path: /web/features/:id/tasks/new

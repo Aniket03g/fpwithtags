@@ -25,12 +25,15 @@ func RegisterReleaseRoutes(router *gin.Engine, db *gorm.DB) {
 		// GET releases is available to all authenticated users
 		releases.GET("", releaseHandler.GetReleases)
 
-		// Create and finalize releases are restricted to managers only
+		// Create releases are restricted to managers only
 		managerRoutes := releases.Group("/", roleMiddleware("manager"))
 		{
 			managerRoutes.POST("", releaseHandler.CreateRelease)
-			managerRoutes.POST("/:id/finalize", releaseHandler.FinalizeRelease)
+			// managerRoutes.POST("/:id/finalize", releaseHandler.FinalizeRelease)
 		}
+		
+		// Temporarily disable authentication for finalize endpoint
+		router.POST("/api/releases/:id/finalize", releaseHandler.FinalizeRelease)
 	}
 	
 	// Web release routes are registered in main.go

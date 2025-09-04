@@ -1,26 +1,33 @@
 <!-- Single Release Row Template -->
 <tr id="release-row-{{ .Release.ID }}">
-  <td class="px-6 py-4 whitespace-nowrap font-medium">{{ .Release.Version }}</td>
+  <td class="px-6 py-4 whitespace-nowrap font-medium">{{ .Release.Tag }}</td>
   <td class="px-6 py-4 whitespace-nowrap">
-    <span class="inline-block px-2 py-1 rounded {{ if eq .Release.Status "Draft" }}bg-yellow-100 text-yellow-700{{ else if eq .Release.Status "Released" }}bg-green-100 text-green-700{{ else }}bg-blue-100 text-blue-700{{ end }} text-xs font-medium">
+    <span class="inline-block px-2 py-1 rounded {{ if eq .Release.Status "draft" }}bg-yellow-100 text-yellow-700{{ else if eq .Release.Status "published" }}bg-green-100 text-green-700{{ else }}bg-blue-100 text-blue-700{{ end }} text-xs font-medium">
       {{ .Release.Status }}
     </span>
   </td>
   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ .Release.CreatedAt.Format "Jan 02, 2006" }}</td>
-  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ len .Release.Features }}</td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ len .Release.PRs }}</td>
   <td class="px-6 py-4 whitespace-nowrap text-sm">
     <div class="flex space-x-2">
       <a href="/web/releases/{{ .Release.ID }}" class="text-blue-600 hover:text-blue-900">View</a>
       
       {{ if $.CurrentUser.IsManager }}
-        {{ if eq .Release.Status "Draft" }}
+        {{ if eq .Release.Status "draft" }}
           <button 
             class="text-green-600 hover:text-green-900"
             hx-post="/api/releases/{{ .Release.ID }}/finalize"
             hx-target="#release-row-{{ .Release.ID }}"
-            hx-swap="outerHTML">
+            hx-swap="outerHTML"
+            hx-indicator="#loading-indicator-{{ .Release.ID }}">
             Finalize
           </button>
+          <span id="loading-indicator-{{ .Release.ID }}" class="htmx-indicator inline-block ml-2">
+            <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
         {{ end }}
         
         <button 

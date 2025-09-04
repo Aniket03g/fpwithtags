@@ -25,6 +25,8 @@ var prCheckoutCmd = &cobra.Command{
 
 		// Create client
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		// Set auth token from config
+		client.SetAuthToken(GetAuthToken())
 
 		// Get PR info from FeaturePlus
 		pr, err := client.GetPR(checkoutPRID)

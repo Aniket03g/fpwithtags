@@ -59,10 +59,28 @@ func (r *releaseRepository) Create(release *models.Release, prIDs []int) error {
 }
 
 func (r *releaseRepository) GetByID(id uint) (*models.Release, error) {
+	// First, fetch the release without PRs
 	var release models.Release
-	if err := r.db.Preload("PRs").First(&release, id).Error; err != nil {
+	if err := r.db.First(&release, id).Error; err != nil {
 		return nil, err
 	}
+	
+	// Then, fetch the associated PRs using a join query to ensure we get the correct PRs
+	var prs []models.PullRequest
+	if err := r.db.Joins("JOIN release_prs ON release_prs.pull_request_id = pull_requests.id").Where("release_prs.release_id = ?", id).Find(&prs).Error; err != nil {
+		return nil, err
+	}
+	
+	// Assign the PRs to the release
+	release.PRs = prs
+	
+	// Debug logging to verify which PRs were loaded
+	var prIDs []uint
+	for _, pr := range release.PRs {
+		prIDs = append(prIDs, pr.ID)
+	}
+	r.db.Logger.Info(r.db.Statement.Context, "Loaded PRs for release %d: %v", id, prIDs)
+	
 	return &release, nil
 }
 
@@ -92,10 +110,30 @@ func ValidateTag(tag string) bool {
 }
 
 func (r *releaseRepository) GetAll() ([]models.Release, error) {
+	// First, fetch all releases without PRs
 	var releases []models.Release
-	if err := r.db.Preload("PRs").Find(&releases).Error; err != nil {
+	if err := r.db.Find(&releases).Error; err != nil {
 		return nil, err
 	}
+	
+	// Then, for each release, fetch its associated PRs
+	for i := range releases {
+		var prs []models.PullRequest
+		if err := r.db.Joins("JOIN release_prs ON release_prs.pull_request_id = pull_requests.id").Where("release_prs.release_id = ?", releases[i].ID).Find(&prs).Error; err != nil {
+			return nil, err
+		}
+		
+		// Assign the PRs to the release
+		releases[i].PRs = prs
+		
+		// Debug logging to verify which PRs were loaded
+		var prIDs []uint
+		for _, pr := range prs {
+			prIDs = append(prIDs, pr.ID)
+		}
+		r.db.Logger.Info(r.db.Statement.Context, "Loaded PRs for release %d: %v", releases[i].ID, prIDs)
+	}
+	
 	return releases, nil
 }
 

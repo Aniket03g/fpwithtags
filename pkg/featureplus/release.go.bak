@@ -169,9 +169,6 @@ func (c *Client) GetRelease(id uint) (*Release, error) {
 		debugLog("ERROR: Failed to create HTTP request: %v", err)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
-	
-	// Add authentication header
-	c.addAuthHeader(req)
 	debugLog("Request headers: %v", req.Header)
 	
 	debugLog("Sending HTTP request to %s", url)
@@ -225,9 +222,6 @@ func (c *Client) FinalizeRelease(id uint) error {
 		return fmt.Errorf("error creating request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	
-	// Authentication header temporarily disabled for testing
-	// c.addAuthHeader(req)
 	debugLog("Request headers: %v", req.Header)
 	
 	debugLog("Sending HTTP request to %s", url)

@@ -115,9 +115,7 @@ func processTagString(tagInput string) []string {
 		}
 
 		// Remove leading # if present
-		if strings.HasPrefix(tag, "#") {
-			tag = tag[1:]
-		}
+		tag = strings.TrimPrefix(tag, "#")
 
 		// Skip tags that are empty after processing
 		if tag != "" {

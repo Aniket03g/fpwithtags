@@ -36,6 +36,8 @@ var uploadCmd = &cobra.Command{
 
 		// Create client
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		// Set auth token from config
+		client.SetAuthToken(GetAuthToken())
 
 		// Create upload request
 		req := &featureplus.UploadRequest{

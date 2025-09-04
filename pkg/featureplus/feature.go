@@ -28,13 +28,18 @@ func (c *Client) GetFeatures(projectID uint) ([]Feature, error) {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 	
+	// Add authentication header
+	c.addAuthHeader(req)
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 	
@@ -55,13 +60,18 @@ func (c *Client) GetFeature(id uint) (*Feature, error) {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 	
+	// Add authentication header
+	c.addAuthHeader(req)
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 	
@@ -88,13 +98,18 @@ func (c *Client) CreateFeature(feature *Feature) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	
+	// Add authentication header
+	c.addAuthHeader(req)
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
-	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("API returned non-success status: %d", resp.StatusCode)
 	}
 	
@@ -116,13 +131,18 @@ func (c *Client) UpdateFeature(feature *Feature) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	
+	// Add authentication header
+	c.addAuthHeader(req)
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("error making request: %w", err)
 	}
 	defer resp.Body.Close()
 	
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("authentication required: please login first using 'featureplus-pr login'")
+	} else if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
 	}
 	

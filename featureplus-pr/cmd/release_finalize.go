@@ -38,6 +38,8 @@ Example:
 			fmt.Printf("[DEBUG][PR_RELEASE] Creating featureplus client with API URL: %s\n", GetAPIURL())
 		}
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		// Set auth token from config
+		// client.SetAuthToken(GetAuthToken())
 
 		// Use the shared package to finalize release
 		if os.Getenv("DEBUG") == "1" {

@@ -61,6 +61,8 @@ Example:
 			fmt.Printf("[DEBUG][PR_RELEASE] Creating featureplus client with API URL: %s\n", GetAPIURL())
 		}
 		client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+		// Set auth token from config
+		client.SetAuthToken(GetAuthToken())
 
 		// Convert PR IDs to uint
 		prIDs := make([]uint, len(prs))
@@ -201,6 +203,8 @@ func listReleases() error {
 		fmt.Printf("[DEBUG][PR_RELEASE] Creating featureplus client with API URL: %s\n", GetAPIURL())
 	}
 	client := featureplus.NewClient(GetAPIURL(), &http.Client{})
+	// Set auth token from config
+	client.SetAuthToken(GetAuthToken())
 
 	// Use the shared package to list releases
 	if os.Getenv("DEBUG") == "1" {

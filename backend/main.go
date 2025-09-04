@@ -477,6 +477,7 @@ func main() {
 			authFragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 			authFragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
 			authFragments.GET("/features", FeaturesByTagFragment(featureHandler))
+			authFragments.GET("/releases", webReleaseHandler.RenderReleasesListFragment)
 			authFragments.GET("/release-modal", webReleaseHandler.NewReleaseModal)
 			authFragments.POST("/api/releases", webReleaseHandler.CreateRelease)
 		}

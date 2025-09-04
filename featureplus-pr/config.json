@@ -1,3 +1,11 @@
 {
-  "api_url": "http://localhost:8080"
+  "api_url": "http://localhost:8080",
+  "auth": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTcwMTgxNDAsInVzZXJfaWQiOjN9.fIF2Ag5XvYpq3X-yMdGocrmrMr69lg65C8JQTnkQ3N0",
+    "expires_at": 1757018140,
+    "user_id": 3,
+    "username": "test1",
+    "email": "test1@mail.com",
+    "role": "manager"
+  }
 }
