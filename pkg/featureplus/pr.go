@@ -162,20 +162,31 @@ func (c *Client) ListPRs(featureID uint) ([]PullRequest, error) {
 
 // GetPR retrieves a specific PR by ID
 func (c *Client) GetPR(id int) (*PullRequest, error) {
-	url := fmt.Sprintf("%s/api/pr/%d", c.BaseURL, id)
+	url := fmt.Sprintf("%s/api/prs/%d", c.BaseURL, id)
+
+	fmt.Printf("DEBUG PR: Making request to URL: %s\n", url)
+	fmt.Printf("DEBUG PR: Auth token present: %v\n", c.authToken != "")
+	if c.authToken != "" {
+		fmt.Printf("DEBUG PR: Auth token starts with: %s...\n", c.authToken[:10])
+	}
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		fmt.Printf("DEBUG PR: Error creating request: %v\n", err)
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
 	// Add authentication header
 	c.addAuthHeader(req)
+	fmt.Printf("DEBUG PR: Request headers: %v\n", req.Header)
 
+	fmt.Printf("DEBUG PR: Sending request...\n")
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
+		fmt.Printf("DEBUG PR: Error making request: %v\n", err)
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
+	fmt.Printf("DEBUG PR: Got response with status code: %d\n", resp.StatusCode)
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -195,6 +206,7 @@ func (c *Client) GetPR(id int) (*PullRequest, error) {
 // ApprovePR approves a PR in FeaturePlus
 func (c *Client) ApprovePR(prID int, req *ReviewRequest) error {
 	url := fmt.Sprintf("%s/api/pr/%d/review", c.BaseURL, prID)
+	fmt.Printf("DEBUG PR: Making review request to URL: %s\n", url)
 
 	reqBody, err := json.Marshal(req)
 	if err != nil {
