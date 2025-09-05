@@ -1,6 +1,6 @@
 module featureplus-pr
 
-go 1.20
+go 1.23
 
 require (
 	github.com/FeaturePlus/pkg/featureplus v0.0.0
