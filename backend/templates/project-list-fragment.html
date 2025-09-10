@@ -1,0 +1,18 @@
+<div id="project-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+  {{ range .Projects }}
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl {{ if and $.NewProject (eq .ID $.NewProject.ID) }}animate-pulse border-green-400{{ end }}">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ .Name }}</h2>
+      <p class="text-gray-500 text-sm mb-4">{{ .Description }}</p>
+    </div>
+    <div class="flex justify-end">
+      <a href="/web/projects/{{ .ID }}/features" class="inline-block px-4 py-2 bg-primary-600 text-blue-400 rounded-lg shadow hover:bg-primary-700 transition-colors text-sm font-medium">View</a>
+    </div>
+  </div>
+  {{ end }}
+</div>
+
+<script>
+  // Close the modal when the project list is updated
+  document.getElementById('create-project-modal')?.remove();
+</script>

@@ -434,6 +434,8 @@ func main() {
 			authWeb.GET("/projects", appHandler.RenderAppShell)
 			authWeb.GET("/projects/:id", appHandler.RenderAppShell)
 			authWeb.GET("/projects/:id/features", appHandler.RenderAppShell)
+			authWeb.GET("/projects/create-modal", projectHandler.ShowProjectCreateModal)
+			authWeb.POST("/projects/create", projectHandler.CreateProjectFromForm)
 			authWeb.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
 			authWeb.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
 			authWeb.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)

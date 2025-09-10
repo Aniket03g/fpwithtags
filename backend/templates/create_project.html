@@ -1,0 +1,93 @@
+<div id="create-project-modal" class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+         onclick="document.getElementById('create-project-modal').remove()"></div>
+
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Project</h3>
+            
+            <form hx-post="/web/projects/create" hx-target="#project-list-container" hx-swap="outerHTML" class="space-y-4">
+              <!-- Name field -->
+              <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Project Name</label>
+                <input type="text" name="name" id="name" required 
+                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+              </div>
+              
+              <!-- Description field -->
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea name="description" id="description" rows="3"
+                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
+              </div>
+
+              <!-- Project Configuration -->
+              <div class="border-t border-gray-200 pt-4 mt-4">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Project Configuration</h4>
+                
+                <!-- Task Types -->
+                <div class="mb-3">
+                  <label for="task_types" class="block text-sm font-medium text-gray-700">Task Types</label>
+                  <p class="text-xs text-gray-500 mb-1">Enter comma-separated task types (e.g., UI, Dev, DB)</p>
+                  <input type="text" name="task_types" id="task_types" placeholder="UI, Dev, DB, Backend" 
+                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <!-- Feature Categories -->
+                <div class="mb-3">
+                  <label for="feature_categories" class="block text-sm font-medium text-gray-700">Feature Categories</label>
+                  <p class="text-xs text-gray-500 mb-1">Enter comma-separated feature categories</p>
+                  <input type="text" name="feature_categories" id="feature_categories" placeholder="Auth, Payment, Tags, Tasks, Features" 
+                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <!-- Tags Support -->
+                <div>
+                  <label for="tags_enabled" class="block text-sm font-medium text-gray-700">Tags Support</label>
+                  <div class="flex items-center mt-1">
+                    <input type="checkbox" name="tags_enabled" id="tags_enabled" checked 
+                           class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                    <label for="tags_enabled" class="ml-2 block text-sm text-gray-700">Enable tags for features</label>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">When enabled, features can be tagged and filtered by tags</p>
+                </div>
+              </div>
+              
+              <!-- Form buttons -->
+              <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" 
+                        onclick="document.getElementById('create-project-modal').remove()"
+                        class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                  Cancel
+                </button>
+                <button type="submit" 
+                class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white 
+                       bg-blue-600 border border-transparent rounded-md shadow-sm 
+                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Create Project
+              </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Close button -->
+      <div class="absolute top-0 right-0 pt-4 pr-4">
+        <button type="button" 
+                onclick="document.getElementById('create-project-modal').remove()"
+                class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+          <span class="sr-only">Close</span>
+          <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -17,6 +17,7 @@ Method: GET, Path: /web/features/:id/tasks
 Method: GET, Path: /web/features/:id/tasks/new
 Method: GET, Path: /web/features/:id/edit-inline
 Method: GET, Path: /web/projects
+Method: GET, Path: /web/projects/create-modal
 Method: GET, Path: /web/projects/:id
 Method: GET, Path: /web/projects/:id/features
 Method: GET, Path: /web/projects/:id/features/content
@@ -56,6 +57,7 @@ Method: POST, Path: /web/fragments/features/:id/tasks/:task_id/edit
 Method: POST, Path: /web/fragments/features/:id/edit-inline
 Method: POST, Path: /web/fragments/api/releases
 Method: POST, Path: /web/features/:id/tasks
+Method: POST, Path: /web/projects/create
 Method: POST, Path: /web/projects/:id/features
 Method: POST, Path: /prs/:id/test
 Method: POST, Path: /prs/:id/approve
