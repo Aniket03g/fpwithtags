@@ -1,0 +1,99 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Dependencies</h1>
+    <div class="flex space-x-2">
+      <div class="relative" x-data="{ open: false }">
+        <button @click="open = !open" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+          </svg>
+          Filter
+        </button>
+        <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none z-10">
+          <div class="py-1">
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" hx-get="/web/fragments/dependencies?filter=all" hx-target="#dependencies-list" hx-swap="innerHTML">All Dependencies</a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" hx-get="/web/fragments/dependencies?filter=feature" hx-target="#dependencies-list" hx-swap="innerHTML">Feature Dependencies</a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" hx-get="/web/fragments/dependencies?filter=task" hx-target="#dependencies-list" hx-swap="innerHTML">Task Dependencies</a>
+            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" hx-get="/web/fragments/dependencies?filter=pr" hx-target="#dependencies-list" hx-swap="innerHTML">PR Dependencies</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div id="dependencies-list">
+      {{ if .Dependencies }}
+        <ul class="divide-y divide-gray-200">
+          {{ range .Dependencies }}
+            <li>
+              <div class="px-4 py-4 flex items-center sm:px-6">
+                <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <div class="flex text-sm">
+                      <p class="font-medium text-blue-600 truncate">
+                        {{ .ParentType }} #{{ .ParentID }}
+                      </p>
+                      <p class="ml-1 flex-shrink-0 font-normal text-gray-500">
+                        blocks
+                      </p>
+                      <p class="ml-1 font-medium text-green-600">
+                        {{ .ChildType }} #{{ .ChildID }}
+                      </p>
+                    </div>
+                    {{ if .Description }}
+                      <div class="mt-2 flex">
+                        <div class="flex items-center text-sm text-gray-500">
+                          <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                          </svg>
+                          <span>{{ .Description }}</span>
+                        </div>
+                      </div>
+                    {{ end }}
+                  </div>
+                  <div class="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                    <div class="flex overflow-hidden">
+                      <button 
+                        class="text-red-600 hover:text-red-900"
+                        hx-delete="/api/dependencies/{{ .ID }}"
+                        hx-target="#dependencies-list"
+                        hx-swap="innerHTML"
+                        hx-confirm="Are you sure you want to remove this dependency?">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {{ end }}
+        </ul>
+      {{ else }}
+        <div class="text-center py-8">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 013 0m-3-3.5v3.5m0-3.5a1.5 1.5 0 00-3 0V7"></path>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No dependencies found</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Get started by creating a new dependency.
+          </p>
+          <div class="mt-6">
+            <button 
+              type="button" 
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              hx-get="/web/fragments/dependencies/modal?entity_type=feature&entity_id=0&modal_type=blocking"
+              hx-target="#modal">
+              <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+              </svg>
+              Add Dependency
+            </button>
+          </div>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+</div>

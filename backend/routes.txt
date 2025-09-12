@@ -6,12 +6,18 @@ Method: GET, Path: /web/fragments/features/:id/tasks/:task_id/edit
 Method: GET, Path: /web/fragments/features/:id/tasks/:task_id/view
 Method: GET, Path: /web/fragments/features/:id/view
 Method: GET, Path: /web/fragments/projects
+Method: GET, Path: /web/fragments/projects/:id
 Method: GET, Path: /web/fragments/projects/:id/features
 Method: GET, Path: /web/fragments/projects/:id/features/new
-Method: GET, Path: /web/fragments/releases
-Method: GET, Path: /web/fragments/release-modal
+Method: GET, Path: /web/fragments/prs
+Method: GET, Path: /web/fragments/dependencies
+Method: GET, Path: /web/fragments/dependencies/panels
+Method: GET, Path: /web/fragments/dependencies/modal
 Method: GET, Path: /web/fragments/dashboard-status
 Method: GET, Path: /web/fragments/tags/autocomplete
+Method: GET, Path: /web/fragments/tasks
+Method: GET, Path: /web/fragments/releases
+Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/features/cancel
 Method: GET, Path: /web/features/:id/tasks
 Method: GET, Path: /web/features/:id/tasks/new
@@ -26,6 +32,7 @@ Method: GET, Path: /web/projects/:id/features/:featureid
 Method: GET, Path: /web/releases
 Method: GET, Path: /web/releases/:id
 Method: GET, Path: /web/releases/:id/row
+Method: GET, Path: /web/dependencies
 Method: GET, Path: /web/dashboard
 Method: GET, Path: /web/login
 Method: GET, Path: /web/tasks/cancel
@@ -35,6 +42,9 @@ Method: GET, Path: /api/auth/me
 Method: GET, Path: /api/pr
 Method: GET, Path: /api/projects
 Method: GET, Path: /api/prs/:id
+Method: GET, Path: /api/dependencies
+Method: GET, Path: /api/dependencies/panels
+Method: GET, Path: /api/dependencies/modal
 Method: GET, Path: /api/users
 Method: GET, Path: /api/features/project/:project_id
 Method: GET, Path: /api/tasks/:task_id/comments
@@ -53,6 +63,7 @@ Method: POST, Path: /api/pr
 Method: POST, Path: /api/pr/:id/review
 Method: POST, Path: /api/releases/
 Method: POST, Path: /api/releases/:id/finalize
+Method: POST, Path: /api/dependencies
 Method: POST, Path: /web/fragments/features/:id/tasks/:task_id/edit
 Method: POST, Path: /web/fragments/features/:id/edit-inline
 Method: POST, Path: /web/fragments/api/releases
@@ -64,4 +75,5 @@ Method: POST, Path: /prs/:id/approve
 Method: POST, Path: /tasks/:id/prs
 Method: DELETE, Path: /api/attachments/:id
 Method: DELETE, Path: /api/comments/:comment_id
+Method: DELETE, Path: /api/dependencies/:id
 Method: PUT, Path: /api/comments/:comment_id

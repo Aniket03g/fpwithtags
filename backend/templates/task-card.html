@@ -100,6 +100,23 @@
       {{ template "task-comments-section.html" (dict "Comments" .Task.Comments "TaskID" .Task.ID "PostURL" (printf "/api/tasks/%d/comments" .Task.ID)) }}
     </div>
     
+    <!-- Dependency Section -->
+    <section class="mt-8">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold">Dependencies</h3>
+      </div>
+      <div 
+        id="dependency-section-{{ .Task.ID }}" 
+        hx-get="/api/dependencies/panels?entity_type=task&entity_id={{ .Task.ID }}" 
+        hx-trigger="load"
+        hx-swap="innerHTML">
+          <div class="text-center py-8">
+            <svg class="mx-auto animate-spin h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+            <p class="text-gray-400 mt-2">Loading dependencies...</p>
+          </div>
+      </div>
+    </section>
+    
     <section class="mt-8">
       <div class="flex justify-between items-center mb-2">
         <h3 class="text-lg font-semibold">Pull Requests</h3>

@@ -574,3 +574,29 @@ func (h *TaskHandler) NewPullRequestModal(c *gin.Context) {
 	}
 	c.HTML(http.StatusOK, "pr-modal.html", gin.H{"TaskID": taskID})
 }
+
+// GetAllTasksFragment renders all tasks as an HTMX fragment for the dashboard
+func (h *TaskHandler) GetAllTasksFragment(c *gin.Context) {
+	log.Println("DEBUG: Getting all tasks for fragment")
+	
+	// Get the user's role from the context (set by the AuthMiddleware)
+	userRole, _ := c.Get("user_role")
+	isManager := userRole == "manager"
+	
+	tasks, err := h.taskRepo.GetAllWithFeatureTitle()
+	if err != nil {
+		log.Printf("ERROR: Failed to get tasks for fragment: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	log.Printf("DEBUG: Retrieved %d tasks for fragment\n", len(tasks))
+	
+	// Pass both the Tasks and the CurrentUser's role to the template
+	c.HTML(http.StatusOK, "all-tasks-list.html", gin.H{
+		"Tasks": tasks,
+		"CurrentUser": gin.H{
+			"IsManager": isManager,
+			"Role": userRole,
+		},
+	})
+}

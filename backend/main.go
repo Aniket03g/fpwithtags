@@ -61,14 +61,14 @@ func LoggingMiddleware() gin.HandlerFunc {
 
 // AppHandler handles app shell rendering and common functionality
 type AppHandler struct {
-	db *database.Database
+	db          *database.Database
 	projectRepo *repositories.ProjectRepository
 }
 
 // NewAppHandler creates a new app handler with database access
 func NewAppHandler(db *database.Database) *AppHandler {
 	return &AppHandler{
-		db: db,
+		db:          db,
 		projectRepo: repositories.NewProjectRepository(db.DB),
 	}
 }
@@ -114,7 +114,7 @@ func (h *AppHandler) RenderAppShell(c *gin.Context) {
 	// Get user ID and role from context (set by AuthMiddleware and RoleMiddleware)
 	userID, _ := c.Get("user_id")
 	userRole, _ := c.Get("user_role")
-	
+
 	// Create CurrentUser object for template
 	currentUser := map[string]interface{}{
 		"ID":   userID,
@@ -126,9 +126,9 @@ func (h *AppHandler) RenderAppShell(c *gin.Context) {
 	h.db.DB.Find(&projects)
 
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"InitialURL":   fragment,
-		"CurrentUser":  currentUser,
-		"Projects":     projects,
+		"InitialURL":  fragment,
+		"CurrentUser": currentUser,
+		"Projects":    projects,
 	})
 }
 
@@ -186,20 +186,35 @@ func FragmentHTMXGuard() gin.HandlerFunc {
 func DashboardStatusFragment(c *gin.Context) {
 	// Check if user is logged in
 	userID, loggedIn := c.Get("user_id")
-	
+
 	// Get user role from context (set by RoleMiddleware)
 	userRole, hasRole := c.Get("user_role")
-	
+
 	// Create CurrentUser object for template
 	currentUser := map[string]interface{}{
-		"ID":   userID,
-		"Role": userRole,
+		"ID":       userID,
+		"Role":     userRole,
+		"IsManager": userRole == "manager",
 	}
-	
+
+	// Get username for display
+	var username string = "test1" // Default for testing
+	if loggedIn {
+		// Try to get the actual username from the database
+		db, err := database.InitDB()
+		if err == nil {
+			var user models.User
+			if err := db.DB.First(&user, userID).Error; err == nil {
+				username = user.Username
+			}
+		}
+	}
+
 	c.HTML(http.StatusOK, "dashboard-status.html", gin.H{
 		"LoggedIn":    loggedIn,
 		"CurrentUser": currentUser,
 		"HasRole":     hasRole,
+		"Username":    username,
 	})
 }
 
@@ -230,7 +245,7 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: No .env file found (this is OK in production if env vars are set)")
 	}
-	
+
 	// Check if debug mode is enabled
 	if os.Getenv("DEBUG") == "1" {
 		log.Println("DEBUG mode enabled - detailed logging will be shown")
@@ -270,7 +285,7 @@ func main() {
 	if err := db.Migrate(
 		&models.User{}, &models.Project{}, &models.Feature{}, &models.SubFeature{},
 		&models.Task{}, &models.FeatureTag{}, &models.TaskAttachment{}, &models.Comment{},
-		&models.PullRequest{},
+		&models.PullRequest{}, &models.Dependency{},
 		&models.ApprovedPR{},
 	); err != nil {
 		panic("failed to migrate database: " + err.Error())
@@ -335,7 +350,33 @@ func main() {
 		"hasPrefix": strings.HasPrefix,
 	})
 
-	router.LoadHTMLGlob("templates/*")
+	// First load the main templates
+	router.LoadHTMLFiles(
+		"templates/dashboard.html",
+		"templates/login.html", 
+		"templates/feature-detail.html",
+		"templates/pr-detail.html",
+		"templates/task-card.html",
+		"templates/dependency_panels.html",
+		"templates/dependency_modal.html",
+		"templates/project-list.html",
+		"templates/project-list-fragment.html",
+		"templates/create_project.html",
+		"templates/_project_create_success.html",
+		"templates/_pr_row.html",
+		"templates/_pr_table.html",
+		"templates/task-comments-section.html",
+		"templates/task-comments-list.html",
+		"templates/attachment-comments-section.html",
+		"templates/attachment-comments-list.html",
+		"templates/comment-form.html",
+		"templates/all-tasks-list.html",
+		"templates/all-prs-list.html",
+		"templates/dashboard-status.html",
+		"templates/dependencies/dependencies-list.html",
+		"templates/dependencies/dependency_panels.html",
+		"templates/dependencies/dependency_modal.html",
+	)
 
 	// Serve static files
 	router.Static("/static", "./static")
@@ -417,6 +458,9 @@ func main() {
 	// Register release routes
 	routes.RegisterReleaseRoutes(router, db.DB)
 
+	// Register dependency routes
+	routes.RegisterDependencyRoutes(router, db.DB)
+
 	// --- NEW WEB ROUTES FOR HTMX ---
 	// Create app handler for web routes
 	appHandler := NewAppHandler(db)
@@ -467,6 +511,7 @@ func main() {
 		{
 			// THIS IS THE NEWLY ADDED ROUTE
 			authFragments.GET("/projects", projectHandler.GetAllProjectsFragment)
+			authFragments.GET("/projects/:id", projectHandler.GetProject)
 
 			authFragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
 			authFragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
@@ -479,6 +524,8 @@ func main() {
 			authFragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 			authFragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
 			authFragments.GET("/features", FeaturesByTagFragment(featureHandler))
+			authFragments.GET("/tasks", taskHandler.GetAllTasksFragment)
+			authFragments.GET("/prs", webPRHandler.GetAllPRsFragment)
 			authFragments.GET("/releases", webReleaseHandler.RenderReleasesListFragment)
 			authFragments.GET("/release-modal", webReleaseHandler.NewReleaseModal)
 			authFragments.POST("/api/releases", webReleaseHandler.CreateRelease)
@@ -504,7 +551,7 @@ func main() {
 		// Restrict approve action to managers only
 		prGroup.POST("/:id/approve", roleMiddleware("manager"), prHandler.ApprovePR)
 	}
-	
+
 	// Register Task PR routes
 	taskPRGroup := router.Group("/tasks", middleware.AuthMiddleware())
 	taskPRGroup.Use(roleMiddleware()) // Apply role middleware to all task PR routes

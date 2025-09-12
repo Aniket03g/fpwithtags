@@ -106,3 +106,30 @@ func (h *WebPRHandler) AddTaskPR(c *gin.Context) {
 		"CurrentUser":  gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }
+
+// GetAllPRsFragment renders all pull requests as an HTMX fragment for the dashboard
+func (h *WebPRHandler) GetAllPRsFragment(c *gin.Context) {
+	log.Println("DEBUG: Getting all PRs for fragment")
+	
+	// Get the user's role from the context (set by the AuthMiddleware)
+	userRole, _ := c.Get("user_role")
+	isManager := userRole == "manager"
+	
+	// Get all PRs
+	prs, err := h.prRepo.GetAll()
+	if err != nil {
+		log.Printf("ERROR: Failed to get PRs for fragment: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	log.Printf("DEBUG: Retrieved %d PRs for fragment\n", len(prs))
+	
+	// Pass both the PRs and the CurrentUser's role to the template
+	c.HTML(http.StatusOK, "all-prs-list.html", gin.H{
+		"PullRequests": prs,
+		"CurrentUser": gin.H{
+			"IsManager": isManager,
+			"Role": userRole,
+		},
+	})
+}
