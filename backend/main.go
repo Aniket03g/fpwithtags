@@ -380,7 +380,7 @@ func main() {
 		"templates/task-list.html",
 		"templates/dependencies/dependencies-list.html",
 		"templates/dependencies/dependency_panels.html",
-		"templates/dependencies/dependency_modal.html",
+		"templates/dependencies/dependency_type_selector.html",
 	)
 
 	// Serve static files

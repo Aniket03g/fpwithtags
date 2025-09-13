@@ -17,7 +17,7 @@ func RegisterDependencyRoutes(r *gin.Engine, db *gorm.DB) {
 	// Create repository, service, and handler
 	dependencyRepo := repositories.NewDependencyRepository(db)
 	dependencyService := services.NewDependencyService(dependencyRepo)
-	dependencyHandler := handlers.NewDependencyHandler(dependencyService)
+	dependencyHandler := handlers.NewDependencyHandler(dependencyService, db)
 
 	// API routes (protected by auth middleware)
 	dependencyAPI := r.Group("/api/dependencies", middleware.AuthMiddleware())
@@ -68,5 +68,6 @@ func RegisterDependencyRoutes(r *gin.Engine, db *gorm.DB) {
 		// Dependencies panels and modal fragments
 		fragments.GET("/dependencies/panels", dependencyHandler.GetDependencyPanelsFragment)
 		fragments.GET("/dependencies/modal", dependencyHandler.ShowDependencyModalFragment)
+		fragments.GET("/dependencies/type_selector", dependencyHandler.ShowDependencyTypeSelector)
 	}
 }

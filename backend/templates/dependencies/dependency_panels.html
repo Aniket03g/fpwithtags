@@ -24,8 +24,10 @@
       <h3 class="text-lg font-medium text-gray-900">Depends On</h3>
       <button 
         class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        hx-get="/web/fragments/dependencies/modal?entity_type={{ .EntityType }}&entity_id={{ .EntityID }}&modal_type=depends_on"
-        hx-target="#modal">
+        hx-get="/web/fragments/dependencies/type_selector?entity_type={{ .EntityType }}&entity_id={{ .EntityID }}"
+        hx-target="#modal"
+        hx-trigger="click"
+        hx-swap="innerHTML">
         Add Dependency
       </button>
     </div>
@@ -38,7 +40,13 @@
           <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
             {{ .ParentType }}
           </span>
-          <span class="ml-2 text-sm text-gray-900">ID: {{ .ParentID }}</span>
+          <span class="ml-2 text-sm font-medium text-gray-900">
+            {{ if .ParentName }}
+              {{ .ParentName }}
+            {{ else }}
+              ID: {{ .ParentID }}
+            {{ end }}
+          </span>
           {{ if .Description }}
           <span class="ml-2 text-sm text-gray-500">{{ .Description }}</span>
           {{ end }}
@@ -76,7 +84,13 @@
         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
           {{ .ChildType }}
         </span>
-        <span class="ml-2 text-sm text-gray-900">ID: {{ .ChildID }}</span>
+        <span class="ml-2 text-sm font-medium text-gray-900">
+          {{ if .ChildName }}
+            {{ .ChildName }}
+          {{ else }}
+            ID: {{ .ChildID }}
+          {{ end }}
+        </span>
         {{ if .Description }}
         <span class="ml-2 text-sm text-gray-500">{{ .Description }}</span>
         {{ end }}

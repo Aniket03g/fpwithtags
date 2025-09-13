@@ -10,64 +10,69 @@
       <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
         <div class="sm:flex sm:items-start">
           <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-            {{ if eq .ModalType "depends_on" }}
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Add Dependency</h3>
             <p class="text-sm text-gray-500 mb-4">
-              Select an item that this {{ .EntityType }} depends on.
+              Select a feature that this {{ .EntityType }} depends on.
               This {{ .EntityType }} will be blocked until the dependency is resolved.
             </p>
-            {{ else }}
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Add Blocking Item</h3>
-            <p class="text-sm text-gray-500 mb-4">
-              Select an item that this {{ .EntityType }} blocks.
-              The selected item will be blocked until this {{ .EntityType }} is resolved.
-            </p>
-            {{ end }}
             
             <form 
               hx-post="/api/dependencies" 
-              hx-target="#dependency-panels-{{ .EntityType }}-{{ .EntityID }}" 
-              hx-swap="outerHTML"
-              hx-on::after-request="document.getElementById('dependency-modal').remove()"
+              hx-target="#dependency-section" 
+              hx-swap="innerHTML"
+              hx-on::after-request="document.getElementById('dependency-modal').remove(); htmx.trigger('#dependency-section', 'refreshDependencies')"
               class="space-y-4">
               
               <!-- Hidden fields for the current entity -->
-              {{ if eq .ModalType "depends_on" }}
               <input type="hidden" name="child_type" value="{{ .EntityType }}">
               <input type="hidden" name="child_id" value="{{ .EntityID }}">
-              {{ else }}
-              <input type="hidden" name="parent_type" value="{{ .EntityType }}">
-              <input type="hidden" name="parent_id" value="{{ .EntityID }}">
-              {{ end }}
+              <!-- Always set parent_type to feature -->
+              <input type="hidden" name="parent_type" value="feature">
               
-              <!-- Entity Type Selection -->
+              <!-- Feature Search and Selection -->
               <div>
-                <label for="entity_type" class="block text-sm font-medium text-gray-700">
-                  {{ if eq .ModalType "depends_on" }}Dependency Type{{ else }}Blocked Item Type{{ end }}
+                <label for="feature-search" class="block text-sm font-medium text-gray-700">
+                  Select Feature to Depend On
                 </label>
-                <select 
-                  name="{{ if eq .ModalType "depends_on" }}parent_type{{ else }}child_type{{ end }}" 
-                  id="entity_type"
-                  class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  required>
-                  <option value="">Select Type</option>
-                  <option value="feature">Feature</option>
-                  <option value="task">Task</option>
-                  <option value="pr">Pull Request</option>
-                </select>
-              </div>
-              
-              <!-- Entity ID Input -->
-              <div>
-                <label for="entity_id" class="block text-sm font-medium text-gray-700">
-                  {{ if eq .ModalType "depends_on" }}Dependency ID{{ else }}Blocked Item ID{{ end }}
-                </label>
-                <input 
-                  type="number" 
-                  name="{{ if eq .ModalType "depends_on" }}parent_id{{ else }}child_id{{ end }}" 
-                  id="entity_id"
-                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  required>
+                
+                <!-- Search input with HTMX -->
+                <div class="mt-1 relative">
+                  <input 
+                    type="text" 
+                    id="feature-search" 
+                    placeholder="Type to search features..." 
+                    class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    hx-get="/api/features/search"
+                    hx-trigger="keyup changed delay:300ms"
+                    hx-target="#feature-options"
+                    hx-params="query"
+                    autocomplete="off">
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                
+                <!-- Search results container -->
+                <div id="feature-options" class="mt-1 bg-white shadow-lg rounded-md max-h-60 overflow-auto">
+                  <!-- Default options (before search) -->
+                  <div class="p-2">
+                    <select 
+                      name="parent_id" 
+                      id="feature_id"
+                      class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      required>
+                      <option value="">Select Feature</option>
+                      {{ range .Features }}
+                        {{ if ne (printf "%d" .ID) (printf "%d" $.EntityID) }}
+                        <option value="{{ .ID }}">{{ .Title }}</option>
+                        {{ end }}
+                      {{ end }}
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Search above to filter features or select from this list</p>
+                  </div>
+                </div>
               </div>
               
               <!-- Description (Optional) -->
@@ -93,8 +98,15 @@
                 </button>
                 <button 
                   type="submit" 
-                  class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                  Add Dependency
+                  class="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  hx-indicator="#submit-spinner">
+                  <span>Add Dependency</span>
+                  <span id="submit-spinner" class="htmx-indicator ml-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                  </span>
                 </button>
               </div>
             </form>
