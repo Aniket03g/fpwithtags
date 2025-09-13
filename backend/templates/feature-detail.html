@@ -30,17 +30,6 @@
       </div>
     </div>
 
-    <div 
-      id="task-section" 
-      hx-get="/web/features/{{ .Feature.ID }}/tasks" 
-      hx-trigger="load"
-      hx-swap="innerHTML">
-        <div class="text-center py-8">
-          <svg class="mx-auto animate-spin h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-          <p class="text-gray-400 mt-2">Loading tasks...</p>
-        </div>
-    </div>
-
     <!-- Dependency Section -->
     <div class="mt-8">
       <h3 class="text-xl font-semibold text-gray-800 mb-4">Dependencies</h3>
@@ -54,6 +43,17 @@
             <p class="text-gray-400 mt-2">Loading dependencies...</p>
           </div>
       </div>
+    </div>
+
+    <div 
+      id="task-section" 
+      hx-get="/web/features/{{ .Feature.ID }}/tasks" 
+      hx-trigger="load"
+      hx-swap="innerHTML">
+        <div class="text-center py-8">
+          <svg class="mx-auto animate-spin h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+          <p class="text-gray-400 mt-2">Loading tasks...</p>
+        </div>
     </div>
   </div>
 </div> 

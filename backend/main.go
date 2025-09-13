@@ -192,8 +192,8 @@ func DashboardStatusFragment(c *gin.Context) {
 
 	// Create CurrentUser object for template
 	currentUser := map[string]interface{}{
-		"ID":       userID,
-		"Role":     userRole,
+		"ID":        userID,
+		"Role":      userRole,
 		"IsManager": userRole == "manager",
 	}
 
@@ -353,7 +353,7 @@ func main() {
 	// First load the main templates
 	router.LoadHTMLFiles(
 		"templates/dashboard.html",
-		"templates/login.html", 
+		"templates/login.html",
 		"templates/feature-detail.html",
 		"templates/pr-detail.html",
 		"templates/task-card.html",
@@ -373,6 +373,11 @@ func main() {
 		"templates/all-tasks-list.html",
 		"templates/all-prs-list.html",
 		"templates/dashboard-status.html",
+		"templates/release-list.html",
+		"templates/feature-list.html",
+		"templates/feature-list-inner.html",
+		"templates/feature-card.html",
+		"templates/task-list.html",
 		"templates/dependencies/dependencies-list.html",
 		"templates/dependencies/dependency_panels.html",
 		"templates/dependencies/dependency_modal.html",
