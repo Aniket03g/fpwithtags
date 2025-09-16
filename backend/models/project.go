@@ -47,10 +47,27 @@ type Project struct {
 }
 
 func (p *Project) BeforeCreate(tx *gorm.DB) (err error) {
+	// Initialize Config if nil or empty
 	if p.Config == nil || len(p.Config) == 0 {
 		p.Config = JSONB{
 			"task_types":       []string{"UI", "Dev", "DB", "Backend"},
 			"feature_category": []string{"Auth", "Payment", "Tags", "Tasks", "Features"},
+			"tech_stack":       "Other",
+			"tags_enabled":     true,
+		}
+	} else {
+		// Ensure required fields exist with defaults if Config is partially populated
+		if _, exists := p.Config["task_types"]; !exists {
+			p.Config["task_types"] = []string{"UI", "Dev", "DB", "Backend"}
+		}
+		if _, exists := p.Config["feature_category"]; !exists {
+			p.Config["feature_category"] = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
+		}
+		if _, exists := p.Config["tech_stack"]; !exists {
+			p.Config["tech_stack"] = "Other"
+		}
+		if _, exists := p.Config["tags_enabled"]; !exists {
+			p.Config["tags_enabled"] = true
 		}
 	}
 	return nil

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/FeaturePlus/backend/models"
+	"github.com/FeaturePlus/backend/repositories"
 	"gorm.io/gorm"
 )
 
@@ -38,6 +39,11 @@ func (v *ReleaseValidator) ValidatePRsForRelease(prIDs []int) error {
 
 	// 2. Validate that no PR is in another draft release.
 	if err := v.validatePRsNotInOtherDrafts(prIDs); err != nil {
+		return err
+	}
+
+	// 3. Validate that no PR is blocked by dependencies
+	if err := v.ValidatePRsNotBlocked(prs); err != nil {
 		return err
 	}
 
@@ -103,4 +109,69 @@ func getRepoPathFromURL(prURL string) (string, error) {
 	}
 
 	return fmt.Sprintf("%s/%s", parts[0], parts[1]), nil
+}
+
+// ValidatePRsNotBlocked checks if any PRs in the release have unresolved dependencies.
+func (v *ReleaseValidator) ValidatePRsNotBlocked(prs []models.PullRequest) error {
+	// Create a dependency service to check PR dependencies
+	dependencyRepo := repositories.NewDependencyRepository(v.db)
+	dependencyService := NewDependencyService(dependencyRepo)
+
+	// Check each PR for unresolved dependencies
+	var blockedPRs []uint
+	var blockedPRDetails []string
+
+	for _, pr := range prs {
+		isBlocked, blockingDeps, err := dependencyService.CheckPRBlocked(pr.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check dependencies for PR #%d: %w", pr.ID, err)
+		}
+
+		if isBlocked {
+			blockedPRs = append(blockedPRs, pr.ID)
+			
+			// Get more details about the blocking dependencies
+			detail := fmt.Sprintf("PR #%d (%s) is blocked by %d dependencies", 
+				pr.ID, pr.Title, len(blockingDeps))
+			blockedPRDetails = append(blockedPRDetails, detail)
+		}
+	}
+
+	if len(blockedPRs) > 0 {
+		return fmt.Errorf("release contains PRs with unresolved dependencies: %v\nDetails: %s", 
+			blockedPRs, strings.Join(blockedPRDetails, "; "))
+	}
+
+	return nil
+}
+
+// ValidateDependenciesInRelease checks if all features in a release have their dependencies satisfied within the release.
+func (v *ReleaseValidator) ValidateDependenciesInRelease(releaseID uint) error {
+	// Create a dependency service
+	dependencyRepo := repositories.NewDependencyRepository(v.db)
+	dependencyService := NewDependencyService(dependencyRepo)
+
+	// Check if all dependencies are satisfied
+	allSatisfied, missingDeps, err := dependencyService.ValidateDependenciesInRelease(releaseID)
+	if err != nil {
+		return fmt.Errorf("failed to validate dependencies in release: %w", err)
+	}
+
+	if !allSatisfied {
+		// Format the missing dependencies for error message
+		var details []string
+		for featureID, missingFeatureIDs := range missingDeps {
+			// Get feature name
+			var feature models.Feature
+			if err := v.db.First(&feature, featureID).Error; err == nil {
+				detail := fmt.Sprintf("Feature #%d (%s) is missing %d dependencies", 
+					featureID, feature.Title, len(missingFeatureIDs))
+				details = append(details, detail)
+			}
+		}
+
+		return fmt.Errorf("release has missing dependencies: %s", strings.Join(details, "; "))
+	}
+
+	return nil
 }

@@ -1,0 +1,52 @@
+<!-- Feature Progress Fragment -->
+<div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+  <h3 class="text-lg font-semibold text-gray-800 mb-4">Feature Progress</h3>
+  
+  {{ if .Error }}
+  <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+    {{ .Error }}
+  </div>
+  {{ else if eq .TotalCount 0 }}
+  <div class="text-gray-500 text-sm">
+    No features found {{ if .ProjectID }}for this project{{ end }}.
+  </div>
+  {{ else }}
+  <div class="space-y-4">
+    <!-- Progress Bar -->
+    <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+      <div class="flex">
+        {{ if gt .DonePercent 0 }}
+        <div class="bg-green-500 h-2.5" style="width:{{ .DonePercent }}%;"></div>
+        {{ end }}
+        {{ if gt .InProgressPercent 0 }}
+        <div class="bg-blue-500 h-2.5" style="width:{{ .InProgressPercent }}%;"></div>
+        {{ end }}
+        {{ if gt .TodoPercent 0 }}
+        <div class="bg-gray-300 h-2.5" style="width:{{ .TodoPercent }}%;"></div>
+        {{ end }}
+      </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div class="bg-gray-50 p-3 rounded-lg">
+        <span class="text-gray-500 text-xs block">Todo</span>
+        <span class="text-gray-800 font-semibold block">{{ .TodoCount }}</span>
+      </div>
+      <div class="bg-blue-50 p-3 rounded-lg">
+        <span class="text-blue-500 text-xs block">In Progress</span>
+        <span class="text-blue-700 font-semibold block">{{ .InProgressCount }}</span>
+      </div>
+      <div class="bg-green-50 p-3 rounded-lg">
+        <span class="text-green-500 text-xs block">Done</span>
+        <span class="text-green-700 font-semibold block">{{ .DoneCount }}</span>
+      </div>
+    </div>
+    
+    <!-- Percentage -->
+    <div class="text-sm text-gray-500 text-center">
+      {{ printf "%.1f" .DonePercent }}% Complete ({{ .DoneCount }}/{{ .TotalCount }})
+    </div>
+  </div>
+  {{ end }}
+</div>

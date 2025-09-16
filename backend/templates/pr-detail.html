@@ -133,7 +133,7 @@
       <h2 class="text-lg font-semibold text-gray-800 mb-2">Dependencies</h2>
       <div 
         id="dependency-section-{{ .PR.ID }}" 
-        hx-get="/api/dependencies/panels?entity_type=pr&entity_id={{ .PR.ID }}" 
+        hx-get="/web/fragments/pr/{{ .PR.ID }}/dependencies" 
         hx-trigger="load"
         hx-swap="innerHTML">
           <div class="text-center py-8">

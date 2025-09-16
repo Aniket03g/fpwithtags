@@ -17,6 +17,7 @@ type ReleaseRepository interface {
 	UpdateStatus(id uint, status models.ReleaseStatus) error
 	CheckPRsSameProject(prIDs []int) (bool, error)
 	CheckPRsNotInOtherReleases(releaseID uint, prIDs []int) (bool, []int, error)
+	DB() *gorm.DB
 }
 
 type releaseRepository struct {

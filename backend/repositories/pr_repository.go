@@ -12,6 +12,8 @@ type PullRequestRepository interface {
 	GetAll() ([]models.PullRequest, error)
 	MarkTested(prID uint) error
 	UpdatePR(pr *models.PullRequest) error
+	GetByID(id uint) (*models.PullRequest, error)
+	GetByCreatorID(creatorID uint) ([]models.PullRequest, error)
 }
 
 type prRepository struct {
@@ -50,4 +52,12 @@ func (r *prRepository) MarkTested(prID uint) error {
 
 func (r *prRepository) UpdatePR(pr *models.PullRequest) error {
 	return r.db.Save(pr).Error
+}
+
+func (r *prRepository) GetByID(id uint) (*models.PullRequest, error) {
+	var pr models.PullRequest
+	if err := r.db.First(&pr, id).Error; err != nil {
+		return nil, err
+	}
+	return &pr, nil
 }

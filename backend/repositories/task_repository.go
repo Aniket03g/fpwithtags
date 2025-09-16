@@ -15,6 +15,7 @@ type TaskRepository interface {
 	GetBySubFeatureID(subFeatureID uint) ([]models.Task, error)
 	GetAllWithFeatureTitle() ([]map[string]interface{}, error)
 	GetByProjectID(projectID uint) ([]map[string]interface{}, error)
+	GetTasksByAssignee(assigneeID uint) ([]models.Task, error)
 }
 
 type taskRepository struct {

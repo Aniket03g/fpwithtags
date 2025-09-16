@@ -142,3 +142,53 @@ func (r *DependencyRepository) ListByType(entityType models.EntityType) ([]model
 	err := r.db.Where("parent_type = ? OR child_type = ?", entityType, entityType).Find(&dependencies).Error
 	return dependencies, err
 }
+
+// GetPRByID retrieves a pull request by ID
+func (r *DependencyRepository) GetPRByID(id uint) (*models.PullRequest, error) {
+	var pr models.PullRequest
+	if err := r.db.First(&pr, id).Error; err != nil {
+		return nil, err
+	}
+	return &pr, nil
+}
+
+// GetFeatureByID retrieves a feature by ID
+func (r *DependencyRepository) GetFeatureByID(id uint) (*models.Feature, error) {
+	var feature models.Feature
+	if err := r.db.First(&feature, id).Error; err != nil {
+		return nil, err
+	}
+	return &feature, nil
+}
+
+// GetFeaturesInRelease retrieves all features associated with a release through PRs
+func (r *DependencyRepository) GetFeaturesInRelease(releaseID uint) ([]models.Feature, error) {
+	// First get all PRs in the release
+	var prs []models.PullRequest
+	if err := r.db.Joins("JOIN release_prs ON release_prs.pull_request_id = pull_requests.id").Where("release_prs.release_id = ?", releaseID).Find(&prs).Error; err != nil {
+		return nil, err
+	}
+
+	// Extract feature IDs from PRs
+	featureIDs := make([]uint, 0, len(prs))
+	featureIDMap := make(map[uint]bool) // To prevent duplicates
+	for _, pr := range prs {
+		if !featureIDMap[pr.FeatureID] {
+			featureIDs = append(featureIDs, pr.FeatureID)
+			featureIDMap[pr.FeatureID] = true
+		}
+	}
+
+	// If no features found, return empty slice
+	if len(featureIDs) == 0 {
+		return []models.Feature{}, nil
+	}
+
+	// Get all features by their IDs
+	var features []models.Feature
+	if err := r.db.Where("id IN ?", featureIDs).Find(&features).Error; err != nil {
+		return nil, err
+	}
+
+	return features, nil
+}

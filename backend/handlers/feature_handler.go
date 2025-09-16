@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
@@ -65,10 +66,17 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID for category validation"})
 		return
 	}
-	categories, ok := project.Config["feature_category"].([]interface{})
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "project config missing feature_category"})
-		return
+
+	// Ensure project config is properly initialized
+	ensureProjectConfig(project)
+
+	// Get categories using the helper function
+	categoryStrings := getFeatureCategories(project)
+
+	// Convert to interface array for compatibility with existing code
+	categories := make([]interface{}, len(categoryStrings))
+	for i, s := range categoryStrings {
+		categories[i] = s
 	}
 	validCategory := false
 	for _, cat := range categories {
@@ -88,15 +96,8 @@ func (h *FeatureHandler) CreateFeature(c *gin.Context) {
 	}
 
 	// Return the updated feature list (full block, not just inner fragment)
-	categoriesIface2, ok2 := project.Config["feature_category"].([]interface{})
-	categories2 := []string{}
-	if ok2 {
-		for _, cat := range categoriesIface2 {
-			if catStr, ok := cat.(string); ok {
-				categories2 = append(categories2, catStr)
-			}
-		}
-	}
+	// Use helper function to safely get categories
+	categories2 := getFeatureCategories(project)
 	features, _ := h.repo.GetFeaturesByProject(projectID)
 	c.HTML(http.StatusOK, "feature-list.html", gin.H{"Features": features, "ProjectID": projectID, "FeatureCategories": categories2, "FilterCategory": "All"})
 }
@@ -125,7 +126,7 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 	// Get user ID and role from context (set by AuthMiddleware and RoleMiddleware)
 	userID, _ := c.Get("user_id")
 	userRole, _ = c.Get("user_role") // Using = instead of := since userRole is already declared above
-	
+
 	// Create CurrentUser object for template
 	currentUser := map[string]interface{}{
 		"ID":   userID,
@@ -141,8 +142,8 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 	}
 	// Non-HTMX: render dashboard shell with InitialURL for this feature
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"InitialURL":   "/web/fragments/features/" + featureIDStr,
-		"CurrentUser":  currentUser,
+		"InitialURL":  "/web/fragments/features/" + featureIDStr,
+		"CurrentUser": currentUser,
 	})
 }
 
@@ -161,15 +162,9 @@ func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
 		return
 	}
-	categoriesIface, ok := project.Config["feature_category"].([]interface{})
-	categories := []string{}
-	if ok {
-		for _, cat := range categoriesIface {
-			if catStr, ok := cat.(string); ok {
-				categories = append(categories, catStr)
-			}
-		}
-	}
+
+	// Use helper function to safely get categories
+	categories := getFeatureCategories(project)
 
 	// Get filter from query param
 	filterCategory := c.Query("category")
@@ -255,15 +250,8 @@ func (h *FeatureHandler) FeaturesContentHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID"})
 		return
 	}
-	categoriesIface, ok := project.Config["feature_category"].([]interface{})
-	categories := []string{}
-	if ok {
-		for _, cat := range categoriesIface {
-			if catStr, ok := cat.(string); ok {
-				categories = append(categories, catStr)
-			}
-		}
-	}
+	// Use helper function to safely get categories
+	categories := getFeatureCategories(project)
 
 	filterCategory := c.Query("category")
 	features, err := h.repo.GetFeaturesByProject(projectID)
@@ -509,14 +497,14 @@ func (h *FeatureHandler) UpdateFeatureField(c *gin.Context) {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid project ID for category validation"})
 				return
 			}
-			categories, ok := project.Config["feature_category"].([]interface{})
-			if !ok {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "project config missing feature_category"})
-				return
-			}
+
+			// Use helper function to safely get categories
+			categoryStrings := getFeatureCategories(project)
+
+			// Check if the category is valid
 			validCategory := false
-			for _, cat := range categories {
-				if catStr, ok := cat.(string); ok && catStr == category {
+			for _, catStr := range categoryStrings {
+				if catStr == category {
 					validCategory = true
 					break
 				}
@@ -583,19 +571,8 @@ func (h *FeatureHandler) NewFeatureForm(c *gin.Context) {
 		return
 	}
 
-	categoriesIface, ok := project.Config["feature_category"].([]interface{})
-	if !ok {
-		c.String(http.StatusInternalServerError, "Project config missing feature_category")
-		return
-	}
-
-	// Convert []interface{} to []string
-	categories := make([]string, 0, len(categoriesIface))
-	for _, cat := range categoriesIface {
-		if catStr, ok := cat.(string); ok {
-			categories = append(categories, catStr)
-		}
-	}
+	// Use helper function to safely obtain categories
+	categories := getFeatureCategories(project)
 
 	c.HTML(http.StatusOK, "feature-form.html", gin.H{
 		"ProjectID":         projectID,
@@ -640,18 +617,14 @@ func (h *FeatureHandler) CreateFeatureForProject(c *gin.Context) {
 		_ = h.tagRepo.UpdateFeatureTags(feature.ID, createdByUser, tagsInput)
 	}
 
-	// Fetch categories for filter bar
+	// Fetch categories for filter bar (use helper)
 	projectRepo := repositories.NewProjectRepository(h.DB)
 	project, err := projectRepo.GetProjectByID(projectID)
-	categories := []string{}
+	var categories []string
 	if err == nil {
-		if cats, ok := project.Config["feature_category"].([]interface{}); ok {
-			for _, cat := range cats {
-				if catStr, ok := cat.(string); ok {
-					categories = append(categories, catStr)
-				}
-			}
-		}
+		categories = getFeatureCategories(project)
+	} else {
+		categories = []string{}
 	}
 
 	features, _ := h.repo.GetFeaturesByProject(projectID)
@@ -801,4 +774,59 @@ func (h *FeatureHandler) TagAutocomplete(c *gin.Context) {
 
 func (h *FeatureHandler) GetFeaturesByTagName(tag string) ([]models.Feature, error) {
 	return h.tagRepo.GetFeaturesByTagName(tag)
+}
+
+// ensureProjectConfig ensures that project.Config exists and has required fields
+func ensureProjectConfig(project *models.Project) {
+	// Initialize Config if nil
+	if project.Config == nil {
+		project.Config = models.JSONB{}
+	}
+
+	// Ensure required fields exist with defaults
+	if _, exists := project.Config["task_types"]; !exists {
+		project.Config["task_types"] = []string{"UI", "Dev", "DB", "Backend"}
+	}
+	if _, exists := project.Config["feature_category"]; !exists {
+		project.Config["feature_category"] = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
+	}
+	if _, exists := project.Config["tech_stack"]; !exists {
+		project.Config["tech_stack"] = "Other"
+	}
+	if _, exists := project.Config["tags_enabled"]; !exists {
+		project.Config["tags_enabled"] = true
+	}
+}
+
+// getFeatureCategories safely extracts feature categories from project config
+func getFeatureCategories(project *models.Project) []string {
+	ensureProjectConfig(project)
+
+	categories := []string{}
+
+	// Try to extract categories as interface array
+	if cats, ok := project.Config["feature_category"].([]interface{}); ok {
+		for _, cat := range cats {
+			if catStr, ok := cat.(string); ok {
+				categories = append(categories, catStr)
+			}
+		}
+	} else if strArr, ok := project.Config["feature_category"].([]string); ok {
+		// Try to extract as string array
+		categories = strArr
+	} else if raw, ok := project.Config["feature_category"].(string); ok {
+		// support comma separated string as fallback
+		for _, s := range strings.Split(raw, ",") {
+			categories = append(categories, strings.TrimSpace(s))
+		}
+	}
+
+	// If still empty, provide defaults
+	if len(categories) == 0 {
+		categories = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
+		// Update the config with defaults
+		project.Config["feature_category"] = categories
+	}
+
+	return categories
 }

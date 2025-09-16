@@ -11,7 +11,7 @@
           <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Project</h3>
             
-            <form hx-post="/web/projects/create" hx-target="#project-list-container" hx-swap="outerHTML" class="space-y-4">
+            <form hx-post="/web/projects/create" hx-target="#project-list-container" hx-swap="outerHTML" class="space-y-4" id="create-project-form">
               <!-- Name field -->
               <div>
                 <label for="name" class="block text-sm font-medium text-gray-700">Project Name</label>
@@ -25,6 +25,33 @@
                 <textarea name="description" id="description" rows="3"
                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
               </div>
+
+              <!-- Template Selection -->
+              <div class="mb-4">
+                <label for="template" class="block text-sm font-medium text-gray-700">Project Template (Optional)</label>
+                <select id="template_id" name="template_id"
+                        hx-get="/web/templates/details"
+                        hx-target="#template-details"
+                        hx-trigger="change"
+                        hx-swap="innerHTML"
+                        hx-include="#template_id"
+                        onchange="document.getElementById('selected_template_id').value = this.value"
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                  <option value="">No Template - Custom Configuration</option>
+                  <option value="react-firebase">React + Firebase</option>
+                  <option value="go-postgresql">Go + PostgreSQL</option>
+                  <option value="nodejs-express-mongodb">Node.js + Express + MongoDB</option>
+                  <option value="python-django">Python + Django + PostgreSQL</option>
+                  <option value="vue-laravel">Vue.js + Laravel</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Select a template to automatically configure features, tasks, and dependencies</p>
+              </div>
+
+              <!-- Hidden field to store selected template ID -->
+              <input type="hidden" id="selected_template_id" name="template_id" value="">
+              
+              <!-- Template Details Container -->
+              <div id="template-details"></div>
 
               <!-- Project Configuration -->
               <div class="border-t border-gray-200 pt-4 mt-4">
@@ -44,6 +71,22 @@
                   <p class="text-xs text-gray-500 mb-1">Enter comma-separated feature categories</p>
                   <input type="text" name="feature_categories" id="feature_categories" placeholder="Auth, Payment, Tags, Tasks, Features" 
                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                </div>
+                
+                <!-- Tech Stack -->
+                <div class="mb-3">
+                  <label for="tech_stack" class="block text-sm font-medium text-gray-700">Tech Stack</label>
+                  <p class="text-xs text-gray-500 mb-1">Select the primary technology stack for this project</p>
+                  <select name="tech_stack" id="tech_stack" required
+                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <option value="Other" selected>Other</option>
+                    <option value="Go">Go</option>
+                    <option value="Python">Python</option>
+                    <option value="Node.js">Node.js</option>
+                    <option value="Java">Java</option>
+                    <option value="Ruby">Ruby</option>
+                    <option value="PHP">PHP</option>
+                  </select>
                 </div>
                 
                 <!-- Tags Support -->

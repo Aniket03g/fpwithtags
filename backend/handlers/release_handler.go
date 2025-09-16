@@ -105,6 +105,21 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot finalize release: PR(s) " + conflictingPRsStr + " already belong to another release."})
 		return
 	}
+	
+	// Validate that no PR has unresolved dependencies
+	log.Printf("%s [%s] Checking for PRs with unresolved dependencies", logPrefix, time.Now().Format(time.RFC3339))
+	validator := services.NewReleaseValidator(h.releaseRepo.DB())
+	if err := validator.ValidatePRsNotBlocked(release.PRs); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot finalize release: " + err.Error()})
+		return
+	}
+	
+	// Validate that all dependencies are satisfied within the release
+	log.Printf("%s [%s] Validating dependencies within release", logPrefix, time.Now().Format(time.RFC3339))
+	if err := validator.ValidateDependenciesInRelease(releaseID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot finalize release: " + err.Error()})
+		return
+	}
 
 	// IMPLEMENT GIT OPERATIONS WORKFLOW
 	// Define repository settings

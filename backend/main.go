@@ -15,6 +15,7 @@ import (
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/handlers"
 	"github.com/FeaturePlus/backend/middleware"
+	"github.com/FeaturePlus/backend/migrations"
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/backend/routes"
@@ -263,6 +264,9 @@ func main() {
 		panic("failed to connect database")
 	}
 
+	// Run project config migrations to ensure tech_stack field exists
+	migrations.RegisterMigrations(db.DB)
+
 	// Get the underlying *sql.DB from GORM
 	sqlDB, err := db.DB.DB()
 	if err != nil {
@@ -304,7 +308,7 @@ func main() {
 
 	// Create handlers
 	userHandler := handlers.NewUserHandler(userRepo)
-	projectHandler := handlers.NewProjectHandler(projectRepo)
+	projectHandler := handlers.NewProjectHandler(projectRepo, db.DB)
 	featureHandler := handlers.NewFeatureHandler(featureRepo, tagRepo, taskRepo, db.DB)
 	taskHandler := handlers.NewTaskHandler(taskRepo, db.DB)
 	attachmentHandler := handlers.NewTaskAttachmentHandler(attachmentRepo, sqliteFS)
@@ -348,6 +352,9 @@ func main() {
 			}
 		},
 		"hasPrefix": strings.HasPrefix,
+		"add": func(a, b int) int {
+			return a + b
+		},
 	})
 
 	// First load the main templates
@@ -359,9 +366,11 @@ func main() {
 		"templates/task-card.html",
 		"templates/dependency_panels.html",
 		"templates/dependency_modal.html",
+		"templates/pr_dependencies.html",
 		"templates/project-list.html",
 		"templates/project-list-fragment.html",
 		"templates/create_project.html",
+		"templates/template-details-fragment.html",
 		"templates/_project_create_success.html",
 		"templates/_pr_row.html",
 		"templates/_pr_table.html",
@@ -466,6 +475,12 @@ func main() {
 	// Register dependency routes
 	routes.RegisterDependencyRoutes(router, db.DB)
 
+	// Register guidance routes
+	routes.RegisterGuidanceRoutes(router, db.DB)
+
+	// Register template routes
+	routes.RegisterTemplateRoutes(router, db.DB)
+
 	// --- NEW WEB ROUTES FOR HTMX ---
 	// Create app handler for web routes
 	appHandler := NewAppHandler(db)
@@ -529,8 +544,11 @@ func main() {
 			authFragments.POST("/features/:id/edit-inline", featureHandler.UpdateFeatureInline)
 			authFragments.GET("/tags/autocomplete", featureHandler.TagAutocomplete)
 			authFragments.GET("/features", FeaturesByTagFragment(featureHandler))
+			authFragments.GET("/features/progress", featureHandler.GetFeaturesProgressFragment)
 			authFragments.GET("/tasks", taskHandler.GetAllTasksFragment)
+			authFragments.GET("/tasks/assigned", taskHandler.GetAssignedTasksFragment)
 			authFragments.GET("/prs", webPRHandler.GetAllPRsFragment)
+			authFragments.GET("/prs/my-prs", webPRHandler.GetMyPRsFragment)
 			authFragments.GET("/releases", webReleaseHandler.RenderReleasesListFragment)
 			authFragments.GET("/release-modal", webReleaseHandler.NewReleaseModal)
 			authFragments.POST("/api/releases", webReleaseHandler.CreateRelease)

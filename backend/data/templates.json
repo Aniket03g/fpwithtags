@@ -1,0 +1,539 @@
+{
+  "templates": [
+    {
+      "id": "react-firebase",
+      "name": "React + Firebase",
+      "stack": "React + Firebase",
+      "description": "Modern React app with Firebase backend for authentication and real-time database",
+      "tech_stack": "React",
+      "features": [
+        {
+          "name": "Authentication",
+          "category": "Auth",
+          "description": "Firebase Authentication with email/password and social login"
+        },
+        {
+          "name": "Firestore Database",
+          "category": "Database",
+          "description": "Cloud Firestore for real-time data synchronization"
+        },
+        {
+          "name": "Routing",
+          "category": "Navigation",
+          "description": "React Router for client-side routing"
+        },
+        {
+          "name": "State Management",
+          "category": "State",
+          "description": "Context API for global state management"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Setup Firebase Project",
+          "type": "Backend",
+          "description": "Create Firebase project and configure services",
+          "priority": "high"
+        },
+        {
+          "name": "Initialize React App",
+          "type": "UI",
+          "description": "Create React app with TypeScript support",
+          "priority": "high"
+        },
+        {
+          "name": "Configure Firebase SDK",
+          "type": "Backend",
+          "description": "Install and configure Firebase SDK in React",
+          "priority": "high"
+        },
+        {
+          "name": "Implement Authentication",
+          "type": "Backend",
+          "description": "Set up Firebase Auth with login/signup forms",
+          "priority": "medium"
+        },
+        {
+          "name": "Setup Firestore",
+          "type": "DB",
+          "description": "Configure Firestore database and security rules",
+          "priority": "medium"
+        },
+        {
+          "name": "Configure Routing",
+          "type": "UI",
+          "description": "Set up React Router with protected routes",
+          "priority": "medium"
+        }
+      ],
+      "dependencies": [
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "firebase",
+        "react-firebase-hooks",
+        "typescript",
+        "@types/react",
+        "@types/react-dom"
+      ],
+      "setup_steps": [
+        "Install Node.js 18+ and npm",
+        "Create a new React app with TypeScript",
+        "Create a Firebase project in Firebase Console",
+        "Install Firebase dependencies",
+        "Configure Firebase credentials",
+        "Set up authentication providers",
+        "Configure Firestore security rules",
+        "Implement routing structure"
+      ],
+      "environment_variables": [
+        "REACT_APP_FIREBASE_API_KEY",
+        "REACT_APP_FIREBASE_AUTH_DOMAIN",
+        "REACT_APP_FIREBASE_PROJECT_ID",
+        "REACT_APP_FIREBASE_STORAGE_BUCKET",
+        "REACT_APP_FIREBASE_MESSAGING_SENDER_ID",
+        "REACT_APP_FIREBASE_APP_ID"
+      ],
+      "starter_repo": "https://github.com/firebase/quickstart-js",
+      "docs_links": [
+        "https://firebase.google.com/docs/web/setup",
+        "https://react.dev/learn",
+        "https://reactrouter.com/en/main"
+      ]
+    },
+    {
+      "id": "go-postgresql",
+      "name": "Go + PostgreSQL",
+      "stack": "Go + PostgreSQL",
+      "description": "RESTful API with Go, Gin framework, and PostgreSQL database",
+      "tech_stack": "Go",
+      "features": [
+        {
+          "name": "REST API",
+          "category": "Backend",
+          "description": "RESTful API endpoints with Gin framework"
+        },
+        {
+          "name": "Database Models",
+          "category": "Database",
+          "description": "GORM models with PostgreSQL"
+        },
+        {
+          "name": "Authentication",
+          "category": "Auth",
+          "description": "JWT-based authentication"
+        },
+        {
+          "name": "Middleware",
+          "category": "Backend",
+          "description": "Custom middleware for logging, auth, and CORS"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Initialize Go Module",
+          "type": "Backend",
+          "description": "Set up Go module and project structure",
+          "priority": "high"
+        },
+        {
+          "name": "Setup PostgreSQL",
+          "type": "DB",
+          "description": "Install and configure PostgreSQL database",
+          "priority": "high"
+        },
+        {
+          "name": "Configure GORM",
+          "type": "DB",
+          "description": "Set up GORM ORM with PostgreSQL driver",
+          "priority": "high"
+        },
+        {
+          "name": "Create API Routes",
+          "type": "Backend",
+          "description": "Define RESTful API endpoints with Gin",
+          "priority": "medium"
+        },
+        {
+          "name": "Implement Models",
+          "type": "DB",
+          "description": "Create database models and migrations",
+          "priority": "medium"
+        },
+        {
+          "name": "Add JWT Auth",
+          "type": "Backend",
+          "description": "Implement JWT authentication middleware",
+          "priority": "medium"
+        }
+      ],
+      "dependencies": [
+        "github.com/gin-gonic/gin",
+        "gorm.io/gorm",
+        "gorm.io/driver/postgres",
+        "github.com/golang-jwt/jwt/v5",
+        "github.com/joho/godotenv",
+        "golang.org/x/crypto/bcrypt"
+      ],
+      "setup_steps": [
+        "Install Go 1.21 or later",
+        "Initialize Go module",
+        "Install PostgreSQL",
+        "Create database and user",
+        "Install dependencies",
+        "Set up project structure",
+        "Configure environment variables",
+        "Run database migrations"
+      ],
+      "environment_variables": [
+        "DB_HOST",
+        "DB_PORT",
+        "DB_USER",
+        "DB_PASSWORD",
+        "DB_NAME",
+        "JWT_SECRET",
+        "PORT"
+      ],
+      "starter_repo": "https://github.com/gin-gonic/examples",
+      "docs_links": [
+        "https://gin-gonic.com/docs/",
+        "https://gorm.io/docs/",
+        "https://www.postgresql.org/docs/"
+      ]
+    },
+    {
+      "id": "nodejs-express-mongodb",
+      "name": "Node.js + Express + MongoDB",
+      "stack": "Node.js + Express + MongoDB",
+      "description": "Full-stack JavaScript application with Express.js and MongoDB",
+      "tech_stack": "Node.js",
+      "features": [
+        {
+          "name": "Express Server",
+          "category": "Backend",
+          "description": "Express.js server with middleware"
+        },
+        {
+          "name": "MongoDB Integration",
+          "category": "Database",
+          "description": "Mongoose ODM for MongoDB"
+        },
+        {
+          "name": "Authentication",
+          "category": "Auth",
+          "description": "Passport.js authentication with JWT"
+        },
+        {
+          "name": "API Documentation",
+          "category": "Docs",
+          "description": "Swagger/OpenAPI documentation"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Initialize Node Project",
+          "type": "Backend",
+          "description": "Set up Node.js project with package.json",
+          "priority": "high"
+        },
+        {
+          "name": "Setup Express Server",
+          "type": "Backend",
+          "description": "Configure Express server with middleware",
+          "priority": "high"
+        },
+        {
+          "name": "Connect MongoDB",
+          "type": "DB",
+          "description": "Set up MongoDB connection with Mongoose",
+          "priority": "high"
+        },
+        {
+          "name": "Create Schemas",
+          "type": "DB",
+          "description": "Define Mongoose schemas and models",
+          "priority": "medium"
+        },
+        {
+          "name": "Implement Auth",
+          "type": "Backend",
+          "description": "Set up Passport.js with JWT strategy",
+          "priority": "medium"
+        },
+        {
+          "name": "Add API Docs",
+          "type": "Backend",
+          "description": "Configure Swagger for API documentation",
+          "priority": "low"
+        }
+      ],
+      "dependencies": [
+        "express",
+        "mongoose",
+        "passport",
+        "passport-jwt",
+        "jsonwebtoken",
+        "bcryptjs",
+        "cors",
+        "dotenv",
+        "express-validator",
+        "swagger-ui-express"
+      ],
+      "setup_steps": [
+        "Install Node.js and npm",
+        "Initialize npm project",
+        "Install dependencies",
+        "Set up MongoDB (local or Atlas)",
+        "Configure environment variables",
+        "Create project structure",
+        "Set up Express server",
+        "Connect to MongoDB"
+      ],
+      "environment_variables": [
+        "MONGODB_URI",
+        "JWT_SECRET",
+        "PORT",
+        "NODE_ENV"
+      ],
+      "starter_repo": "https://github.com/hagopj13/node-express-boilerplate",
+      "docs_links": [
+        "https://expressjs.com/",
+        "https://mongoosejs.com/docs/",
+        "https://www.passportjs.org/docs/"
+      ]
+    },
+    {
+      "id": "python-django",
+      "name": "Python + Django + PostgreSQL",
+      "stack": "Python + Django",
+      "description": "Full-featured Django application with PostgreSQL and REST API",
+      "tech_stack": "Python",
+      "features": [
+        {
+          "name": "Django Admin",
+          "category": "Admin",
+          "description": "Built-in Django admin interface"
+        },
+        {
+          "name": "REST API",
+          "category": "Backend",
+          "description": "Django REST Framework API"
+        },
+        {
+          "name": "Authentication",
+          "category": "Auth",
+          "description": "Django authentication with token auth"
+        },
+        {
+          "name": "Database ORM",
+          "category": "Database",
+          "description": "Django ORM with PostgreSQL"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Create Django Project",
+          "type": "Backend",
+          "description": "Initialize Django project and app",
+          "priority": "high"
+        },
+        {
+          "name": "Configure Database",
+          "type": "DB",
+          "description": "Set up PostgreSQL with Django",
+          "priority": "high"
+        },
+        {
+          "name": "Create Models",
+          "type": "DB",
+          "description": "Define Django models and migrations",
+          "priority": "high"
+        },
+        {
+          "name": "Setup DRF",
+          "type": "Backend",
+          "description": "Install and configure Django REST Framework",
+          "priority": "medium"
+        },
+        {
+          "name": "Implement Auth",
+          "type": "Backend",
+          "description": "Set up token authentication",
+          "priority": "medium"
+        },
+        {
+          "name": "Configure Admin",
+          "type": "Backend",
+          "description": "Customize Django admin interface",
+          "priority": "low"
+        }
+      ],
+      "dependencies": [
+        "django",
+        "djangorestframework",
+        "django-cors-headers",
+        "psycopg2-binary",
+        "python-decouple",
+        "djoser",
+        "pillow",
+        "celery",
+        "redis"
+      ],
+      "setup_steps": [
+        "Install Python 3.8+",
+        "Create virtual environment",
+        "Install Django and dependencies",
+        "Create Django project",
+        "Configure PostgreSQL",
+        "Set up settings.py",
+        "Run migrations",
+        "Create superuser"
+      ],
+      "environment_variables": [
+        "SECRET_KEY",
+        "DATABASE_URL",
+        "DEBUG",
+        "ALLOWED_HOSTS"
+      ],
+      "starter_repo": "https://github.com/cookiecutter/cookiecutter-django",
+      "docs_links": [
+        "https://docs.djangoproject.com/",
+        "https://www.django-rest-framework.org/",
+        "https://djoser.readthedocs.io/"
+      ]
+    },
+    {
+      "id": "vue-laravel",
+      "name": "Vue.js + Laravel",
+      "stack": "Vue + Laravel",
+      "description": "SPA with Vue.js frontend and Laravel API backend",
+      "tech_stack": "Vue",
+      "features": [
+        {
+          "name": "Vue SPA",
+          "category": "Frontend",
+          "description": "Single-page application with Vue 3"
+        },
+        {
+          "name": "Laravel API",
+          "category": "Backend",
+          "description": "RESTful API with Laravel"
+        },
+        {
+          "name": "Authentication",
+          "category": "Auth",
+          "description": "Laravel Sanctum for SPA authentication"
+        },
+        {
+          "name": "State Management",
+          "category": "State",
+          "description": "Pinia for Vue state management"
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Setup Laravel",
+          "type": "Backend",
+          "description": "Install Laravel and configure API",
+          "priority": "high"
+        },
+        {
+          "name": "Create Vue App",
+          "type": "UI",
+          "description": "Initialize Vue 3 application",
+          "priority": "high"
+        },
+        {
+          "name": "Configure Sanctum",
+          "type": "Backend",
+          "description": "Set up Laravel Sanctum for SPA auth",
+          "priority": "high"
+        },
+        {
+          "name": "Setup Pinia",
+          "type": "UI",
+          "description": "Configure Pinia state management",
+          "priority": "medium"
+        },
+        {
+          "name": "Create API Routes",
+          "type": "Backend",
+          "description": "Define Laravel API endpoints",
+          "priority": "medium"
+        },
+        {
+          "name": "Build Components",
+          "type": "UI",
+          "description": "Create Vue components and views",
+          "priority": "medium"
+        }
+      ],
+      "dependencies": [
+        "vue",
+        "vue-router",
+        "pinia",
+        "axios",
+        "@vitejs/plugin-vue",
+        "laravel/framework",
+        "laravel/sanctum",
+        "laravel/tinker"
+      ],
+      "setup_steps": [
+        "Install PHP 8.1+ and Composer",
+        "Install Node.js and npm",
+        "Create Laravel project",
+        "Set up Vue application",
+        "Configure Sanctum",
+        "Set up database",
+        "Configure CORS",
+        "Build frontend assets"
+      ],
+      "environment_variables": [
+        "APP_KEY",
+        "DB_CONNECTION",
+        "DB_DATABASE",
+        "SANCTUM_STATEFUL_DOMAINS",
+        "SESSION_DOMAIN",
+        "VITE_API_URL"
+      ],
+      "starter_repo": "https://github.com/cretueusebiu/laravel-vue-spa",
+      "docs_links": [
+        "https://laravel.com/docs",
+        "https://vuejs.org/guide/",
+        "https://laravel.com/docs/sanctum"
+      ]
+    }
+  ],
+  "default_template": {
+    "id": "custom",
+    "name": "Custom Stack",
+    "stack": "Custom",
+    "description": "Build your own custom stack",
+    "tech_stack": "Other",
+    "features": [],
+    "tasks": [
+      {
+        "name": "Define Requirements",
+        "type": "Backend",
+        "description": "Document project requirements and architecture",
+        "priority": "high"
+      },
+      {
+        "name": "Setup Development Environment",
+        "type": "Dev",
+        "description": "Configure development tools and environment",
+        "priority": "high"
+      }
+    ],
+    "dependencies": [],
+    "setup_steps": [
+      "Choose your technology stack",
+      "Set up development environment",
+      "Initialize project structure",
+      "Configure dependencies"
+    ],
+    "environment_variables": [],
+    "starter_repo": "",
+    "docs_links": []
+  }
+}

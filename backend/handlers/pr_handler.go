@@ -8,6 +8,7 @@ import (
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
+	"github.com/FeaturePlus/backend/services"
 	"github.com/FeaturePlus/pkg/featureplus"
 	"github.com/gin-gonic/gin"
 )
@@ -122,6 +123,21 @@ func (h *PullRequestHandler) ApprovePR(c *gin.Context) {
 	var pr models.PullRequest
 	if err := db.DB.First(&pr, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "PR not found"})
+		return
+	}
+
+	// Check if the PR is blocked by dependencies
+	dependencyService := services.NewDependencyService(repositories.NewDependencyRepository(db.DB))
+	isBlocked, blockingDeps, err := dependencyService.CheckPRBlocked(uint(id))
+	if err != nil {
+		log.Printf("[ApprovePR] Error checking PR dependencies: %v", err)
+		// Continue with approval even if dependency check fails
+	} else if isBlocked {
+		// PR is blocked by dependencies, cannot approve
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Cannot approve PR: Feature has unresolved dependencies",
+			"blocking_dependencies": blockingDeps,
+		})
 		return
 	}
 

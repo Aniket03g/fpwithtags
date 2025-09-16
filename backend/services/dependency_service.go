@@ -133,3 +133,102 @@ func (s *DependencyService) ListDependenciesByType(entityType string) ([]models.
 	}
 	return s.repo.ListByType(models.EntityType(entityType))
 }
+
+// CheckPRBlocked determines if a PR is blocked based on its associated feature's dependencies
+// Returns:
+// - bool: true if PR is blocked, false if not
+// - []models.Dependency: list of blocking dependencies if blocked
+// - error: any error that occurred during the check
+func (s *DependencyService) CheckPRBlocked(prID uint) (bool, []models.Dependency, error) {
+	// Get the PR from the database to find its associated feature
+	pr, err := s.repo.GetPRByID(prID)
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to get PR: %w", err)
+	}
+
+	// Check if the PR's feature has unresolved dependencies
+	isBlocked, dependencies, err := s.CheckBlocked(models.EntityTypeFeature, pr.FeatureID)
+	return isBlocked, dependencies, err
+}
+
+// GetPRBlockingDependencies returns detailed information about dependencies blocking a PR
+// This includes the dependency objects and the names of the blocking features
+func (s *DependencyService) GetPRBlockingDependencies(prID uint) ([]map[string]interface{}, error) {
+	// Get the PR from the database
+	pr, err := s.repo.GetPRByID(prID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get PR: %w", err)
+	}
+
+	// Check if the PR's feature has unresolved dependencies
+	_, dependencies, err := s.CheckBlocked(models.EntityTypeFeature, pr.FeatureID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Enhance dependencies with feature names
+	result := make([]map[string]interface{}, 0, len(dependencies))
+	for _, dep := range dependencies {
+		item := map[string]interface{}{
+			"ID":          dep.ID,
+			"ParentType":  dep.ParentType,
+			"ParentID":    dep.ParentID,
+			"ChildType":   dep.ChildType,
+			"ChildID":     dep.ChildID,
+			"Description": dep.Description,
+		}
+
+		// Get feature name if parent is a feature
+		if dep.ParentType == models.EntityTypeFeature {
+			feature, err := s.repo.GetFeatureByID(dep.ParentID)
+			if err == nil {
+				item["ParentName"] = feature.Title
+			}
+		}
+
+		result = append(result, item)
+	}
+
+	return result, nil
+}
+
+// ValidateDependenciesInRelease checks if all features in a release have their dependencies satisfied
+// Returns:
+// - bool: true if all dependencies are satisfied, false otherwise
+// - map[uint][]uint: map of feature IDs to their missing dependency feature IDs
+// - error: any error that occurred during validation
+func (s *DependencyService) ValidateDependenciesInRelease(releaseID uint) (bool, map[uint][]uint, error) {
+	// Get all features in the release
+	features, err := s.repo.GetFeaturesInRelease(releaseID)
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to get features in release: %w", err)
+	}
+
+	// Create a set of feature IDs in the release for quick lookup
+	featureIDsInRelease := make(map[uint]bool)
+	for _, feature := range features {
+		featureIDsInRelease[feature.ID] = true
+	}
+
+	// Check each feature's dependencies
+	missingDependencies := make(map[uint][]uint)
+	for _, feature := range features {
+		// Get dependencies where this feature is the child (i.e., it depends on other features)
+		dependencies, err := s.repo.GetBlockingDependencies(models.EntityTypeFeature, feature.ID)
+		if err != nil {
+			return false, nil, err
+		}
+
+		// Check if each dependency is satisfied (i.e., the parent feature is in the release)
+		for _, dep := range dependencies {
+			if dep.ParentType == models.EntityTypeFeature {
+				if !featureIDsInRelease[dep.ParentID] {
+					// This dependency is not satisfied
+					missingDependencies[feature.ID] = append(missingDependencies[feature.ID], dep.ParentID)
+				}
+			}
+		}
+	}
+
+	return len(missingDependencies) == 0, missingDependencies, nil
+}

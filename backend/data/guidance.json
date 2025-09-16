@@ -1,0 +1,198 @@
+{
+  "guidances": [
+    {
+      "stack": "React",
+      "task_type": "UI",
+      "title": "React Component Development",
+      "description": "Create reusable React components with modern patterns",
+      "snippet": "import React, { useState, useEffect } from 'react';\nimport PropTypes from 'prop-types';\n\nconst MyComponent = ({ title, onAction }) => {\n  const [data, setData] = useState(null);\n  const [loading, setLoading] = useState(false);\n\n  useEffect(() => {\n    fetchData();\n  }, []);\n\n  const fetchData = async () => {\n    setLoading(true);\n    try {\n      const response = await fetch('/api/data');\n      const result = await response.json();\n      setData(result);\n    } catch (error) {\n      console.error('Error:', error);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <div className=\"component-container\">\n      <h2>{title}</h2>\n      {loading ? <div>Loading...</div> : <div>{data}</div>}\n      <button onClick={onAction}>Action</button>\n    </div>\n  );\n};\n\nMyComponent.propTypes = {\n  title: PropTypes.string.isRequired,\n  onAction: PropTypes.func.isRequired,\n};\n\nexport default MyComponent;",
+      "language": "javascript",
+      "commands": [
+        "npx create-react-app my-app",
+        "npm install prop-types",
+        "npm start"
+      ],
+      "setup_steps": [
+        "Install Node.js and npm",
+        "Create a new React app",
+        "Install dependencies",
+        "Create component files",
+        "Import and use components"
+      ],
+      "docs_link": "https://react.dev/",
+      "starter_repo": "https://github.com/facebook/create-react-app"
+    },
+    {
+      "stack": "React",
+      "task_type": "Backend",
+      "title": "API Integration in React",
+      "description": "Connect your React app to backend APIs",
+      "snippet": "// api/client.js\nconst API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';\n\nclass ApiClient {\n  async request(endpoint, options = {}) {\n    const url = `${API_BASE_URL}${endpoint}`;\n    const config = {\n      ...options,\n      headers: {\n        'Content-Type': 'application/json',\n        ...options.headers,\n      },\n    };\n\n    const response = await fetch(url, config);\n    \n    if (!response.ok) {\n      throw new Error(`API request failed: ${response.statusText}`);\n    }\n    \n    return response.json();\n  }\n\n  get(endpoint) {\n    return this.request(endpoint, { method: 'GET' });\n  }\n\n  post(endpoint, data) {\n    return this.request(endpoint, {\n      method: 'POST',\n      body: JSON.stringify(data),\n    });\n  }\n}\n\nexport default new ApiClient();",
+      "language": "javascript",
+      "commands": [
+        "npm install axios",
+        "npm install @tanstack/react-query"
+      ],
+      "setup_steps": [
+        "Create an API client module",
+        "Configure environment variables",
+        "Implement error handling",
+        "Add authentication headers"
+      ],
+      "docs_link": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
+      "starter_repo": "https://github.com/TanStack/query/tree/main/examples/react/simple"
+    },
+    {
+      "stack": "Go",
+      "task_type": "Backend",
+      "title": "Go REST API Development",
+      "description": "Build RESTful APIs with Go and Gin framework",
+      "snippet": "package main\n\nimport (\n    \"net/http\"\n    \"github.com/gin-gonic/gin\"\n)\n\ntype Task struct {\n    ID          uint   `json:\"id\"`\n    Title       string `json:\"title\"`\n    Description string `json:\"description\"`\n    Status      string `json:\"status\"`\n}\n\nfunc main() {\n    router := gin.Default()\n    \n    router.Use(gin.Logger())\n    router.Use(gin.Recovery())\n    \n    api := router.Group(\"/api\")\n    {\n        api.GET(\"/tasks\", getTasks)\n        api.GET(\"/tasks/:id\", getTask)\n        api.POST(\"/tasks\", createTask)\n        api.PUT(\"/tasks/:id\", updateTask)\n        api.DELETE(\"/tasks/:id\", deleteTask)\n    }\n    \n    router.Run(\":8080\")\n}\n\nfunc getTasks(c *gin.Context) {\n    tasks := []Task{\n        {ID: 1, Title: \"Sample Task\", Description: \"Description\", Status: \"pending\"},\n    }\n    c.JSON(http.StatusOK, tasks)\n}\n\nfunc createTask(c *gin.Context) {\n    var task Task\n    if err := c.ShouldBindJSON(&task); err != nil {\n        c.JSON(http.StatusBadRequest, gin.H{\"error\": err.Error()})\n        return\n    }\n    c.JSON(http.StatusCreated, task)\n}",
+      "language": "go",
+      "commands": [
+        "go mod init myapp",
+        "go get -u github.com/gin-gonic/gin",
+        "go run main.go"
+      ],
+      "setup_steps": [
+        "Install Go 1.21 or later",
+        "Initialize Go module",
+        "Install Gin framework",
+        "Define routes and handlers",
+        "Run the API server"
+      ],
+      "docs_link": "https://gin-gonic.com/docs/",
+      "starter_repo": "https://github.com/gin-gonic/examples"
+    },
+    {
+      "stack": "Go",
+      "task_type": "DB",
+      "title": "Database Operations with GORM",
+      "description": "Implement database models and queries using GORM ORM",
+      "snippet": "package models\n\nimport (\n    \"time\"\n    \"gorm.io/gorm\"\n    \"gorm.io/driver/postgres\"\n)\n\ntype Task struct {\n    ID          uint           `gorm:\"primaryKey\"`\n    Title       string         `gorm:\"size:255;not null\"`\n    Description string         `gorm:\"type:text\"`\n    Status      string         `gorm:\"size:50;default:'pending'\"`\n    CreatedAt   time.Time\n    UpdatedAt   time.Time\n    DeletedAt   gorm.DeletedAt `gorm:\"index\"`\n}\n\ntype TaskRepository struct {\n    db *gorm.DB\n}\n\nfunc NewTaskRepository(db *gorm.DB) *TaskRepository {\n    return &TaskRepository{db: db}\n}\n\nfunc (r *TaskRepository) Create(task *Task) error {\n    return r.db.Create(task).Error\n}\n\nfunc (r *TaskRepository) GetByID(id uint) (*Task, error) {\n    var task Task\n    err := r.db.First(&task, id).Error\n    return &task, err\n}\n\nfunc InitDB() (*gorm.DB, error) {\n    dsn := \"host=localhost user=myuser password=mypass dbname=mydb port=5432\"\n    return gorm.Open(postgres.Open(dsn), &gorm.Config{})\n}",
+      "language": "go",
+      "commands": [
+        "go get -u gorm.io/gorm",
+        "go get -u gorm.io/driver/postgres"
+      ],
+      "setup_steps": [
+        "Install GORM and database driver",
+        "Define your models",
+        "Set up database connection",
+        "Run auto-migration",
+        "Implement repository pattern"
+      ],
+      "docs_link": "https://gorm.io/docs/",
+      "starter_repo": "https://github.com/go-gorm/playground"
+    },
+    {
+      "stack": "Node.js",
+      "task_type": "Backend",
+      "title": "Express.js API Development",
+      "description": "Build REST APIs with Express.js",
+      "snippet": "const express = require('express');\nconst cors = require('cors');\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\napp.use(cors());\napp.use(express.json());\n\napp.get('/api/tasks', async (req, res) => {\n  try {\n    const tasks = [\n      { id: 1, title: 'Task 1', status: 'pending' },\n      { id: 2, title: 'Task 2', status: 'completed' }\n    ];\n    res.json(tasks);\n  } catch (error) {\n    res.status(500).json({ error: error.message });\n  }\n});\n\napp.post('/api/tasks', async (req, res) => {\n  try {\n    const { title, description } = req.body;\n    const newTask = { id: Date.now(), title, description, status: 'pending' };\n    res.status(201).json(newTask);\n  } catch (error) {\n    res.status(400).json({ error: error.message });\n  }\n});\n\napp.listen(PORT, () => {\n  console.log(`Server running on port ${PORT}`);\n});",
+      "language": "javascript",
+      "commands": [
+        "npm init -y",
+        "npm install express cors",
+        "npm install -D nodemon",
+        "npm run dev"
+      ],
+      "setup_steps": [
+        "Install Node.js and npm",
+        "Initialize package.json",
+        "Install Express and middleware",
+        "Set up route handlers",
+        "Configure nodemon for development"
+      ],
+      "docs_link": "https://expressjs.com/en/guide/routing.html",
+      "starter_repo": "https://github.com/expressjs/generator"
+    },
+    {
+      "stack": "Python",
+      "task_type": "Backend",
+      "title": "FastAPI Development",
+      "description": "Build modern APIs with FastAPI",
+      "snippet": "from fastapi import FastAPI, HTTPException\nfrom pydantic import BaseModel\nfrom typing import List, Optional\nfrom datetime import datetime\n\napp = FastAPI(title=\"Task API\", version=\"1.0.0\")\n\nclass TaskBase(BaseModel):\n    title: str\n    description: Optional[str] = None\n    status: str = \"pending\"\n\nclass Task(TaskBase):\n    id: int\n    created_at: datetime\n    \ntasks_db = []\n\n@app.get(\"/api/tasks\", response_model=List[Task])\ndef get_tasks(skip: int = 0, limit: int = 100):\n    return tasks_db[skip : skip + limit]\n\n@app.post(\"/api/tasks\", response_model=Task, status_code=201)\ndef create_task(task: TaskBase):\n    new_task = Task(\n        id=len(tasks_db) + 1,\n        **task.dict(),\n        created_at=datetime.now()\n    )\n    tasks_db.append(new_task)\n    return new_task\n\nif __name__ == \"__main__\":\n    import uvicorn\n    uvicorn.run(app, host=\"0.0.0.0\", port=8000, reload=True)",
+      "language": "python",
+      "commands": [
+        "pip install fastapi uvicorn[standard]",
+        "uvicorn main:app --reload"
+      ],
+      "setup_steps": [
+        "Install Python 3.8+",
+        "Create virtual environment",
+        "Install FastAPI and Uvicorn",
+        "Define Pydantic models",
+        "Run with auto-reload"
+      ],
+      "docs_link": "https://fastapi.tiangolo.com/",
+      "starter_repo": "https://github.com/tiangolo/full-stack-fastapi-template"
+    },
+    {
+      "stack": "Vue",
+      "task_type": "UI",
+      "title": "Vue Component Development",
+      "description": "Create Vue 3 components with Composition API",
+      "snippet": "<template>\n  <div class=\"component-container\">\n    <h2>{{ title }}</h2>\n    <div v-if=\"loading\">Loading...</div>\n    <div v-else>{{ data }}</div>\n    <button @click=\"handleAction\">Action</button>\n  </div>\n</template>\n\n<script setup>\nimport { ref, onMounted } from 'vue'\n\nconst props = defineProps({\n  title: {\n    type: String,\n    required: true\n  }\n})\n\nconst emit = defineEmits(['action'])\n\nconst data = ref(null)\nconst loading = ref(false)\n\nconst fetchData = async () => {\n  loading.value = true\n  try {\n    const response = await fetch('/api/data')\n    data.value = await response.json()\n  } catch (error) {\n    console.error('Error:', error)\n  } finally {\n    loading.value = false\n  }\n}\n\nconst handleAction = () => {\n  emit('action')\n}\n\nonMounted(() => {\n  fetchData()\n})\n</script>",
+      "language": "vue",
+      "commands": [
+        "npm create vue@latest",
+        "npm install",
+        "npm run dev"
+      ],
+      "setup_steps": [
+        "Install Node.js",
+        "Create Vue project",
+        "Install dependencies",
+        "Create components",
+        "Run development server"
+      ],
+      "docs_link": "https://vuejs.org/guide/",
+      "starter_repo": "https://github.com/vuejs/create-vue"
+    },
+    {
+      "stack": "Django",
+      "task_type": "Backend",
+      "title": "Django REST API",
+      "description": "Build REST APIs with Django REST Framework",
+      "snippet": "# serializers.py\nfrom rest_framework import serializers\nfrom .models import Task\n\nclass TaskSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Task\n        fields = '__all__'\n\n# views.py\nfrom rest_framework import viewsets\nfrom .models import Task\nfrom .serializers import TaskSerializer\n\nclass TaskViewSet(viewsets.ModelViewSet):\n    queryset = Task.objects.all()\n    serializer_class = TaskSerializer\n\n# urls.py\nfrom django.urls import path, include\nfrom rest_framework.routers import DefaultRouter\nfrom .views import TaskViewSet\n\nrouter = DefaultRouter()\nrouter.register(r'tasks', TaskViewSet)\n\nurlpatterns = [\n    path('api/', include(router.urls)),\n]\n\n# models.py\nfrom django.db import models\n\nclass Task(models.Model):\n    title = models.CharField(max_length=200)\n    description = models.TextField()\n    status = models.CharField(max_length=20, default='pending')\n    created_at = models.DateTimeField(auto_now_add=True)",
+      "language": "python",
+      "commands": [
+        "pip install django djangorestframework",
+        "django-admin startproject myproject",
+        "python manage.py migrate",
+        "python manage.py runserver"
+      ],
+      "setup_steps": [
+        "Install Django and DRF",
+        "Create Django project",
+        "Define models",
+        "Create serializers",
+        "Set up viewsets and URLs"
+      ],
+      "docs_link": "https://www.django-rest-framework.org/",
+      "starter_repo": "https://github.com/encode/django-rest-framework"
+    }
+  ],
+  "default_guidance": {
+    "title": "General Development Guidelines",
+    "description": "Best practices for development",
+    "snippet": "// Follow these general guidelines:\n// 1. Write clean, maintainable code\n// 2. Use meaningful variable names\n// 3. Add comments for complex logic\n// 4. Test your implementation\n// 5. Document your work",
+    "language": "text",
+    "commands": [
+      "Check your project documentation",
+      "Review the tech stack requirements",
+      "Set up your development environment"
+    ],
+    "setup_steps": [
+      "Understand the requirements",
+      "Plan your implementation",
+      "Write clean code",
+      "Test thoroughly",
+      "Document your work"
+    ],
+    "docs_link": "https://developer.mozilla.org/",
+    "starter_repo": ""
+  }
+}

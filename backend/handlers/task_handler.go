@@ -62,19 +62,22 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 		projectRepo := repositories.NewProjectRepository(h.DB)
 		project, err := projectRepo.GetProjectByID(projectID)
 		if err == nil {
-			types, ok := project.Config["task_types"].([]interface{})
-			if ok {
-				validType := false
-				for _, t := range types {
-					if tStr, ok := t.(string); ok && tStr == task.TaskType {
-						validType = true
-						break
-					}
+			// Use helper function to safely get task types
+			ensureTaskProjectConfig(project)
+			taskTypes := getTaskTypes(project)
+			
+			// Validate task type
+			validType := false
+			for _, tStr := range taskTypes {
+				if tStr == task.TaskType {
+					validType = true
+					break
 				}
-				if !validType {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "task_type must be one of the allowed task_types values in project config"})
-					return
-				}
+			}
+			
+			if !validType {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "task_type must be one of the allowed task_types values in project config"})
+				return
 			}
 		}
 	}
@@ -213,18 +216,9 @@ func (h *TaskHandler) NewTaskForm(c *gin.Context) {
 		return
 	}
 
-	// Extract task types from project config and normalize 'Db' to 'DB'
-	var taskTypes []string
-	if types, ok := project.Config["task_types"].([]interface{}); ok {
-		for _, t := range types {
-			if tStr, ok := t.(string); ok {
-				if tStr == "Db" {
-					tStr = "DB"
-				}
-				taskTypes = append(taskTypes, tStr)
-			}
-		}
-	}
+	// Extract task types from project config using helper function
+	ensureTaskProjectConfig(project)
+	taskTypes := getTaskTypes(project)
 
 	// Render the task form template
 	c.HTML(http.StatusOK, "task-form.html", gin.H{
@@ -484,22 +478,15 @@ func (h *TaskHandler) EditTaskForm(c *gin.Context) {
 		c.String(http.StatusNotFound, "Task not found")
 		return
 	}
-	// Get task types from project config (reuse logic from NewTaskForm)
+	// Get task types from project config using helper function
 	featureRepo := repositories.NewFeatureRepository(h.DB)
 	feature, _ := featureRepo.GetFeatureByID(featureID)
 	projectRepo := repositories.NewProjectRepository(h.DB)
 	project, _ := projectRepo.GetProjectByID(feature.ProjectID)
-	var taskTypes []string
-	if types, ok := project.Config["task_types"].([]interface{}); ok {
-		for _, t := range types {
-			if tStr, ok := t.(string); ok {
-				if tStr == "Db" {
-					tStr = "DB"
-				}
-				taskTypes = append(taskTypes, tStr)
-			}
-		}
-	}
+	
+	// Use helper function to safely get task types
+	ensureTaskProjectConfig(project)
+	taskTypes := getTaskTypes(project)
 	c.HTML(http.StatusOK, "task-edit-form.html", gin.H{
 		"FeatureID": featureID,
 		"Task":      task,
@@ -533,11 +520,28 @@ func (h *TaskHandler) UpdateTaskInline(c *gin.Context) {
 		log.Printf("[UpdateTaskInline] user_role from context: '%v', isManager: %v", userRole, isManager)
 	}
 
+	// Get project tech stack for guidance
+	var projectTechStack string = "Other"
+	if task.FeatureID != 0 {
+		featureRepo := repositories.NewFeatureRepository(h.DB)
+		feature, err := featureRepo.GetFeatureByID(int(task.FeatureID))
+		if err == nil && feature.ProjectID != 0 {
+			projectRepo := repositories.NewProjectRepository(h.DB)
+			project, err := projectRepo.GetProjectByID(feature.ProjectID)
+			if err == nil && project.Config != nil {
+				if stack, ok := project.Config["tech_stack"].(string); ok {
+					projectTechStack = stack
+				}
+			}
+		}
+	}
+
 	// Re-render the updated card (reuse the card HTML from task-list.html)
 	c.HTML(http.StatusOK, "task-card.html", gin.H{
-		"Task":        task,
-		"FeatureID":   featureID,
-		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
+		"Task":             task,
+		"FeatureID":        featureID,
+		"ProjectTechStack": projectTechStack,
+		"CurrentUser":      gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }
 
@@ -558,10 +562,27 @@ func (h *TaskHandler) ViewTaskCard(c *gin.Context) {
 		log.Printf("[ViewTaskCard] user_role from context: '%v', isManager: %v", userRole, isManager)
 	}
 
+	// Get project tech stack for guidance
+	var projectTechStack string = "Other"
+	if task.FeatureID != 0 {
+		featureRepo := repositories.NewFeatureRepository(h.DB)
+		feature, err := featureRepo.GetFeatureByID(int(task.FeatureID))
+		if err == nil && feature.ProjectID != 0 {
+			projectRepo := repositories.NewProjectRepository(h.DB)
+			project, err := projectRepo.GetProjectByID(feature.ProjectID)
+			if err == nil && project.Config != nil {
+				if stack, ok := project.Config["tech_stack"].(string); ok {
+					projectTechStack = stack
+				}
+			}
+		}
+	}
+
 	c.HTML(http.StatusOK, "task-card.html", gin.H{
-		"Task":        task,
-		"FeatureID":   featureID,
-		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
+		"Task":             task,
+		"FeatureID":        featureID,
+		"ProjectTechStack": projectTechStack,
+		"CurrentUser":      gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }
 
