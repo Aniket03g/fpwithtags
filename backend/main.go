@@ -391,6 +391,7 @@ func main() {
 		"templates/task-list.html",
 		"templates/task-edit-form.html",
 		"templates/task-guidance-fragment.html",
+		"templates/feature-progress.html",
 		"templates/dependencies/dependencies-list.html",
 		"templates/dependencies/dependency_panels.html",
 		"templates/dependencies/dependency_type_selector.html",
@@ -407,25 +408,43 @@ func main() {
 
 	// CORS middleware
 	router.Use(func(c *gin.Context) {
-		// Get the origin from the request
 		origin := c.Request.Header.Get("Origin")
-		if origin == "" {
-			// Default to localhost if no origin is provided
-			origin = "http://localhost:8080"
+
+		// Define allowed origins
+		allowedOrigins := []string{
+			"http://localhost:3000",
+			"http://127.0.0.1:3000",
+			"http://localhost:8080",
+			"http://127.0.0.1:8080",
 		}
 
-		// Set the requesting origin instead of wildcard
-		c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		// Add Vary header to indicate that response varies based on Origin
-		c.Writer.Header().Set("Vary", "Origin")
+		// Check if the origin is in allowed list
+		isAllowed := false
+		for _, o := range allowedOrigins {
+			if origin == o {
+				isAllowed = true
+				break
+			}
+		}
+
+		// If not matched, you can still allow Tailscale/IP based origins dynamically
+		if strings.HasPrefix(origin, "http://100.") {
+			isAllowed = true
+		}
+
+		if isAllowed && origin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Writer.Header().Set("Vary", "Origin")
+		}
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusOK)
 			return
 		}
+
 		c.Next()
 	})
 
