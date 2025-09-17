@@ -16,6 +16,8 @@ type Template struct {
 	Stack                string            `json:"stack"`
 	Description          string            `json:"description"`
 	TechStack            string            `json:"tech_stack"`
+	FeatureCategories    []string          `json:"feature_categories"`
+	TaskTypes            []string          `json:"task_types"`
 	Features             []TemplateFeature `json:"features"`
 	Tasks                []TemplateTask    `json:"tasks"`
 	Dependencies         []string          `json:"dependencies"`

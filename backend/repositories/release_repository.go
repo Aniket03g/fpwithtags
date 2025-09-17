@@ -72,6 +72,17 @@ func (r *releaseRepository) GetByID(id uint) (*models.Release, error) {
 		return nil, err
 	}
 	
+	// For each PR, load its associated feature
+	for i := range prs {
+		if prs[i].FeatureID > 0 {
+			var feature models.Feature
+			if err := r.db.First(&feature, prs[i].FeatureID).Error; err == nil {
+				// Store feature data in the PR
+				prs[i].Feature = feature
+			}
+		}
+	}
+	
 	// Assign the PRs to the release
 	release.PRs = prs
 	

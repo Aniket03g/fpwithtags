@@ -28,6 +28,33 @@ func (h *ProjectHandler) ApplyTemplate(project *models.Project, templateID strin
 		return fmt.Errorf("template not found")
 	}
 
+	// Update project config with template's feature categories and task types if available
+	if project.Config == nil {
+		project.Config = models.JSONB{}
+	}
+
+	// Update feature categories if provided in the template
+	if len(template.FeatureCategories) > 0 {
+		log.Printf("INFO: Setting feature categories from template: %v", template.FeatureCategories)
+		project.Config["feature_category"] = template.FeatureCategories
+		
+		// Update the project in the database
+		if err := h.repo.UpdateProject(project); err != nil {
+			log.Printf("WARNING: Failed to update project with template feature categories: %v", err)
+		}
+	}
+
+	// Update task types if provided in the template
+	if len(template.TaskTypes) > 0 {
+		log.Printf("INFO: Setting task types from template: %v", template.TaskTypes)
+		project.Config["task_types"] = template.TaskTypes
+		
+		// Update the project in the database
+		if err := h.repo.UpdateProject(project); err != nil {
+			log.Printf("WARNING: Failed to update project with template task types: %v", err)
+		}
+	}
+
 	// Log template details for debugging
 	log.Printf("INFO: Applying template '%s' -> inserting %d features, %d tasks, %d dependencies", 
 		template.Name, len(template.Features), len(template.Tasks), len(template.Dependencies))

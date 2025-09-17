@@ -1,6 +1,8 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type PullRequest struct {
 	ID          uint           `gorm:"primaryKey" json:"id"`
@@ -16,4 +18,8 @@ type PullRequest struct {
 	CreatedAt   int64          `gorm:"autoCreateTime:milli" json:"created_at"`
 	UpdatedAt   int64          `gorm:"autoUpdateTime:milli" json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	
+	// Associations (not stored in DB)
+	Feature     interface{}    `gorm:"-" json:"feature,omitempty"`
+	Task        interface{}    `gorm:"-" json:"task,omitempty"`
 }

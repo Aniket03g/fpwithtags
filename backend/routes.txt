@@ -21,6 +21,7 @@ Method: GET, Path: /web/fragments/tasks
 Method: GET, Path: /web/fragments/tasks/assigned
 Method: GET, Path: /web/fragments/tags/autocomplete
 Method: GET, Path: /web/fragments/releases
+Method: GET, Path: /web/fragments/releases/:id
 Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/features/cancel
 Method: GET, Path: /web/features/:id/tasks

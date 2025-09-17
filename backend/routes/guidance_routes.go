@@ -9,8 +9,8 @@ import (
 )
 
 func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
-	// Use the data directory for guidance JSON files
-	guidanceHandler := handlers.NewGuidanceHandler(db, "./backend/data")
+	// Use the absolute path to the data directory for guidance JSON files
+	guidanceHandler := handlers.NewGuidanceHandler(db, "d:/SUNDAYYY/FeaturePlus/backend/data")
 
 	// Web routes for HTMX
 	web := r.Group("/web")

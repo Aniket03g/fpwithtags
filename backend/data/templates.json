@@ -6,6 +6,8 @@
       "stack": "React + Firebase",
       "description": "Modern React app with Firebase backend for authentication and real-time database",
       "tech_stack": "React",
+      "feature_categories": ["Auth", "Database", "Navigation", "State", "UI"],
+      "task_types": ["UI", "Backend", "DB", "Testing"],
       "features": [
         {
           "name": "Authentication",
@@ -107,6 +109,8 @@
       "stack": "Go + PostgreSQL",
       "description": "RESTful API with Go, Gin framework, and PostgreSQL database",
       "tech_stack": "Go",
+      "feature_categories": ["Backend", "Database", "Auth", "API", "Middleware"],
+      "task_types": ["Backend", "DB", "Testing", "DevOps"],
       "features": [
         {
           "name": "REST API",
@@ -207,6 +211,8 @@
       "stack": "Node.js + Express + MongoDB",
       "description": "Full-stack JavaScript application with Express.js and MongoDB",
       "tech_stack": "Node.js",
+      "feature_categories": ["Backend", "Database", "Auth", "Docs", "API"],
+      "task_types": ["Backend", "DB", "Testing", "Documentation"],
       "features": [
         {
           "name": "Express Server",
@@ -308,6 +314,8 @@
       "stack": "Python + Django",
       "description": "Full-featured Django application with PostgreSQL and REST API",
       "tech_stack": "Python",
+      "feature_categories": ["Admin", "Backend", "Auth", "Database", "API"],
+      "task_types": ["Backend", "DB", "UI", "Testing"],
       "features": [
         {
           "name": "Django Admin",
@@ -408,6 +416,8 @@
       "stack": "Vue + Laravel",
       "description": "SPA with Vue.js frontend and Laravel API backend",
       "tech_stack": "Vue",
+      "feature_categories": ["Frontend", "Backend", "Auth", "State", "UI"],
+      "task_types": ["UI", "Backend", "Testing", "DevOps"],
       "features": [
         {
           "name": "Vue SPA",
@@ -510,6 +520,8 @@
     "stack": "Custom",
     "description": "Build your own custom stack",
     "tech_stack": "Other",
+    "feature_categories": ["Auth", "Database", "UI", "API", "Backend"],
+    "task_types": ["UI", "Backend", "DB", "Testing", "DevOps"],
     "features": [],
     "tasks": [
       {

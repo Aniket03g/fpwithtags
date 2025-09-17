@@ -383,10 +383,14 @@ func main() {
 		"templates/all-prs-list.html",
 		"templates/dashboard-status.html",
 		"templates/release-list.html",
+		"templates/release-detail.html",
 		"templates/feature-list.html",
 		"templates/feature-list-inner.html",
 		"templates/feature-card.html",
+		"templates/feature-edit-form.html",
 		"templates/task-list.html",
+		"templates/task-edit-form.html",
+		"templates/task-guidance-fragment.html",
 		"templates/dependencies/dependencies-list.html",
 		"templates/dependencies/dependency_panels.html",
 		"templates/dependencies/dependency_type_selector.html",
@@ -550,6 +554,7 @@ func main() {
 			authFragments.GET("/prs", webPRHandler.GetAllPRsFragment)
 			authFragments.GET("/prs/my-prs", webPRHandler.GetMyPRsFragment)
 			authFragments.GET("/releases", webReleaseHandler.RenderReleasesListFragment)
+			authFragments.GET("/releases/:id", webReleaseHandler.RenderReleaseDetailFragment)
 			authFragments.GET("/release-modal", webReleaseHandler.NewReleaseModal)
 			authFragments.POST("/api/releases", webReleaseHandler.CreateRelease)
 		}
