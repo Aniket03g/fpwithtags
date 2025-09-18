@@ -21,12 +21,16 @@ COPY pkg ./pkg
 
 # Build the application
 WORKDIR /app/backend
+
 RUN go mod tidy
 RUN CGO_ENABLED=1 GOOS=linux go build -o featureplus-server main.go
 
 
 # Runtime stage
 FROM alpine:latest
+
+# Install necessary runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata bash
 
 WORKDIR /app
 
@@ -37,16 +41,21 @@ COPY --from=builder /app/backend/featureplus-server .
 COPY backend/templates ./templates
 COPY backend/static ./static
 
-# Create data directory for templates and guidance files
-RUN mkdir -p /app/data
+# Copy entrypoint script
+COPY docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
 
-# Copy sample data files if they exist
-COPY backend/data/*.json /app/data/ 2>/dev/null || :
+# Create empty data directory for templates and guidance files
+RUN mkdir -p /app/data
 
 # Create volume for persistent data
 VOLUME ["/app/data"]
 
+# Set environment variables
+ENV DATA_PATH=/app/data
+
 # Expose the port your app runs on
 EXPOSE 8080
 
-CMD ["./featureplus-server"]
+# Use the entrypoint script
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

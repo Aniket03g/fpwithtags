@@ -8,9 +8,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env  # Load all environment variables from .env file
-    environment:
-      - DATA_PATH=/app/data
+      - .env.docker  # Use Docker-specific environment variables
     volumes:
       - featureplus_data:/app/data    # Persistent volume for data
     restart: unless-stopped
