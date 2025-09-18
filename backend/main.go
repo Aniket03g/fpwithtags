@@ -407,46 +407,48 @@ func main() {
 	router.Use(LoggingMiddleware())
 
 	// CORS middleware
-	router.Use(func(c *gin.Context) {
-		origin := c.Request.Header.Get("Origin")
+	                // CORS middleware
+router.Use(func(c *gin.Context) {
+    origin := c.Request.Header.Get("Origin")
 
-		// Define allowed origins
-		allowedOrigins := []string{
-			"http://localhost:3000",
-			"http://127.0.0.1:3000",
-			"http://localhost:8080",
-			"http://127.0.0.1:8080",
-		}
+    // Define allowed origins
+    allowedOrigins := []string{
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    }
 
-		// Check if the origin is in allowed list
-		isAllowed := false
-		for _, o := range allowedOrigins {
-			if origin == o {
-				isAllowed = true
-				break
-			}
-		}
+    // Check if the origin is in allowed list
+    isAllowed := false
+    for _, o := range allowedOrigins {
+        if origin == o {
+            isAllowed = true
+            break
+        }
+    }
 
-		// If not matched, you can still allow Tailscale/IP based origins dynamically
-		if strings.HasPrefix(origin, "http://100.") {
-			isAllowed = true
-		}
+    // If not matched, you can still allow Tailscale/IP based origins dynamically
+    if strings.HasPrefix(origin, "http://100.") {
+        isAllowed = true
+    }
 
-		if isAllowed && origin != "" {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-			c.Writer.Header().Set("Vary", "Origin")
-		}
+    if isAllowed && origin != "" {
+        c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+        c.Writer.Header().Set("Vary", "Origin")
+    }
 
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusOK)
-			return
-		}
+    if c.Request.Method == "OPTIONS" {
+        c.AbortWithStatus(http.StatusOK)
+        return
+    }
 
-		c.Next()
-	})
+    c.Next()
+})
+
 
 	// Register auth routes
 	routes.RegisterAuthRoutes(router, db.DB)

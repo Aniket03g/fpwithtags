@@ -27,6 +27,12 @@ func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", dataPath, err)
 		absPath = dataPath // Fallback to original path
 	}
+	log.Printf("DEBUG: RegisterTemplateRoutes called")
+	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
+	log.Printf("DEBUG: Final absPath = %s", absPath)
+
+
+
 	log.Printf("INFO: Using absolute data path for templates: %s", absPath)
 
 	// Ensure directory exists

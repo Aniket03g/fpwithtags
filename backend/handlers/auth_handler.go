@@ -127,7 +127,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		token,        // Value
 		3600,         // MaxAge (1 hour in seconds)
 		"/",          // Path
-		"localhost",  // Domain
+		"",  // Domain
 		false,        // Secure (false for http)
 		true,         // HttpOnly
 	)

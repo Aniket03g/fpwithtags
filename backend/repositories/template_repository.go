@@ -134,19 +134,6 @@ func min(a, b int) int {
 	return b
 }
 
-// TemplateData represents the entire template configuration
-type TemplateData struct {
-	Templates       []Template `json:"templates"`
-	DefaultTemplate Template   `json:"default_template"`
-}
-
-// TemplateRepository handles template data operations
-type TemplateRepository struct {
-	data     *TemplateData
-	dataPath string
-	mu       sync.RWMutex
-}
-
 // NewTemplateRepository creates a new template repository
 func NewTemplateRepository(dataPath string) (*TemplateRepository, error) {
 	log.Printf("INFO: Creating template repository with initial data path: %s", dataPath)
