@@ -9,16 +9,29 @@ import (
 	"github.com/FeaturePlus/backend/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("WARNING: Error loading .env file for guidance: %v", err)
+		log.Printf("INFO: Continuing with default values")
+	} else {
+		log.Printf("DEBUG: .env file loaded successfully for guidance")
+	}
+
 	// Use environment variable for data path
 	dataPath := os.Getenv("DATA_PATH")
 	if dataPath == "" {
 		log.Printf("INFO: DATA_PATH environment variable not set, using default path")
 		dataPath = "./data" // fallback for local dev
 	}
+	
+	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
+	log.Printf("DEBUG: Using data path: %s", dataPath)
 
 	// Resolve absolute path
 	absPath, err := filepath.Abs(dataPath)
@@ -26,6 +39,7 @@ func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", dataPath, err)
 		absPath = dataPath // Fallback to original path
 	}
+	log.Printf("DEBUG: Final absPath = %s", absPath)
 	log.Printf("INFO: Using absolute data path for guidance: %s", absPath)
 
 	// Ensure directory exists

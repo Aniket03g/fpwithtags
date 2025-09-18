@@ -10,10 +10,20 @@ import (
 	"github.com/FeaturePlus/backend/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("WARNING: Error loading .env file for templates: %v", err)
+		log.Printf("INFO: Continuing with default values")
+	} else {
+		log.Printf("DEBUG: .env file loaded successfully for templates")
+	}
+
 	// Use environment variable for data path
 	dataPath := os.Getenv("DATA_PATH")
 	if dataPath == "" {
@@ -29,6 +39,7 @@ func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 	}
 	log.Printf("DEBUG: RegisterTemplateRoutes called")
 	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
+	log.Printf("DEBUG: Using data path: %s", dataPath)
 	log.Printf("DEBUG: Final absPath = %s", absPath)
 
 
