@@ -4,9 +4,11 @@ set -e
 # Create data directory if it doesn't exist
 mkdir -p /app/data
 
-# Check if templates.json exists, create sample if not
-if [ ! -f "/app/data/templates.json" ]; then
-  echo "Creating sample templates.json file..."
+# Check if templates.json exists, use existing file if present
+if [ -f "/app/data/templates.json" ]; then
+  echo "Using existing templates.json file from host"
+else
+  echo "No templates.json found, creating minimal sample file..."
   cat > /app/data/templates.json << 'EOF'
 [
   {
@@ -27,13 +29,15 @@ if [ ! -f "/app/data/templates.json" ]; then
             "name": "Setup MongoDB Models",
             "description": "Create user model with authentication fields",
             "type": "Database",
-            "priority": "high"
+            "priority": "high",
+            "status": "pending"
           },
           {
             "name": "Implement JWT Authentication",
             "description": "Create authentication middleware and routes",
             "type": "Backend",
-            "priority": "high"
+            "priority": "high",
+            "status": "pending"
           }
         ]
       }
@@ -57,13 +61,68 @@ if [ ! -f "/app/data/templates.json" ]; then
             "name": "Setup PostgreSQL Models",
             "description": "Create database models and migrations",
             "type": "Database",
-            "priority": "high"
+            "priority": "high",
+            "status": "pending"
           },
           {
             "name": "Implement API Handlers",
             "description": "Create API handlers and routes",
             "type": "Backend",
-            "priority": "high"
+            "priority": "high",
+            "status": "pending"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "react-firebase",
+    "name": "React with Firebase",
+    "stack": "React",
+    "description": "A template for React applications with Firebase backend",
+    "tech_stack": "React",
+    "feature_categories": ["UI", "Auth", "Database"],
+    "task_types": ["Frontend", "Backend", "Database"],
+    "features": [
+      {
+        "name": "Firebase Authentication",
+        "description": "Implement user authentication with Firebase Auth",
+        "category": "Auth",
+        "tasks": [
+          {
+            "name": "Setup Firebase Auth",
+            "description": "Configure Firebase authentication in the React app",
+            "type": "Frontend",
+            "priority": "high",
+            "status": "pending"
+          },
+          {
+            "name": "Create Login/Register UI",
+            "description": "Build login and registration forms with validation",
+            "type": "Frontend",
+            "priority": "high",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "name": "Firestore Database",
+        "description": "Set up Firestore database for data storage",
+        "category": "Database",
+        "tasks": [
+          {
+            "name": "Define Data Models",
+            "description": "Create data models and schema for Firestore",
+            "type": "Database",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "name": "Implement CRUD Operations",
+            "description": "Create service functions for database operations",
+            "type": "Backend",
+            "priority": "medium",
+            "status": "pending"
           }
         ]
       }
@@ -73,9 +132,11 @@ if [ ! -f "/app/data/templates.json" ]; then
 EOF
 fi
 
-# Check if guidance.json exists, create sample if not
-if [ ! -f "/app/data/guidance.json" ]; then
-  echo "Creating sample guidance.json file..."
+# Check if guidance.json exists, use existing file if present
+if [ -f "/app/data/guidance.json" ]; then
+  echo "Using existing guidance.json file from host"
+else
+  echo "No guidance.json found, creating minimal sample file..."
   cat > /app/data/guidance.json << 'EOF'
 {
   "stacks": [

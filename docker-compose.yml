@@ -10,8 +10,6 @@ services:
     env_file:
       - .env.docker  # Use Docker-specific environment variables
     volumes:
-      - featureplus_data:/app/data    # Persistent volume for data
+      # Mount host data directory instead of using a volume
+      - ./backend/data:/app/data
     restart: unless-stopped
-
-volumes:
-  featureplus_data:  # Named volume for persistent data storage
