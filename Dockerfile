@@ -37,6 +37,15 @@ COPY --from=builder /app/backend/featureplus-server .
 COPY backend/templates ./templates
 COPY backend/static ./static
 
+# Create data directory for templates and guidance files
+RUN mkdir -p /app/data
+
+# Copy sample data files if they exist
+COPY backend/data/*.json /app/data/ 2>/dev/null || :
+
+# Create volume for persistent data
+VOLUME ["/app/data"]
+
 # Expose the port your app runs on
 EXPOSE 8080
 

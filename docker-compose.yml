@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  featureplus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env  # Load all environment variables from .env file
+    environment:
+      - DATA_PATH=/app/data
+    volumes:
+      - featureplus_data:/app/data    # Persistent volume for data
+    restart: unless-stopped
+
+volumes:
+  featureplus_data:  # Named volume for persistent data storage
