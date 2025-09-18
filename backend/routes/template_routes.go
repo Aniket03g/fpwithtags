@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 	// Get the absolute path to the project root
 	execPath, err := os.Executable()
@@ -55,17 +56,24 @@ func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 		log.Printf("INFO: DATA_PATH environment variable not set, using default path")
 		dataPath = "./data" // fallback for local dev
 	}
+	
+	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
+	log.Printf("DEBUG: Using data path: %s", dataPath)
 
-	// Resolve absolute path
+	// Resolve absolute path to templates.json directly (like the standalone code)
+	templatesPath := filepath.Join(dataPath, "templates.json")
 	absPath, err := filepath.Abs(dataPath)
+	absTemplatesPath, err := filepath.Abs(templatesPath)
 	if err != nil {
-		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", dataPath, err)
-		absPath = dataPath // Fallback to original path
+		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", templatesPath, err)
+		absTemplatesPath = templatesPath // Fallback to original path
 	}
 	log.Printf("DEBUG: RegisterTemplateRoutes called")
 	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
 	log.Printf("DEBUG: Using data path: %s", dataPath)
-	log.Printf("DEBUG: Final absPath = %s", absPath)
+	log.Printf("DEBUG: Templates file path: %s", templatesPath)
+	log.Printf("DEBUG: Absolute templates file path: %s", absTemplatesPath)
+	log.Printf("DEBUG: Final absPath for data directory: %s", absPath)
 
 
 
@@ -91,15 +99,63 @@ func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 	}
 
 	// Check if templates.json exists
-	templatesPath := filepath.Join(absPath, "templates.json")
-	if _, err := os.Stat(templatesPath); os.IsNotExist(err) {
+	log.Printf("DEBUG: Looking for templates file at: %s", absTemplatesPath)
+	
+	// Create sample template data if it doesn't exist
+	sampleTemplateData := []byte(`[
+	{
+		"id": "nodejs-express-mongodb",
+		"name": "Node.js Express MongoDB",
+		"stack": "Node.js",
+		"description": "A template for Node.js applications with Express and MongoDB",
+		"tech_stack": "Node.js",
+		"features": [
+			{
+				"name": "User Authentication",
+				"category": "Auth",
+				"description": "User registration and login functionality"
+			}
+		],
+		"tasks": [
+			{
+				"name": "Set up Express server",
+				"type": "Setup",
+				"description": "Initialize Express application",
+				"priority": "high"
+			}
+		]
+	},
+	{
+		"id": "go-postgresql",
+		"name": "Go with PostgreSQL",
+		"stack": "Go",
+		"description": "A template for Go applications with PostgreSQL",
+		"tech_stack": "Go",
+		"features": [
+			{
+				"name": "API Endpoints",
+				"category": "API",
+				"description": "RESTful API endpoints"
+			}
+		],
+		"tasks": [
+			{
+				"name": "Set up Go server",
+				"type": "Setup",
+				"description": "Initialize Go application",
+				"priority": "high"
+			}
+		]
+	}
+]`)
+	
+	if _, err := os.Stat(absTemplatesPath); os.IsNotExist(err) {
 		log.Printf("WARNING: Templates file %s does not exist", templatesPath)
-		// Try to create an empty templates file for debugging
-		emptyTemplates := []byte("[]")
-		if writeErr := os.WriteFile(templatesPath, emptyTemplates, 0644); writeErr != nil {
-			log.Printf("ERROR: Failed to create empty templates file: %v", writeErr)
+		// Create a sample templates file
+		if writeErr := os.WriteFile(templatesPath, sampleTemplateData, 0644); writeErr != nil {
+			log.Printf("ERROR: Failed to create sample templates file: %v", writeErr)
 		} else {
-			log.Printf("INFO: Created empty templates file at %s", templatesPath)
+			log.Printf("INFO: Created sample templates file at %s", templatesPath)
 		}
 	} else if err != nil {
 		log.Printf("ERROR: Failed to check templates file: %v", err)
@@ -111,6 +167,11 @@ func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 			log.Printf("ERROR: Failed to read templates file: %v", readErr)
 		} else {
 			log.Printf("DEBUG: Templates file size: %d bytes", len(content))
+			previewLen := 200
+			if len(content) < previewLen {
+				previewLen = len(content)
+			}
+			log.Printf("DEBUG: Templates file content preview: %s", string(content[:previewLen]))
 		}
 	}
 

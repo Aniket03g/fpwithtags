@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 	// Get the absolute path to the project root
 	execPath, err := os.Executable()
@@ -58,12 +59,20 @@ func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
 	log.Printf("DEBUG: Using data path: %s", dataPath)
 
-	// Resolve absolute path
+	// Resolve absolute path to guidance.json directly (like the standalone code)
+	guidancePath := filepath.Join(dataPath, "guidance.json")
 	absPath, err := filepath.Abs(dataPath)
+	absGuidancePath, err := filepath.Abs(guidancePath)
 	if err != nil {
-		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", dataPath, err)
-		absPath = dataPath // Fallback to original path
+		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", guidancePath, err)
+		absGuidancePath = guidancePath // Fallback to original path
 	}
+	log.Printf("DEBUG: RegisterGuidanceRoutes called")
+	log.Printf("DEBUG: DATA_PATH env = %s", os.Getenv("DATA_PATH"))
+	log.Printf("DEBUG: Using data path: %s", dataPath)
+	log.Printf("DEBUG: Guidance file path: %s", guidancePath)
+	log.Printf("DEBUG: Absolute guidance file path: %s", absGuidancePath)
+	log.Printf("DEBUG: Final absPath for data directory: %s", absPath)
 	log.Printf("DEBUG: Final absPath = %s", absPath)
 	log.Printf("INFO: Using absolute data path for guidance: %s", absPath)
 
@@ -76,15 +85,29 @@ func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 	}
 
 	// Check if guidance.json exists
-	guidancePath := filepath.Join(absPath, "guidance.json")
-	if _, err := os.Stat(guidancePath); os.IsNotExist(err) {
+	log.Printf("DEBUG: Looking for guidance file at: %s", absGuidancePath)
+	
+	// Create sample guidance data if it doesn't exist
+	sampleGuidanceData := []byte(`[
+	{
+		"stack": "Node.js",
+		"task_type": "Setup",
+		"guidance": "Install dependencies with npm install. Set up your Express server in server.js."
+	},
+	{
+		"stack": "Go",
+		"task_type": "Setup",
+		"guidance": "Initialize your Go module with go mod init. Create a main.go file for your application entry point."
+	}
+]`)
+	
+	if _, err := os.Stat(absGuidancePath); os.IsNotExist(err) {
 		log.Printf("WARNING: Guidance file %s does not exist", guidancePath)
-		// Try to create an empty guidance file for debugging
-		emptyGuidance := []byte("[]")
-		if writeErr := os.WriteFile(guidancePath, emptyGuidance, 0644); writeErr != nil {
-			log.Printf("ERROR: Failed to create empty guidance file: %v", writeErr)
+		// Create a sample guidance file
+		if writeErr := os.WriteFile(guidancePath, sampleGuidanceData, 0644); writeErr != nil {
+			log.Printf("ERROR: Failed to create sample guidance file: %v", writeErr)
 		} else {
-			log.Printf("INFO: Created empty guidance file at %s", guidancePath)
+			log.Printf("INFO: Created sample guidance file at %s", guidancePath)
 		}
 	} else if err != nil {
 		log.Printf("ERROR: Failed to check guidance file: %v", err)
@@ -96,6 +119,11 @@ func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 			log.Printf("ERROR: Failed to read guidance file: %v", readErr)
 		} else {
 			log.Printf("DEBUG: Guidance file size: %d bytes", len(content))
+			previewLen := 200
+			if len(content) < previewLen {
+				previewLen = len(content)
+			}
+			log.Printf("DEBUG: Guidance file content preview: %s", string(content[:previewLen]))
 		}
 	}
 
