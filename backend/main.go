@@ -474,6 +474,7 @@ router.Use(func(c *gin.Context) {
 		projectRoutes := authApi.Group("/projects")
 		{
 			projectRoutes.GET("", projectHandler.GetAllProjects)
+			projectRoutes.DELETE("/:id", projectHandler.DeleteProject)
 		}
 
 		// Regular authenticated routes

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/FeaturePlus/backend/models"
@@ -232,5 +233,42 @@ func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "project-list-fragment.html", gin.H{
 		"Projects":   projectList,
 		"NewProject": project,
+	})
+}
+
+
+// DeleteProject handles the deletion of a project by ID
+func (h *ProjectHandler) DeleteProject(c *gin.Context) {
+	// Get project ID from URL parameter
+	projectIDStr := c.Param("id")
+	projectID, err := strconv.Atoi(projectIDStr)
+	if err != nil {
+		log.Printf("ERROR: Invalid project ID format: %s", projectIDStr)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID format"})
+		return
+	}
+	
+	log.Printf("DEBUG: Attempting to delete project with ID: %d", projectID)
+	
+	// Delete the project using repository
+	if err := h.repo.DeleteProject(projectID); err != nil {
+		log.Printf("ERROR: Failed to delete project %d: %v", projectID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project"})
+		return
+	}
+	
+	log.Printf("INFO: Successfully deleted project with ID: %d", projectID)
+	
+	// Get updated project list
+	projects, err := h.repo.GetAllProjects()
+	if err != nil {
+		log.Printf("ERROR: Failed to get updated project list after deletion: %v", err)
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "Project deleted successfully"})
+		return
+	}
+	
+	// Return updated project list fragment
+	c.HTML(http.StatusOK, "project-list-fragment.html", gin.H{
+		"Projects": projects,
 	})
 }
