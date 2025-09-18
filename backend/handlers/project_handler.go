@@ -3,12 +3,15 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
@@ -21,8 +24,27 @@ type ProjectHandler struct {
 }
 
 func NewProjectHandler(repo *repositories.ProjectRepository, db *gorm.DB) *ProjectHandler {
-	// Use the absolute path to ensure templates.json is found
-	templateRepo, err := repositories.NewTemplateRepository("d:/SUNDAYYY/FeaturePlus/backend/data")
+	// Try to load .env file
+	_ = godotenv.Load() // Ignore error, we'll use default if needed
+	
+	// Use environment variable for data path
+	dataPath := os.Getenv("DATA_PATH")
+	if dataPath == "" {
+		log.Printf("INFO: DATA_PATH environment variable not set in ProjectHandler, using default path")
+		dataPath = "./data" // fallback for local dev
+	}
+	
+	// Resolve absolute path
+	absPath, err := filepath.Abs(dataPath)
+	if err != nil {
+		log.Printf("ERROR: Failed to resolve absolute path for %s: %v", dataPath, err)
+		absPath = dataPath // Fallback to original path
+	}
+	
+	log.Printf("DEBUG: ProjectHandler using data path: %s (absolute: %s)", dataPath, absPath)
+	
+	// Use the resolved path to create template repository
+	templateRepo, err := repositories.NewTemplateRepository(absPath)
 	if err != nil {
 		log.Printf("Warning: Failed to load template repository: %v. Templates will not be available.", err)
 	}
@@ -169,12 +191,28 @@ func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 	// Apply template if one was selected
 	if templateID != "" {
 		log.Printf("DEBUG: Attempting to apply template %s to project %d", templateID, project.ID)
-
-		// Apply the template using our dedicated function
-		if err := h.ApplyTemplate(&project, templateID); err != nil {
-			log.Printf("ERROR: Failed to apply template: %v", err)
+		
+		// Check if template repository is initialized
+		if h.templateRepo == nil {
+			log.Printf("ERROR: Template repository is nil. Cannot apply template.")
 		} else {
-			log.Printf("INFO: Successfully applied template %s to project %d", templateID, project.ID)
+			log.Printf("DEBUG: Template repository is initialized. Checking for template with ID: %s", templateID)
+			
+			// Try to get the template directly to see if it exists
+			tpl, err := h.templateRepo.GetTemplateByID(templateID)
+			if err != nil {
+				log.Printf("ERROR: Failed to get template by ID: %v", err)
+			} else if tpl != nil {
+				log.Printf("DEBUG: Found template: %s with %d features and %d tasks", 
+					tpl.Name, len(tpl.Features), len(tpl.Tasks))
+			}
+			
+			// Apply the template using our dedicated function
+			if err := h.ApplyTemplate(&project, templateID); err != nil {
+				log.Printf("ERROR: Failed to apply template: %v", err)
+			} else {
+				log.Printf("INFO: Successfully applied template %s to project %d", templateID, project.ID)
+			}
 		}
 	}
 

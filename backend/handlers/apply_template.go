@@ -12,21 +12,72 @@ import (
 
 // ApplyTemplate applies a template to a project
 func (h *ProjectHandler) ApplyTemplate(project *models.Project, templateID string) error {
-	if templateID == "" || h.templateRepo == nil {
-		return fmt.Errorf("invalid template ID or repository not initialized")
+	// Enhanced debugging for template application
+	log.Printf("DEBUG: ApplyTemplate called with templateID=%s for project ID=%d", templateID, project.ID)
+	
+	// Check if template ID is empty
+	if templateID == "" {
+		log.Printf("ERROR: Empty template ID provided")
+		return fmt.Errorf("invalid template ID: empty ID provided")
+	}
+	
+	// Check if template repository is initialized
+	if h.templateRepo == nil {
+		log.Printf("ERROR: Template repository is nil in ProjectHandler")
+		return fmt.Errorf("template repository not initialized")
+	}
+	
+	// Log available templates for debugging
+	templates := h.templateRepo.GetAllTemplates()
+	log.Printf("DEBUG: Found %d templates in repository", len(templates))
+	for i, t := range templates {
+		log.Printf("DEBUG: Available template %d: ID=%s, Name=%s", i+1, t.ID, t.Name)
 	}
 
 	log.Printf("INFO: Applying template %s to project %d", templateID, project.ID)
 
-	// Get the template
+	// Get the template - first try exact match
+	log.Printf("DEBUG: Looking for template with exact ID match: %s", templateID)
 	template, err := h.templateRepo.GetTemplateByID(templateID)
 	if err != nil {
-		return fmt.Errorf("failed to get template: %w", err)
+		log.Printf("ERROR: Failed to get template by exact ID: %v", err)
+		
+		// Try case-insensitive match
+		log.Printf("DEBUG: Trying case-insensitive match for template ID: %s", templateID)
+		templates := h.templateRepo.GetAllTemplates()
+		for _, t := range templates {
+			if strings.EqualFold(t.ID, templateID) {
+				log.Printf("DEBUG: Found case-insensitive match: %s", t.ID)
+				template = &t
+				break
+			}
+		}
+		
+		if template == nil {
+			// Try matching by name
+			log.Printf("DEBUG: Trying to match template by name: %s", templateID)
+			for _, t := range templates {
+				if strings.Contains(strings.ToLower(t.Name), strings.ToLower(templateID)) {
+					log.Printf("DEBUG: Found template by name match: %s", t.Name)
+					template = &t
+					break
+				}
+			}
+		}
+		
+		if template == nil {
+			return fmt.Errorf("template not found with ID or name: %s", templateID)
+		}
+	} else {
+		log.Printf("DEBUG: Found template with exact ID match: %s", template.ID)
 	}
-
+	
 	if template == nil {
 		return fmt.Errorf("template not found")
 	}
+	
+	log.Printf("INFO: Using template: %s (ID: %s) with %d features and %d tasks", 
+		template.Name, template.ID, len(template.Features), len(template.Tasks))
 
 	// Update project config with template's feature categories and task types if available
 	if project.Config == nil {
