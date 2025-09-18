@@ -15,13 +15,38 @@ import (
 )
 
 func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
-	// Load .env file
-	err := godotenv.Load()
+	// Get the absolute path to the project root
+	execPath, err := os.Executable()
 	if err != nil {
-		log.Printf("WARNING: Error loading .env file for templates: %v", err)
+		log.Printf("WARNING: Failed to get executable path: %v", err)
+	}
+	execDir := filepath.Dir(execPath)
+	log.Printf("DEBUG: Executable directory: %s", execDir)
+	
+	// Try to load .env from various locations
+	// First try project root (where the executable is)
+	envPaths := []string{
+		"../../.env",              // Project root from backend/routes
+		"../.env",                 // Backend directory from routes
+		"./.env",                  // Current directory
+		"../../../.env",           // One level up from project root
+		filepath.Join(execDir, ".env"), // Executable directory
+	}
+	
+	envLoaded := false
+	for _, path := range envPaths {
+		log.Printf("DEBUG: Trying to load .env from %s", path)
+		err := godotenv.Load(path)
+		if err == nil {
+			log.Printf("DEBUG: .env file loaded successfully from %s for templates", path)
+			envLoaded = true
+			break
+		}
+	}
+	
+	if !envLoaded {
+		log.Printf("WARNING: Could not load .env file from any location for templates")
 		log.Printf("INFO: Continuing with default values")
-	} else {
-		log.Printf("DEBUG: .env file loaded successfully for templates")
 	}
 
 	// Use environment variable for data path
@@ -69,8 +94,24 @@ func RegisterTemplateRoutes(r *gin.Engine, db *gorm.DB) {
 	templatesPath := filepath.Join(absPath, "templates.json")
 	if _, err := os.Stat(templatesPath); os.IsNotExist(err) {
 		log.Printf("WARNING: Templates file %s does not exist", templatesPath)
+		// Try to create an empty templates file for debugging
+		emptyTemplates := []byte("[]")
+		if writeErr := os.WriteFile(templatesPath, emptyTemplates, 0644); writeErr != nil {
+			log.Printf("ERROR: Failed to create empty templates file: %v", writeErr)
+		} else {
+			log.Printf("INFO: Created empty templates file at %s", templatesPath)
+		}
+	} else if err != nil {
+		log.Printf("ERROR: Failed to check templates file: %v", err)
 	} else {
 		log.Printf("INFO: Found templates file: %s", templatesPath)
+		// Read file contents for debugging
+		content, readErr := os.ReadFile(templatesPath)
+		if readErr != nil {
+			log.Printf("ERROR: Failed to read templates file: %v", readErr)
+		} else {
+			log.Printf("DEBUG: Templates file size: %d bytes", len(content))
+		}
 	}
 
 	templateHandler := handlers.NewTemplateHandler(db, absPath)

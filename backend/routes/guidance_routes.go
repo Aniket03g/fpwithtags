@@ -14,13 +14,38 @@ import (
 )
 
 func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
-	// Load .env file
-	err := godotenv.Load()
+	// Get the absolute path to the project root
+	execPath, err := os.Executable()
 	if err != nil {
-		log.Printf("WARNING: Error loading .env file for guidance: %v", err)
+		log.Printf("WARNING: Failed to get executable path: %v", err)
+	}
+	execDir := filepath.Dir(execPath)
+	log.Printf("DEBUG: Executable directory: %s", execDir)
+	
+	// Try to load .env from various locations
+	// First try project root (where the executable is)
+	envPaths := []string{
+		"../../.env",              // Project root from backend/routes
+		"../.env",                 // Backend directory from routes
+		"./.env",                  // Current directory
+		"../../../.env",           // One level up from project root
+		filepath.Join(execDir, ".env"), // Executable directory
+	}
+	
+	envLoaded := false
+	for _, path := range envPaths {
+		log.Printf("DEBUG: Trying to load .env from %s", path)
+		err := godotenv.Load(path)
+		if err == nil {
+			log.Printf("DEBUG: .env file loaded successfully from %s for guidance", path)
+			envLoaded = true
+			break
+		}
+	}
+	
+	if !envLoaded {
+		log.Printf("WARNING: Could not load .env file from any location for guidance")
 		log.Printf("INFO: Continuing with default values")
-	} else {
-		log.Printf("DEBUG: .env file loaded successfully for guidance")
 	}
 
 	// Use environment variable for data path
@@ -54,8 +79,24 @@ func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 	guidancePath := filepath.Join(absPath, "guidance.json")
 	if _, err := os.Stat(guidancePath); os.IsNotExist(err) {
 		log.Printf("WARNING: Guidance file %s does not exist", guidancePath)
+		// Try to create an empty guidance file for debugging
+		emptyGuidance := []byte("[]")
+		if writeErr := os.WriteFile(guidancePath, emptyGuidance, 0644); writeErr != nil {
+			log.Printf("ERROR: Failed to create empty guidance file: %v", writeErr)
+		} else {
+			log.Printf("INFO: Created empty guidance file at %s", guidancePath)
+		}
+	} else if err != nil {
+		log.Printf("ERROR: Failed to check guidance file: %v", err)
 	} else {
 		log.Printf("INFO: Found guidance file: %s", guidancePath)
+		// Read file contents for debugging
+		content, readErr := os.ReadFile(guidancePath)
+		if readErr != nil {
+			log.Printf("ERROR: Failed to read guidance file: %v", readErr)
+		} else {
+			log.Printf("DEBUG: Guidance file size: %d bytes", len(content))
+		}
 	}
 
 	guidanceHandler := handlers.NewGuidanceHandler(db, absPath)
