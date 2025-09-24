@@ -10,9 +10,7 @@ import (
 
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
-
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
@@ -25,8 +23,7 @@ type ProjectHandler struct {
 }
 
 func NewProjectHandler(repo *repositories.ProjectRepository, db *gorm.DB) *ProjectHandler {
-	// Try to load .env file
-	_ = godotenv.Load() // Ignore error, we'll use default if needed
+	// Environment variables are loaded in main.go
 	
 	// Use environment variable for data path
 	dataPath := os.Getenv("DATA_PATH")

@@ -93,6 +93,7 @@ Method: POST, Path: /web/projects/:id/features
 Method: POST, Path: /prs/:id/test
 Method: POST, Path: /prs/:id/approve
 Method: POST, Path: /tasks/:id/prs
+Method: DELETE, Path: /api/projects/:id
 Method: DELETE, Path: /api/attachments/:id
 Method: DELETE, Path: /api/comments/:comment_id
 Method: DELETE, Path: /api/dependencies/:id

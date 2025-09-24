@@ -243,8 +243,24 @@ func FeaturesByTagFragment(featureHandler *handlers.FeatureHandler) gin.HandlerF
 
 func main() {
 	// --- Load environment variables from .env file at startup ---
-	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: No .env file found (this is OK in production if env vars are set)")
+	// Try multiple possible locations for .env file
+	envLoaded := false
+	possibleEnvFiles := []string{
+		".env",
+		"../.env",
+		"../../.env",
+	}
+	
+	for _, envFile := range possibleEnvFiles {
+		if err := godotenv.Load(envFile); err == nil {
+			log.Printf("Loaded environment variables from %s", envFile)
+			envLoaded = true
+			break
+		}
+	}
+	
+	if !envLoaded {
+		log.Println("Warning: No .env file found in any checked location (this is OK in production if env vars are set)")
 	}
 
 	// Check if debug mode is enabled
@@ -252,10 +268,22 @@ func main() {
 		log.Println("DEBUG mode enabled - detailed logging will be shown")
 	}
 
-	// --- Check for required GitHub token ---
+	// --- Set required environment variables if not already set ---
+	// Check for DATA_PATH
+	dataPath := os.Getenv("DATA_PATH")
+	if dataPath == "" {
+		dataPath = "./data"
+		os.Setenv("DATA_PATH", dataPath)
+		log.Printf("Set DATA_PATH to %s directly in the code", dataPath)
+	}
+	
+	// Check for GITHUB_TOKEN
 	githubToken := os.Getenv("GITHUB_TOKEN")
 	if githubToken == "" {
-		log.Fatal("GITHUB_TOKEN is not set. Please add it to your .env file or environment.")
+		log.Println("ERROR: GITHUB_TOKEN environment variable is not set")
+		log.Println("Please set it in your .env file or directly in your environment")
+		log.Println("Example: GITHUB_TOKEN=your_token_here")
+		os.Exit(1)
 	}
 
 	// Initialize DB

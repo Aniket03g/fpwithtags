@@ -9,7 +9,6 @@ import (
 	"github.com/FeaturePlus/backend/middleware"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
@@ -23,31 +22,8 @@ func RegisterGuidanceRoutes(r *gin.Engine, db *gorm.DB) {
 	execDir := filepath.Dir(execPath)
 	log.Printf("DEBUG: Executable directory: %s", execDir)
 	
-	// Try to load .env from various locations
-	// First try project root (where the executable is)
-	envPaths := []string{
-		"../../.env",              // Project root from backend/routes
-		"../.env",                 // Backend directory from routes
-		"./.env",                  // Current directory
-		"../../../.env",           // One level up from project root
-		filepath.Join(execDir, ".env"), // Executable directory
-	}
-	
-	envLoaded := false
-	for _, path := range envPaths {
-		log.Printf("DEBUG: Trying to load .env from %s", path)
-		err := godotenv.Load(path)
-		if err == nil {
-			log.Printf("DEBUG: .env file loaded successfully from %s for guidance", path)
-			envLoaded = true
-			break
-		}
-	}
-	
-	if !envLoaded {
-		log.Printf("WARNING: Could not load .env file from any location for guidance")
-		log.Printf("INFO: Continuing with default values")
-	}
+	// Environment variables are loaded in main.go
+	log.Printf("DEBUG: Using environment variables loaded in main.go")
 
 	// Use environment variable for data path
 	dataPath := os.Getenv("DATA_PATH")
