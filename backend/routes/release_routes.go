@@ -18,6 +18,7 @@ func RegisterReleaseRoutes(router *gin.Engine, db *gorm.DB) {
 	// Create role middleware with database instance
 	roleMiddleware := middleware.CreateRoleMiddleware(db)
 
+	// MARKER:RELEASE_ROUTES Register release API endpoints
 	// Register the release routes directly under /api/releases
 	releases := router.Group("/api/releases", middleware.AuthMiddleware())
 	releases.Use(roleMiddleware()) // Apply role middleware to all release routes

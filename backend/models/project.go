@@ -54,6 +54,7 @@ func (p *Project) BeforeCreate(tx *gorm.DB) (err error) {
 			"feature_category": []string{"Auth", "Payment", "Tags", "Tasks", "Features"},
 			"tech_stack":       "Other",
 			"tags_enabled":     true,
+			"context":          "Development",
 		}
 	} else {
 		// Ensure required fields exist with defaults if Config is partially populated
@@ -68,6 +69,9 @@ func (p *Project) BeforeCreate(tx *gorm.DB) (err error) {
 		}
 		if _, exists := p.Config["tags_enabled"]; !exists {
 			p.Config["tags_enabled"] = true
+		}
+		if _, exists := p.Config["context"]; !exists {
+			p.Config["context"] = "Development"
 		}
 	}
 	return nil

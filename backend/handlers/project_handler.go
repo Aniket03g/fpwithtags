@@ -95,13 +95,15 @@ func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 	techStack := c.PostForm("tech_stack")
 	templateID := c.PostForm("template_id")
 	tagsEnabled := c.PostForm("tags_enabled") == "on" // Checkbox returns "on" when checked
+	context := c.PostForm("context")
+	projectContext := c.PostForm("project_context") // STAGE 3: Custom project context
 
 	// Log template ID specifically for debugging
 	log.Printf("IMPORTANT: Received template_id: '%s'", templateID)
 
 	// Log all form values individually for debugging
-	log.Printf("DEBUG: Form values - name: %s, description: %s, taskTypes: %s, featureCategories: %s, techStack: %s, templateID: %s, tagsEnabled: %v",
-		name, description, taskTypes, featureCategories, techStack, templateID, tagsEnabled)
+	log.Printf("DEBUG: Form values - name: %s, description: %s, taskTypes: %s, featureCategories: %s, techStack: %s, templateID: %s, tagsEnabled: %v, context: %s",
+		name, description, taskTypes, featureCategories, techStack, templateID, tagsEnabled, context)
 
 	// Basic validation
 	if name == "" {
@@ -156,12 +158,31 @@ func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 		techStack = "Other"
 	}
 
+	// Validate context and default to "Development" if empty
+	if context == "" {
+		context = "Development"
+	}
+
+	// STAGE 3: Validate and sanitize project context
+	projectContext = strings.TrimSpace(projectContext)
+	if len(projectContext) > 2000 {
+		projectContext = projectContext[:2000] // Truncate to max length
+	}
+
 	// Create custom config
 	customConfig := models.JSONB{
 		"task_types":       taskTypesList,
 		"feature_category": featureCategoriesList,
 		"tech_stack":       techStack,
 		"tags_enabled":     tagsEnabled,
+		"context":          context,
+	}
+
+	// STAGE 3: Add project context to config if provided
+	// TODO: This project_context will be used later for LLM-based feature suggestions
+	if projectContext != "" {
+		customConfig["project_context"] = projectContext
+		log.Printf("INFO: Project context provided: %s", projectContext)
 	}
 
 	// Store template ID in config if selected

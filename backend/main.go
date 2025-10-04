@@ -345,7 +345,8 @@ func main() {
 	webPRHandler := handlers.NewWebPRHandler(prRepo)
 	webReleaseHandler := handlers.NewWebReleaseHandler(releaseRepo, prRepo)
 
-	router := gin.Default()
+	// MARKER:ROUTER_INIT Initialize the main router
+router := gin.Default()
 
 	// Add dict function to the template FuncMap BEFORE LoadHTMLGlob
 	router.SetFuncMap(template.FuncMap{
@@ -434,8 +435,7 @@ func main() {
 	// Add logging middleware
 	router.Use(LoggingMiddleware())
 
-	// CORS middleware
-	                // CORS middleware
+	// MARKER:CORS_CONFIG CORS middleware configuration
 router.Use(func(c *gin.Context) {
     origin := c.Request.Header.Get("Origin")
 
@@ -484,6 +484,7 @@ router.Use(func(c *gin.Context) {
 	// Create role middleware with database instance
 	roleMiddleware := middleware.CreateRoleMiddleware(db.DB)
 
+	// MARKER:API_ROUTES Define API endpoints
 	// --- EXISTING API ROUTES ---
 	api := router.Group("/api")
 	{
@@ -535,6 +536,7 @@ router.Use(func(c *gin.Context) {
 	// Register template routes
 	routes.RegisterTemplateRoutes(router, db.DB)
 
+	// MARKER:WEB_ROUTES Define web routes for HTMX
 	// --- NEW WEB ROUTES FOR HTMX ---
 	// Create app handler for web routes
 	appHandler := NewAppHandler(db)

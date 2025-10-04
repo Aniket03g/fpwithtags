@@ -26,6 +26,19 @@
                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"></textarea>
               </div>
 
+              <!-- STAGE 3: Project Context field -->
+              <div>
+                <label for="project_context" class="block text-sm font-medium text-gray-700">
+                  What is this project about?
+                  <span class="text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <p class="text-xs text-gray-500 mb-1">Describe the purpose and goals of this project. This will help with AI-powered suggestions later.</p>
+                <textarea name="project_context" id="project_context" rows="4" maxlength="2000"
+                         placeholder="Example: A platform that helps users manage software features, tasks, and releases collaboratively."
+                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm resize-y"></textarea>
+                <p class="text-xs text-gray-400 mt-1">Maximum 2000 characters</p>
+              </div>
+
               <!-- Template Selection -->
               <div class="mb-4">
                 <label for="template" class="block text-sm font-medium text-gray-700">Project Template (Optional)</label>
@@ -86,6 +99,19 @@
                     <option value="Java">Java</option>
                     <option value="Ruby">Ruby</option>
                     <option value="PHP">PHP</option>
+                  </select>
+                </div>
+                
+                <!-- Project Context -->
+                <div class="mb-3">
+                  <label for="context" class="block text-sm font-medium text-gray-700">Project Context</label>
+                  <p class="text-xs text-gray-500 mb-1">Select the environment context for this project</p>
+                  <select name="context" id="context" required
+                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <option value="Development" selected>Development</option>
+                    <option value="Staging">Staging</option>
+                    <option value="Production">Production</option>
+                    <option value="Testing">Testing</option>
                   </select>
                 </div>
                 

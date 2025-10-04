@@ -1,0 +1,59 @@
+{
+  "markers": [
+    {
+      "name": "ROUTER_INIT",
+      "file": "backend/main.go",
+      "line_hint": "// MARKER:ROUTER_INIT Initialize the main router"
+    },
+    {
+      "name": "CORS_CONFIG",
+      "file": "backend/main.go",
+      "line_hint": "// MARKER:CORS_CONFIG CORS middleware configuration"
+    },
+    {
+      "name": "API_ROUTES",
+      "file": "backend/main.go",
+      "line_hint": "// MARKER:API_ROUTES Define API endpoints"
+    },
+    {
+      "name": "WEB_ROUTES",
+      "file": "backend/main.go",
+      "line_hint": "// MARKER:WEB_ROUTES Define web routes for HTMX"
+    },
+    {
+      "name": "FEATURE_STATUS",
+      "file": "backend/models/features.go",
+      "line_hint": "// MARKER:FEATURE_STATUS Feature status and priority constants"
+    },
+    {
+      "name": "FEATURE_MODEL",
+      "file": "backend/models/features.go",
+      "line_hint": "// MARKER:FEATURE_MODEL Feature model definition"
+    },
+    {
+      "name": "FEATURE_HANDLER",
+      "file": "backend/handlers/feature_handler.go",
+      "line_hint": "// MARKER:FEATURE_HANDLER Feature handler definition"
+    },
+    {
+      "name": "UPDATE_FEATURE_SWITCH",
+      "file": "backend/handlers/feature_handler.go",
+      "line_hint": "// MARKER:UPDATE_FEATURE_SWITCH Switch for updating feature fields"
+    },
+    {
+      "name": "RELEASE_ROUTES",
+      "file": "backend/routes/release_routes.go",
+      "line_hint": "// MARKER:RELEASE_ROUTES Register release API endpoints"
+    },
+    {
+      "name": "ROOT_CMD",
+      "file": "featureplus-pr/cmd/root.go",
+      "line_hint": "// MARKER:ROOT_CMD Root command definition"
+    },
+    {
+      "name": "EXECUTE_FUNC",
+      "file": "featureplus-pr/cmd/root.go",
+      "line_hint": "// MARKER:EXECUTE_FUNC CLI execution entry point"
+    }
+  ]
+}

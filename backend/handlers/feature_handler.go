@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// MARKER:FEATURE_HANDLER Feature handler definition
 type FeatureHandler struct {
 	repo     *repositories.FeatureRepository
 	tagRepo  *repositories.TagRepository
@@ -448,6 +449,7 @@ func (h *FeatureHandler) UpdateFeatureField(c *gin.Context) {
 
 	fmt.Printf("Existing feature: %+v\n", existingFeature)
 
+	// MARKER:UPDATE_FEATURE_SWITCH Switch for updating feature fields
 	// Validate and update the specific field
 	switch updateData.Field {
 	case "title":

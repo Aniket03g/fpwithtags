@@ -12,22 +12,38 @@
         {
           "name": "Authentication",
           "category": "Auth",
-          "description": "Firebase Authentication with email/password and social login"
+          "description": "Firebase Authentication with email/password and social login",
+          "context": "Development"
         },
         {
           "name": "Firestore Database",
           "category": "Database",
-          "description": "Cloud Firestore for real-time data synchronization"
+          "description": "Cloud Firestore for real-time data synchronization",
+          "context": "Development"
         },
         {
           "name": "Routing",
           "category": "Navigation",
-          "description": "React Router for client-side routing"
+          "description": "React Router for client-side routing",
+          "context": "Development"
         },
         {
           "name": "State Management",
           "category": "State",
-          "description": "Context API for global state management"
+          "description": "Context API for global state management",
+          "context": "Development"
+        },
+        {
+          "name": "Performance Monitoring",
+          "category": "Monitoring",
+          "description": "Firebase Performance Monitoring for production analytics",
+          "context": "Production"
+        },
+        {
+          "name": "Error Tracking",
+          "category": "Monitoring",
+          "description": "Firebase Crashlytics for error tracking and reporting",
+          "context": "Production"
         }
       ],
       "tasks": [
@@ -35,37 +51,64 @@
           "name": "Setup Firebase Project",
           "type": "Backend",
           "description": "Create Firebase project and configure services",
-          "priority": "high"
+          "priority": "high",
+          "context": "Development"
         },
         {
           "name": "Initialize React App",
           "type": "UI",
           "description": "Create React app with TypeScript support",
-          "priority": "high"
+          "priority": "high",
+          "context": "Development"
         },
         {
           "name": "Configure Firebase SDK",
           "type": "Backend",
           "description": "Install and configure Firebase SDK in React",
-          "priority": "high"
+          "priority": "high",
+          "context": "Development"
         },
         {
           "name": "Implement Authentication",
           "type": "Backend",
           "description": "Set up Firebase Auth with login/signup forms",
-          "priority": "medium"
+          "priority": "medium",
+          "context": "Development"
         },
         {
           "name": "Setup Firestore",
           "type": "DB",
           "description": "Configure Firestore database and security rules",
-          "priority": "medium"
+          "priority": "medium",
+          "context": "Development"
         },
         {
           "name": "Configure Routing",
           "type": "UI",
           "description": "Set up React Router with protected routes",
-          "priority": "medium"
+          "priority": "medium",
+          "context": "Development"
+        },
+        {
+          "name": "Setup Performance Monitoring",
+          "type": "Backend",
+          "description": "Configure Firebase Performance Monitoring SDK",
+          "priority": "high",
+          "context": "Production"
+        },
+        {
+          "name": "Configure Error Tracking",
+          "type": "Backend",
+          "description": "Set up Firebase Crashlytics for production error tracking",
+          "priority": "high",
+          "context": "Production"
+        },
+        {
+          "name": "Optimize Build",
+          "type": "UI",
+          "description": "Configure production build optimization and code splitting",
+          "priority": "medium",
+          "context": "Production"
         }
       ],
       "dependencies": [
@@ -115,22 +158,26 @@
         {
           "name": "REST API",
           "category": "Backend",
-          "description": "RESTful API endpoints with Gin framework"
+          "description": "RESTful API endpoints with Gin framework",
+          "context": "Development"
         },
         {
           "name": "Database Models",
           "category": "Database",
-          "description": "GORM models with PostgreSQL"
+          "description": "GORM models with PostgreSQL",
+          "context": "Development"
         },
         {
           "name": "Authentication",
           "category": "Auth",
-          "description": "JWT-based authentication"
+          "description": "JWT-based authentication",
+          "context": "Development"
         },
         {
           "name": "Middleware",
           "category": "Backend",
-          "description": "Custom middleware for logging, auth, and CORS"
+          "description": "Custom middleware for logging, auth, and CORS",
+          "context": "Development"
         }
       ],
       "tasks": [
@@ -138,37 +185,43 @@
           "name": "Initialize Go Module",
           "type": "Backend",
           "description": "Set up Go module and project structure",
-          "priority": "high"
+          "priority": "high",
+          "context": "Development"
         },
         {
           "name": "Setup PostgreSQL",
           "type": "DB",
           "description": "Install and configure PostgreSQL database",
-          "priority": "high"
+          "priority": "high",
+          "context": "Development"
         },
         {
           "name": "Configure GORM",
           "type": "DB",
           "description": "Set up GORM ORM with PostgreSQL driver",
-          "priority": "high"
+          "priority": "high",
+          "context": "Development"
         },
         {
           "name": "Create API Routes",
           "type": "Backend",
           "description": "Define RESTful API endpoints with Gin",
-          "priority": "medium"
+          "priority": "medium",
+          "context": "Development"
         },
         {
           "name": "Implement Models",
           "type": "DB",
           "description": "Create database models and migrations",
-          "priority": "medium"
+          "priority": "medium",
+          "context": "Development"
         },
         {
           "name": "Add JWT Auth",
           "type": "Backend",
           "description": "Implement JWT authentication middleware",
-          "priority": "medium"
+          "priority": "medium",
+          "context": "Development"
         }
       ],
       "dependencies": [

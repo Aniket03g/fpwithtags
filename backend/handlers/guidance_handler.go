@@ -14,6 +14,8 @@ import (
 type GuidanceHandler struct {
 	DB           *gorm.DB
 	taskRepo     repositories.TaskRepository
+	featureRepo  *repositories.FeatureRepository  // STAGE 2a: Added to get project context
+	projectRepo  *repositories.ProjectRepository  // STAGE 2a: Added to get project context
 	guidanceRepo *repositories.GuidanceRepository
 }
 
@@ -29,11 +31,14 @@ func NewGuidanceHandler(db *gorm.DB, dataPath string) *GuidanceHandler {
 	return &GuidanceHandler{
 		DB:           db,
 		taskRepo:     repositories.NewTaskRepository(db),
+		featureRepo:  repositories.NewFeatureRepository(db),  // STAGE 2a: Initialize feature repo
+		projectRepo:  repositories.NewProjectRepository(db),  // STAGE 2a: Initialize project repo
 		guidanceRepo: guidanceRepo,
 	}
 }
 
 // GetTaskGuidance returns guidance for a specific task and tech stack
+// STAGE 2a: Updated to use context-aware guidance
 func (h *GuidanceHandler) GetTaskGuidance(c *gin.Context) {
 	taskIDStr := c.Param("id")
 	taskID, err := strconv.Atoi(taskIDStr)
@@ -55,14 +60,34 @@ func (h *GuidanceHandler) GetTaskGuidance(c *gin.Context) {
 		return
 	}
 
-	// Get guidance from repository
-	guidance := h.guidanceRepo.GetGuidance(techStack, task.TaskType)
+	// STAGE 2a: Get project context from the task's feature's project
+	projectContext := "Development" // Default context
+	
+	// Get the feature to find the project
+	if task.FeatureID > 0 {
+		feature, err := h.featureRepo.GetFeatureByID(int(task.FeatureID))
+		if err == nil && feature.ProjectID > 0 {
+			// Get the project to access its context
+			project, err := h.projectRepo.GetProjectByID(feature.ProjectID)
+			if err == nil && project.Config != nil {
+				// Extract context from project config
+				if ctx, ok := project.Config["context"].(string); ok && ctx != "" {
+					projectContext = ctx
+					log.Printf("INFO: Using project context '%s' for task %d guidance", projectContext, taskID)
+				}
+			}
+		}
+	}
+
+	// Get context-aware guidance from repository
+	guidance := h.guidanceRepo.GetGuidanceWithContext(techStack, task.TaskType, projectContext)
 
 	// Render the guidance fragment
 	c.HTML(http.StatusOK, "task-guidance-fragment.html", gin.H{
 		"TaskID":   taskID,
 		"Task":     task,
 		"Guidance": guidance,
+		"Context":  projectContext, // Pass context to template for display
 	})
 }
 

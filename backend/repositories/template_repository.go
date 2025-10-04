@@ -33,6 +33,7 @@ type TemplateFeature struct {
 	Name        string `json:"name"`
 	Category    string `json:"category"`
 	Description string `json:"description"`
+	Context     string `json:"context"` // STAGE 2b: Project context (Development, Staging, Production, Testing)
 }
 
 // TemplateTask represents a task in a template
@@ -41,6 +42,7 @@ type TemplateTask struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 	Priority    string `json:"priority"`
+	Context     string `json:"context"` // STAGE 2b: Project context (Development, Staging, Production, Testing)
 }
 
 // TemplateData represents the entire template configuration

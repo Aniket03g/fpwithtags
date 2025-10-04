@@ -12,6 +12,7 @@ import (
 type GuidanceEntry struct {
 	Stack       string   `json:"stack"`
 	TaskType    string   `json:"task_type"`
+	Context     string   `json:"context"`      // NEW: Project context (Development, Staging, Production, Testing)
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Snippet     string   `json:"snippet"`
@@ -67,16 +68,58 @@ func (r *GuidanceRepository) LoadData() error {
 		return fmt.Errorf("failed to parse guidance JSON: %w", err)
 	}
 	
+	// STAGE 2a: Set default context for backwards compatibility
+	// If guidance entries don't have a context field, default to "Development"
+	for i := range guidanceData.Guidances {
+		if guidanceData.Guidances[i].Context == "" {
+			guidanceData.Guidances[i].Context = "Development"
+		}
+	}
+	
+	// Set default context for default guidance if not specified
+	if guidanceData.DefaultGuidance.Context == "" {
+		guidanceData.DefaultGuidance.Context = "Development"
+	}
+	
 	r.data = &guidanceData
 	return nil
 }
 
 // GetGuidance retrieves guidance for a specific stack and task type
+// Deprecated: Use GetGuidanceWithContext for context-aware guidance
 func (r *GuidanceRepository) GetGuidance(stack, taskType string) GuidanceEntry {
+	// Default to Development context for backwards compatibility
+	return r.GetGuidanceWithContext(stack, taskType, "Development")
+}
+
+// GetGuidanceWithContext retrieves guidance for a specific stack, task type, and context
+// STAGE 2a: New method that includes context filtering
+func (r *GuidanceRepository) GetGuidanceWithContext(stack, taskType, context string) GuidanceEntry {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	
-	// Search for matching guidance
+	// Default context to "Development" if empty
+	if context == "" {
+		context = "Development"
+	}
+	
+	// Search for exact match (stack + task type + context)
+	for _, guidance := range r.data.Guidances {
+		if guidance.Stack == stack && guidance.TaskType == taskType && guidance.Context == context {
+			return guidance
+		}
+	}
+	
+	// Fallback: Try to find guidance with same stack and task type but Development context
+	if context != "Development" {
+		for _, guidance := range r.data.Guidances {
+			if guidance.Stack == stack && guidance.TaskType == taskType && guidance.Context == "Development" {
+				return guidance
+			}
+		}
+	}
+	
+	// Fallback: Try to find guidance with same stack and task type (any context)
 	for _, guidance := range r.data.Guidances {
 		if guidance.Stack == stack && guidance.TaskType == taskType {
 			return guidance
@@ -133,9 +176,14 @@ func (r *GuidanceRepository) AddGuidance(guidance GuidanceEntry) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	
-	// Check if guidance already exists
+	// STAGE 2a: Set default context if not provided
+	if guidance.Context == "" {
+		guidance.Context = "Development"
+	}
+	
+	// Check if guidance already exists (stack + task type + context)
 	for i, existing := range r.data.Guidances {
-		if existing.Stack == guidance.Stack && existing.TaskType == guidance.TaskType {
+		if existing.Stack == guidance.Stack && existing.TaskType == guidance.TaskType && existing.Context == guidance.Context {
 			// Update existing
 			r.data.Guidances[i] = guidance
 			return r.saveData()
@@ -148,19 +196,43 @@ func (r *GuidanceRepository) AddGuidance(guidance GuidanceEntry) error {
 }
 
 // DeleteGuidance removes a guidance entry
+// Note: This deletes all contexts for the given stack and task type
 func (r *GuidanceRepository) DeleteGuidance(stack, taskType string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	
-	for i, guidance := range r.data.Guidances {
+	found := false
+	// Remove all guidances matching stack and task type (all contexts)
+	for i := len(r.data.Guidances) - 1; i >= 0; i-- {
+		guidance := r.data.Guidances[i]
 		if guidance.Stack == stack && guidance.TaskType == taskType {
+			r.data.Guidances = append(r.data.Guidances[:i], r.data.Guidances[i+1:]...)
+			found = true
+		}
+	}
+	
+	if !found {
+		return fmt.Errorf("guidance not found for stack: %s, task type: %s", stack, taskType)
+	}
+	
+	return r.saveData()
+}
+
+// DeleteGuidanceWithContext removes a specific guidance entry by stack, task type, and context
+// STAGE 2a: New method for context-specific deletion
+func (r *GuidanceRepository) DeleteGuidanceWithContext(stack, taskType, context string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	
+	for i, guidance := range r.data.Guidances {
+		if guidance.Stack == stack && guidance.TaskType == taskType && guidance.Context == context {
 			// Remove the guidance
 			r.data.Guidances = append(r.data.Guidances[:i], r.data.Guidances[i+1:]...)
 			return r.saveData()
 		}
 	}
 	
-	return fmt.Errorf("guidance not found for stack: %s, task type: %s", stack, taskType)
+	return fmt.Errorf("guidance not found for stack: %s, task type: %s, context: %s", stack, taskType, context)
 }
 
 // saveData writes the current data back to the JSON file

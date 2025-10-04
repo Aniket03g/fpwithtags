@@ -107,15 +107,56 @@ func (h *ProjectHandler) ApplyTemplate(project *models.Project, templateID strin
 	}
 
 	// Log template details for debugging
-	log.Printf("INFO: Applying template '%s' -> inserting %d features, %d tasks, %d dependencies", 
-		template.Name, len(template.Features), len(template.Tasks), len(template.Dependencies))
+	// STAGE 2b: Get project context for filtering
+	projectContext := "Development" // Default context
+	if project.Config != nil {
+		if ctx, ok := project.Config["context"].(string); ok && ctx != "" {
+			projectContext = ctx
+		}
+	}
+	log.Printf("INFO: Project context: %s", projectContext)
+
+	// STAGE 2b: Filter features by context
+	var filteredFeatures []repositories.TemplateFeature
+	for _, feature := range template.Features {
+		// Default to "Development" if context not specified
+		featureContext := feature.Context
+		if featureContext == "" {
+			featureContext = "Development"
+		}
+		
+		// Include feature if it matches project context
+		if featureContext == projectContext {
+			filteredFeatures = append(filteredFeatures, feature)
+		}
+	}
+	
+	// Fallback: If no features match, use Development context features
+	if len(filteredFeatures) == 0 && projectContext != "Development" {
+		log.Printf("INFO: No features found for context '%s', falling back to Development", projectContext)
+		for _, feature := range template.Features {
+			featureContext := feature.Context
+			if featureContext == "" || featureContext == "Development" {
+				filteredFeatures = append(filteredFeatures, feature)
+			}
+		}
+	}
+	
+	// If still no features, use all features
+	if len(filteredFeatures) == 0 {
+		log.Printf("WARNING: No context-specific features found, using all features")
+		filteredFeatures = template.Features
+	}
+
+	log.Printf("INFO: Applying template '%s' -> inserting %d/%d features (context: %s)", 
+		template.Name, len(filteredFeatures), len(template.Features), projectContext)
 
 	// Create features from template
 	createdFeatures := []models.Feature{}
 	featureMap := make(map[string]uint) // Map feature names to IDs for dependency creation
 
-	for i, templateFeature := range template.Features {
-		log.Printf("DEBUG: Creating feature %d/%d: %s", i+1, len(template.Features), templateFeature.Name)
+	for i, templateFeature := range filteredFeatures {
+		log.Printf("DEBUG: Creating feature %d/%d: %s (context: %s)", i+1, len(filteredFeatures), templateFeature.Name, templateFeature.Context)
 		feature := models.Feature{
 			Title:       templateFeature.Name,
 			Description: templateFeature.Description,
@@ -137,7 +178,41 @@ func (h *ProjectHandler) ApplyTemplate(project *models.Project, templateID strin
 		featureMap[templateFeature.Name] = feature.ID
 	}
 	
-	log.Printf("INFO: Created %d/%d features successfully", len(createdFeatures), len(template.Features))
+	log.Printf("INFO: Created %d/%d features successfully", len(createdFeatures), len(filteredFeatures))
+
+	// STAGE 2b: Filter tasks by context
+	var filteredTasks []repositories.TemplateTask
+	for _, task := range template.Tasks {
+		// Default to "Development" if context not specified
+		taskContext := task.Context
+		if taskContext == "" {
+			taskContext = "Development"
+		}
+		
+		// Include task if it matches project context
+		if taskContext == projectContext {
+			filteredTasks = append(filteredTasks, task)
+		}
+	}
+	
+	// Fallback: If no tasks match, use Development context tasks
+	if len(filteredTasks) == 0 && projectContext != "Development" {
+		log.Printf("INFO: No tasks found for context '%s', falling back to Development", projectContext)
+		for _, task := range template.Tasks {
+			taskContext := task.Context
+			if taskContext == "" || taskContext == "Development" {
+				filteredTasks = append(filteredTasks, task)
+			}
+		}
+	}
+	
+	// If still no tasks, use all tasks
+	if len(filteredTasks) == 0 {
+		log.Printf("WARNING: No context-specific tasks found, using all tasks")
+		filteredTasks = template.Tasks
+	}
+
+	log.Printf("INFO: Creating %d/%d tasks (context: %s)", len(filteredTasks), len(template.Tasks), projectContext)
 
 	// Create tasks from template with feature assignment
 	createdTasks := []models.Task{}
@@ -149,8 +224,8 @@ func (h *ProjectHandler) ApplyTemplate(project *models.Project, templateID strin
 		featureCategories[feature.Category] = append(featureCategories[feature.Category], feature)
 	}
 
-	for i, templateTask := range template.Tasks {
-		log.Printf("DEBUG: Creating task %d/%d: %s (Type: %s)", i+1, len(template.Tasks), templateTask.Name, templateTask.Type)
+	for i, templateTask := range filteredTasks {
+		log.Printf("DEBUG: Creating task %d/%d: %s (Type: %s, Context: %s)", i+1, len(filteredTasks), templateTask.Name, templateTask.Type, templateTask.Context)
 		
 		// Find the appropriate feature for this task based on type matching
 		var featureID uint
@@ -200,7 +275,7 @@ func (h *ProjectHandler) ApplyTemplate(project *models.Project, templateID strin
 		taskMap[templateTask.Name] = task.ID
 	}
 	
-	log.Printf("INFO: Created %d/%d tasks successfully", len(createdTasks), len(template.Tasks))
+	log.Printf("INFO: Created %d/%d tasks successfully", len(createdTasks), len(filteredTasks))
 
 	// Create dependencies if we have a dependency repository
 	if len(template.Dependencies) > 0 && h.db != nil {

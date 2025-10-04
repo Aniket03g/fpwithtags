@@ -1,0 +1,19 @@
+{
+  "markers": [
+    {
+      "name": "CLI_COMMANDS",
+      "file": "cli/commands.go",
+      "line_hint": "// MARKER:CLI_COMMANDS"
+    },
+    {
+      "name": "API_ROUTES",
+      "file": "routes/routes.go",
+      "line_hint": "// MARKER:API_ROUTES"
+    },
+    {
+      "name": "MAIN_INIT",
+      "file": "main.go",
+      "line_hint": "// MARKER:MAIN_INIT"
+    }
+  ]
+}

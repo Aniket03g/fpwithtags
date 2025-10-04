@@ -248,12 +248,14 @@ func (h *TemplateHandler) GetAvailableStacks(c *gin.Context) {
 }
 
 // enrichTasksWithGuidance enriches template tasks with guidance from the guidance repository
+// STAGE 2a: Updated to use Development context by default for template previews
 func (h *TemplateHandler) enrichTasksWithGuidance(template *repositories.Template) []map[string]interface{} {
 	enrichedTasks := []map[string]interface{}{}
 	
 	for _, task := range template.Tasks {
 		// Get guidance for this task type and tech stack
-		guidance := h.guidanceRepo.GetGuidance(template.TechStack, task.Type)
+		// Use "Development" context for template previews (before project is created)
+		guidance := h.guidanceRepo.GetGuidanceWithContext(template.TechStack, task.Type, "Development")
 		
 		enrichedTask := map[string]interface{}{
 			"task":     task,

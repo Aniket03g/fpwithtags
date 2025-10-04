@@ -8,6 +8,7 @@ import (
 	"featureplus-pr/internal/config"
 )
 
+// MARKER:ROOT_CMD Root command definition
 var rootCmd = &cobra.Command{
 	Use:     "featureplus-pr",
 	Short:   "A CLI to link GitHub PRs with FeaturePlus features and tasks",
@@ -15,6 +16,7 @@ var rootCmd = &cobra.Command{
 	Version: "0.1.0",
 }
 
+// MARKER:EXECUTE_FUNC CLI execution entry point
 func Execute() {
 	// Always print version info
 	fmt.Printf("FeaturePlus CLI v%s\n", rootCmd.Version)

@@ -1,0 +1,60 @@
+{
+  "candidates": [
+    {
+      "name": "API_ROUTES",
+      "file": "backend/main.go",
+      "line_number": 488,
+      "type": "routes",
+      "start_line": 488,
+      "end_line": 526
+    },
+    {
+      "name": "WEB_ROUTES",
+      "file": "backend/main.go",
+      "line_number": 542,
+      "type": "routes",
+      "start_line": 542,
+      "end_line": 574
+    },
+    {
+      "name": "FEATURE_STATUS",
+      "file": "backend/models/features.go",
+      "line_number": 12,
+      "type": "constants",
+      "start_line": 12,
+      "end_line": 21
+    },
+    {
+      "name": "FEATURE_MODEL",
+      "file": "backend/models/features.go",
+      "line_number": 23,
+      "type": "model",
+      "start_line": 23,
+      "end_line": 41
+    },
+    {
+      "name": "FEATURE_HANDLER",
+      "file": "backend/handlers/feature_handler.go",
+      "line_number": 17,
+      "type": "handler",
+      "start_line": 17,
+      "end_line": 22
+    },
+    {
+      "name": "UPDATE_FEATURE_SWITCH",
+      "file": "backend/handlers/feature_handler.go",
+      "line_number": 452,
+      "type": "switch",
+      "start_line": 452,
+      "end_line": 539
+    },
+    {
+      "name": "ROOT_CMD",
+      "file": "featureplus-pr/cmd/root.go",
+      "line_number": 11,
+      "type": "command",
+      "start_line": 11,
+      "end_line": 17
+    }
+  ]
+}

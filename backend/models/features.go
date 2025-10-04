@@ -9,6 +9,7 @@ import (
 type FeatureStatus string
 type FeaturePriority string
 
+// MARKER:FEATURE_STATUS Feature status and priority constants
 const (
 	StatusTodo       FeatureStatus = "todo"
 	StatusInProgress FeatureStatus = "in_progress"
@@ -19,6 +20,7 @@ const (
 	PriorityHigh   FeaturePriority = "high"
 )
 
+// MARKER:FEATURE_MODEL Feature model definition
 type Feature struct {
 	ID              uint            `gorm:"primaryKey" json:"id"`
 	ProjectID       int             `gorm:"not null;index" json:"project_id"`

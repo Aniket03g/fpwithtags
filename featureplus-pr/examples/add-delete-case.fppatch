@@ -1,0 +1,24 @@
+marker: UPDATE_FEATURE_SWITCH
+snippet: |
+  case "delete":
+    if _, ok := updateData.Value.(bool); ok {
+      existingFeature.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true}
+    } else {
+      c.JSON(http.StatusBadRequest, gin.H{"error": "invalid delete value"})
+      return
+    }
+target_file: backend/handlers/feature_handler.go
+context:
+  before:
+    - 'fmt.Printf("Existing feature: %+v\n", existingFeature)'
+    - '// MARKER:UPDATE_FEATURE_SWITCH Switch for updating feature fields'
+    - '// Validate and update the specific field'
+    - 'switch updateData.Field {'
+  after:
+    - 'case "title":'
+    - '    if title, ok := updateData.Value.(string); ok {'
+    - '        existingFeature.Title = title'
+    - '    } else {'
+    - '        c.JSON(http.StatusBadRequest, gin.H{"error": "invalid title value"})'
+    - '        return'
+    - '    }'
