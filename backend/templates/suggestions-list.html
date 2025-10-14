@@ -1,0 +1,63 @@
+<!-- STAGE 4b: AI-Generated Feature Suggestions -->
+<div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-lg p-6 mb-6 shadow-lg">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">💡</span>
+      <div>
+        <h3 class="text-xl font-bold text-gray-800">AI-Generated Feature Suggestions</h3>
+        <p class="text-sm text-gray-600">{{ .Count }} suggestions based on your project context</p>
+      </div>
+    </div>
+    <button 
+      onclick="document.getElementById('suggestions-container').innerHTML=''" 
+      class="text-gray-500 hover:text-gray-700 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {{ range .Suggestions }}
+    <div class="bg-white rounded-lg p-4 shadow-md border border-purple-100 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-2">
+        <h4 class="font-semibold text-gray-800 text-base">{{ .Name }}</h4>
+        <span class="px-2 py-1 text-xs font-medium rounded-full
+          {{ if eq .Priority "High" }}bg-red-100 text-red-700
+          {{ else if eq .Priority "Medium" }}bg-yellow-100 text-yellow-700
+          {{ else }}bg-green-100 text-green-700{{ end }}">
+          {{ .Priority }}
+        </span>
+      </div>
+      
+      <p class="text-sm text-gray-600 mb-3">{{ .Description }}</p>
+      
+      <div class="flex items-center justify-between">
+        <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
+          {{ .Category }}
+        </span>
+        <button 
+          hx-get="/web/projects/{{ $.ProjectID }}/features/new?suggestion_name={{ .Name }}&suggestion_desc={{ .Description }}&suggestion_category={{ .Category }}"
+          hx-target="#new-feature-form-container"
+          hx-swap="innerHTML"
+          class="text-xs px-3 py-1 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition font-medium">
+          + Add
+        </button>
+      </div>
+    </div>
+    {{ end }}
+  </div>
+
+  <div class="mt-4 text-center">
+    <button 
+      hx-post="/web/projects/{{ .ProjectID }}/suggest" 
+      hx-target="#suggestions-container" 
+      hx-swap="innerHTML"
+      class="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 mx-auto">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>Regenerate Suggestions</span>
+    </button>
+  </div>
+</div>

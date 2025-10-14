@@ -1,0 +1,27 @@
+<!-- STAGE 4b: Error Message for AI Suggestions -->
+<div class="bg-red-50 border-2 border-red-200 rounded-lg p-6 mb-6">
+  <div class="flex items-center gap-3 mb-3">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <div>
+      <h3 class="text-lg font-bold text-red-800">Unable to Generate Suggestions</h3>
+      <p class="text-sm text-red-600">{{ .error }}</p>
+    </div>
+  </div>
+  
+  <div class="flex gap-2">
+    <button 
+      onclick="document.getElementById('suggestions-container').innerHTML=''" 
+      class="px-4 py-2 bg-white text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition text-sm font-medium">
+      Close
+    </button>
+    {{ if eq .error "Project context missing. Please add a project context to generate suggestions." }}
+    <a 
+      href="/web/projects" 
+      class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium">
+      Add Project Context
+    </a>
+    {{ end }}
+  </div>
+</div>

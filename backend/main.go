@@ -250,7 +250,7 @@ func main() {
 		"../.env",
 		"../../.env",
 	}
-	
+
 	for _, envFile := range possibleEnvFiles {
 		if err := godotenv.Load(envFile); err == nil {
 			log.Printf("Loaded environment variables from %s", envFile)
@@ -258,7 +258,7 @@ func main() {
 			break
 		}
 	}
-	
+
 	if !envLoaded {
 		log.Println("Warning: No .env file found in any checked location (this is OK in production if env vars are set)")
 	}
@@ -276,7 +276,7 @@ func main() {
 		os.Setenv("DATA_PATH", dataPath)
 		log.Printf("Set DATA_PATH to %s directly in the code", dataPath)
 	}
-	
+
 	// Check for GITHUB_TOKEN
 	githubToken := os.Getenv("GITHUB_TOKEN")
 	if githubToken == "" {
@@ -344,9 +344,10 @@ func main() {
 	prHandler := handlers.NewPullRequestHandler(prRepo)
 	webPRHandler := handlers.NewWebPRHandler(prRepo)
 	webReleaseHandler := handlers.NewWebReleaseHandler(releaseRepo, prRepo)
+	llmSuggestHandler := handlers.NewLLMSuggestHandler(db.DB) // STAGE 4a: LLM feature suggestions
 
 	// MARKER:ROUTER_INIT Initialize the main router
-router := gin.Default()
+	router := gin.Default()
 
 	// Add dict function to the template FuncMap BEFORE LoadHTMLGlob
 	router.SetFuncMap(template.FuncMap{
@@ -423,6 +424,9 @@ router := gin.Default()
 		"templates/feature-progress.html",
 		"templates/dependencies/dependencies-list.html",
 		"templates/dependencies/dependency_panels.html",
+		"templates/suggestions-error.html",
+		"templates/feature-form.html",
+		"templates/task-form.html",
 		"templates/dependencies/dependency_type_selector.html",
 	)
 
@@ -436,47 +440,46 @@ router := gin.Default()
 	router.Use(LoggingMiddleware())
 
 	// MARKER:CORS_CONFIG CORS middleware configuration
-router.Use(func(c *gin.Context) {
-    origin := c.Request.Header.Get("Origin")
+	router.Use(func(c *gin.Context) {
+		origin := c.Request.Header.Get("Origin")
 
-    // Define allowed origins
-    allowedOrigins := []string{
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-    }
+		// Define allowed origins
+		allowedOrigins := []string{
+			"http://localhost:3000",
+			"http://127.0.0.1:3000",
+			"http://localhost:8080",
+			"http://127.0.0.1:8080",
+		}
 
-    // Check if the origin is in allowed list
-    isAllowed := false
-    for _, o := range allowedOrigins {
-        if origin == o {
-            isAllowed = true
-            break
-        }
-    }
+		// Check if the origin is in allowed list
+		isAllowed := false
+		for _, o := range allowedOrigins {
+			if origin == o {
+				isAllowed = true
+				break
+			}
+		}
 
-    // If not matched, you can still allow Tailscale/IP based origins dynamically
-    if strings.HasPrefix(origin, "http://100.") {
-        isAllowed = true
-    }
+		// If not matched, you can still allow Tailscale/IP based origins dynamically
+		if strings.HasPrefix(origin, "http://100.") {
+			isAllowed = true
+		}
 
-    if isAllowed && origin != "" {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-        c.Writer.Header().Set("Vary", "Origin")
-    }
+		if isAllowed && origin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			c.Writer.Header().Set("Vary", "Origin")
+		}
 
-    if c.Request.Method == "OPTIONS" {
-        c.AbortWithStatus(http.StatusOK)
-        return
-    }
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusOK)
+			return
+		}
 
-    c.Next()
-})
-
+		c.Next()
+	})
 
 	// Register auth routes
 	routes.RegisterAuthRoutes(router, db.DB)
@@ -504,6 +507,8 @@ router.Use(func(c *gin.Context) {
 		{
 			projectRoutes.GET("", projectHandler.GetAllProjects)
 			projectRoutes.DELETE("/:id", projectHandler.DeleteProject)
+			// STAGE 4a: LLM-based feature suggestions
+			projectRoutes.POST("/:id/suggest", llmSuggestHandler.SuggestFeatures)
 		}
 
 		// Regular authenticated routes
@@ -560,6 +565,8 @@ router.Use(func(c *gin.Context) {
 			authWeb.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)
 			authWeb.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
 			authWeb.POST("/projects/:id/features", featureHandler.CreateFeatureForProject)
+			// STAGE 4b: AI Suggestions web route
+			authWeb.POST("/projects/:id/suggest", llmSuggestHandler.SuggestFeaturesWeb)
 			authWeb.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
 			authWeb.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
 			authWeb.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)

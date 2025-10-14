@@ -1,26 +1,32 @@
-<div id="task-list-container" class="space-y-4 pt-6">
+<div id="task-list-container" class="bg-white rounded-lg shadow-sm p-8 mb-6">
   
-  <div class="flex justify-between items-center mb-4">
-    <h3 class="text-xl font-semibold text-gray-800">Associated Tasks</h3>
-    <div class="flex items-center gap-2">
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=All" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition {{ if or (not .FilterType) (eq .FilterType "All") }}bg-blue-600 text-white border-blue-600{{ end }}">All</a>
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=UI" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition {{ if eq .FilterType "UI" }}bg-blue-600 text-white border-blue-600{{ end }}">UI</a>
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=DB" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition {{ if eq .FilterType "DB" }}bg-blue-600 text-white border-blue-600{{ end }}">DB</a>
-      <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=Dev" hx-target="#task-list-container" hx-swap="outerHTML" class="px-3 py-1 rounded-lg text-sm font-medium border border-gray-300 bg-white text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition {{ if eq .FilterType "Dev" }}bg-blue-600 text-white border-blue-600{{ end }}">Dev</a>
-    </div>
-    <button hx-get="/web/features/{{ .Feature.ID }}/tasks/new" hx-target="#new-task-form-container" hx-swap="innerHTML" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-sm font-medium font-bold">Add Task</button>
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-xl font-semibold text-gray-900">Associated Tasks</h3>
+    <button hx-get="/web/features/{{ .Feature.ID }}/tasks/new" hx-target="#new-task-form-container" hx-swap="innerHTML" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-sm font-medium">
+      + Add Task
+    </button>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="flex gap-2 mb-6 border-b border-gray-200 pb-2">
+    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=All" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if or (not .FilterType) (eq .FilterType "All") }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">All</a>
+    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=UI" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq .FilterType "UI" }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">UI</a>
+    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=DB" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq .FilterType "DB" }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">DB</a>
+    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=Dev" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq .FilterType "Dev" }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">Dev</a>
   </div>
 
   <div id="new-task-form-container"></div>
 
   {{ if .Tasks }}
-    {{ range .Tasks }}
-      {{ template "task-card.html" (dict "Task" . "FeatureID" $.Feature.ID "CurrentUser" $.CurrentUser) }}
-    {{ end }}
+    <div class="space-y-3">
+      {{ range .Tasks }}
+        {{ template "task-card.html" (dict "Task" . "FeatureID" $.Feature.ID "CurrentUser" $.CurrentUser "ProjectTechStack" $.ProjectTechStack) }}
+      {{ end }}
+    </div>
   {{ else }}
-    <div class="text-center p-8 bg-white rounded-lg shadow-md border border-gray-200">
+    <div class="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
       <p class="text-gray-500">No '{{ .FilterType }}' tasks found for this feature.</p>
     </div>
   {{ end }}
 
-</div> 
+</div>

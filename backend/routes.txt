@@ -75,10 +75,11 @@ Method: POST, Path: /api/templates/apply
 Method: POST, Path: /api/templates/reload
 Method: POST, Path: /api/tasks/:task_id/attachments
 Method: POST, Path: /api/tasks/:task_id/comments
+Method: POST, Path: /api/pr
+Method: POST, Path: /api/projects/:id/suggest
+Method: POST, Path: /api/pr/:id/review
 Method: POST, Path: /api/auth/signup
 Method: POST, Path: /api/auth/login
-Method: POST, Path: /api/pr
-Method: POST, Path: /api/pr/:id/review
 Method: POST, Path: /api/releases/
 Method: POST, Path: /api/releases/:id/finalize
 Method: POST, Path: /api/guidance/
@@ -90,6 +91,7 @@ Method: POST, Path: /web/fragments/api/releases
 Method: POST, Path: /web/features/:id/tasks
 Method: POST, Path: /web/projects/create
 Method: POST, Path: /web/projects/:id/features
+Method: POST, Path: /web/projects/:id/suggest
 Method: POST, Path: /prs/:id/test
 Method: POST, Path: /prs/:id/approve
 Method: POST, Path: /tasks/:id/prs

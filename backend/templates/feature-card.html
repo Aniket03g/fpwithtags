@@ -1,17 +1,16 @@
 {{ $f := .Feature }}
 <div id="feature-card-{{ $f.ID }}"
-  class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-4 flex flex-col justify-between transition-transform hover:-translate-y-1 hover:shadow-xl group"
+  class="bg-white rounded-lg border border-gray-200 p-6 mb-4 hover:shadow-md transition group"
   role="region" tabindex="0"
-  style="position:relative;"
 >
   <!-- Main clickable area: title and description only -->
   <a
     href="/web/projects/{{ $.ProjectID }}/features/{{ $f.ID }}"
     class="block cursor-pointer"
-    style="width:100%; text-decoration: none;"
+    style="text-decoration: none;"
   >
-    <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700">{{ $f.Title }}</h3>
-    <p class="text-gray-500 text-sm mb-4">{{ $f.Description }}</p>
+    <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">{{ $f.Title }}</h3>
+    <p class="text-gray-600 text-sm mb-4">{{ $f.Description }}</p>
   </a>
   <!-- Tag chips (not clickable, visually separate) -->
   {{ if $f.Tags }}
@@ -22,23 +21,25 @@
           hx-get="/web/fragments/features?tag={{ .TagName }}"
           hx-target="#main-content"
           hx-swap="innerHTML"
-          class="bg-gray-100 text-gray-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-blue-100 hover:text-blue-700 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-100 hover:text-blue-700 transition cursor-pointer"
           style="text-decoration:none;"
           >{{ .TagName }}</a>
       {{ end }}
     </div>
   {{ end }}
-  <!-- Pencil icon (edit) -->
-  <div class="flex justify-end gap-2 mt-2">
+  <!-- Edit icon -->
+  <div class="flex justify-end gap-2 mt-4">
     <button 
       hx-get="/web/features/{{ $f.ID }}/edit-inline?project_id={{ $.ProjectID }}"
       hx-target="#feature-card-{{ $f.ID }}"
       hx-swap="outerHTML"
       aria-label="Edit Feature"
-      class="inline-flex items-center px-2 py-1 bg-transparent text-gray-500 hover:text-primary-700"
+      class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
       onclick="event.stopPropagation();"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13h3l8-8a2.828 2.828 0 00-4-4l-8 8v3h3z" /></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
     </button>
   </div>
-</div> 
+</div>
