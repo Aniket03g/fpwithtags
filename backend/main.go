@@ -400,6 +400,7 @@ func main() {
 		"templates/project-list.html",
 		"templates/project-list-fragment.html",
 		"templates/create_project.html",
+		"templates/import_project.html",
 		"templates/template-details-fragment.html",
 		"templates/_project_create_success.html",
 		"templates/_pr_row.html",
@@ -541,6 +542,9 @@ func main() {
 	// Register template routes
 	routes.RegisterTemplateRoutes(router, db.DB)
 
+	// Register import routes (dynamic loading, not preloaded)
+	routes.RegisterImportRoutes(router, db.DB)
+
 	// MARKER:WEB_ROUTES Define web routes for HTMX
 	// --- NEW WEB ROUTES FOR HTMX ---
 	// Create app handler for web routes
@@ -560,6 +564,7 @@ func main() {
 			authWeb.GET("/projects/:id", appHandler.RenderAppShell)
 			authWeb.GET("/projects/:id/features", appHandler.RenderAppShell)
 			authWeb.GET("/projects/create-modal", projectHandler.ShowProjectCreateModal)
+			authWeb.GET("/projects/import-modal", projectHandler.ShowProjectImportModal)
 			authWeb.POST("/projects/create", projectHandler.CreateProjectFromForm)
 			authWeb.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
 			authWeb.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)

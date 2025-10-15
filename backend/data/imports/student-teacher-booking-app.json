@@ -1,0 +1,145 @@
+{
+  "id": "student-teacher-booking-app",
+  "name": "Student-Teacher Appointment Booking System (Unified Mentor)",
+  "stack": "HTML5, CSS3, JavaScript (ES6 modules, vanilla), Firebase (Firestore, Authentication), Firebase Hosting",
+  "description": "A client-side web application that allows admins to add teachers, teachers to set availability, and students to search and book appointments. Uses Firebase Authentication for user management and Firestore as the NoSQL backend; intended to be deployed as a static site on Firebase Hosting.",
+  "tech_stack": "Firebase",
+  "feature_categories": ["Auth", "UI", "Scheduling", "Workflow", "Admin"],
+  "task_types": ["Backend", "UI", "DB", "Testing"],
+  "features": [
+    {
+      "name": "Authentication",
+      "category": "Auth",
+      "description": "Email/password sign-up and sign-in using Firebase Authentication with role assignment (admin, teacher, student).",
+      "context": "Development"
+    },
+    {
+      "name": "Role-based Dashboards",
+      "category": "UI",
+      "description": "Separate pages and UIs for Admin, Teacher, and Student with client-side redirects based on Firestore-stored role.",
+      "context": "Development"
+    },
+    {
+      "name": "Teacher availability scheduling",
+      "category": "Scheduling",
+      "description": "Teachers can create availability slots (date, start, end) stored in Firestore and slots can be marked booked/unbooked.",
+      "context": "Development"
+    },
+    {
+      "name": "Student booking flow",
+      "category": "Scheduling",
+      "description": "Students can search teachers (by name/subject/department), view availability, and book appointments which create pending appointment records in Firestore.",
+      "context": "Development"
+    },
+    {
+      "name": "Appointment management",
+      "category": "Workflow",
+      "description": "Teachers can approve or cancel appointment requests; appointment statuses update and availability slots toggle booked state.",
+      "context": "Development"
+    },
+    {
+      "name": "Admin management",
+      "category": "Admin",
+      "description": "Admin can add teacher accounts (creates Auth user + Firestore user doc), manage/delete teachers, and approve student registrations.",
+      "context": "Development"
+    }
+  ],
+  "tasks": [
+    {
+      "name": "Create Firebase Project & Enable Services",
+      "type": "Backend",
+      "description": "Create a Firebase project, enable Email/Password Authentication and Firestore (start in test mode for development).",
+      "priority": "high",
+      "context": "Development"
+    },
+    {
+      "name": "Populate js/firebase-config.js with project keys",
+      "type": "Backend",
+      "description": "Copy Firebase web app config object from the Firebase console into `js/firebase-config.js` so the app can initialize Firebase services.",
+      "priority": "high",
+      "context": "Development"
+    },
+    {
+      "name": "Create Admin User in Firebase Authentication",
+      "type": "Backend",
+      "description": "Create the admin account (the app checks for `admin@unifiedmentor.com` in code) in Firebase Auth so admin dashboard and approval flows work, or update code to match a different admin email.",
+      "priority": "high",
+      "context": "Development"
+    },
+    {
+      "name": "Run locally via static server / Live Server",
+      "type": "UI",
+      "description": "Serve the repository's static files (index.html + assets) using VS Code Live Server or a simple static HTTP server to test; Firebase interactions require correct firebase-config.",
+      "priority": "medium",
+      "context": "Development"
+    },
+    {
+      "name": "Harden Firestore rules & secure production",
+      "type": "DB",
+      "description": "Replace open/test rules with role-based Firestore security rules enforcing: only admin can add teachers, teachers only access their own data, students only create appointments for themselves; validate fields and prevent privilege escalation.",
+      "priority": "high",
+      "context": "Production"
+    },
+    {
+      "name": "Implement user deletion sync (Firestore ↔ Auth)",
+      "type": "Backend",
+      "description": "Add a Firebase Function or Admin SDK script to remove a user from Auth when their Firestore `users` doc is deleted (not implemented in client-only repo).",
+      "priority": "medium",
+      "context": "Production"
+    },
+    {
+      "name": "Add server-side transactional checks & error handling",
+      "type": "Backend",
+      "description": "Consider moving critical booking and slot-booking logic to Cloud Functions to enforce atomic operations server-side and prevent race conditions in production; currently client uses Firestore transactions.",
+      "priority": "medium",
+      "context": "Production"
+    },
+    {
+      "name": "Add automated tests and CI (basic smoke tests)",
+      "type": "Testing",
+      "description": "Add lightweight end-to-end or integration tests (e.g., Playwright/Cypress or scripted checks) for critical flows: registration, login, booking, approval, and slot booking toggle.",
+      "priority": "low",
+      "context": "Development"
+    },
+    {
+      "name": "Deploy to Firebase Hosting",
+      "type": "Backend",
+      "description": "Configure `firebase.json`, set the public directory, and deploy to Firebase Hosting. Add CI to deploy on merges to main branch.",
+      "priority": "medium",
+      "context": "Production"
+    }
+  ],
+  "dependencies": [
+    "Firebase (Firestore, Authentication) — used via CDN (https://www.gstatic.com/firebasejs/)",
+    "Vanilla JavaScript (ES6 modules)",
+    "HTML5/CSS3",
+    "Google Fonts (Roboto)",
+    "Optional: VS Code Live Server for local testing"
+  ],
+  "setup_steps": [
+    "git clone https://github.com/satvik55/student-teacher-booking-app.git",
+    "cd student-teacher-booking-app",
+    "Create a Firebase project at https://console.firebase.google.com/ and register a Web App",
+    "Enable Authentication (Email/Password) and Firestore Database in Firebase console",
+    "Copy the Firebase config object into `js/firebase-config.js` (replace apiKey, authDomain, projectId, etc.)",
+    "Create the admin user in Firebase Auth (email: admin@unifiedmentor.com) or update `js/main.js` logic to point to your chosen admin email",
+    "Open the project with a static server (e.g., VS Code Live Server) or `npx http-server` and visit `index.html` to test",
+    "For production: write and publish Firestore security rules, then deploy to Firebase Hosting with `firebase init hosting` and `firebase deploy`"
+  ],
+  "environment_variables": [
+    "FIREBASE_API_KEY",
+    "FIREBASE_AUTH_DOMAIN",
+    "FIREBASE_PROJECT_ID",
+    "FIREBASE_STORAGE_BUCKET",
+    "FIREBASE_MESSAGING_SENDER_ID",
+    "FIREBASE_APP_ID",
+    "FIREBASE_MEASUREMENT_ID",
+    "ADMIN_EMAIL (optional override for hardcoded admin email in `js/main.js`)"
+  ],
+  "starter_repo": "https://github.com/satvik55/student-teacher-booking-app",
+  "docs_links": [
+    "https://github.com/satvik55/student-teacher-booking-app/blob/main/README.md",
+    "https://student-teacher-app-32220.web.app",
+    "https://firebase.google.com/docs/web/setup"
+  ]
+}

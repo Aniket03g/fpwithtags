@@ -1,0 +1,108 @@
+<div id="import-project-modal" class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
+  <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+         onclick="document.getElementById('import-project-modal').remove()"></div>
+
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+            <!-- Import icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+          </div>
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Import Project from GitHub MCP</h3>
+            
+            <form hx-post="/api/imports/import" 
+                  hx-target="#project-list-container" 
+                  hx-swap="outerHTML"
+                  hx-indicator="#import-spinner"
+                  class="space-y-4" 
+                  id="import-project-form">
+              
+              <!-- Project ID field -->
+              <div>
+                <label for="project_id" class="block text-sm font-medium text-gray-700">
+                  Project ID <span class="text-red-500">*</span>
+                </label>
+                <p class="text-xs text-gray-500 mb-1">Enter the JSON filename (without .json extension) from /backend/data/imports/</p>
+                <input type="text" 
+                       name="project_id" 
+                       id="project_id" 
+                       required 
+                       placeholder="e.g., github_project_demo"
+                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                <p class="text-xs text-gray-400 mt-1">Example: github_project_demo</p>
+              </div>
+              
+              <!-- Project Name field -->
+              <div>
+                <label for="project_name" class="block text-sm font-medium text-gray-700">
+                  Project Name <span class="text-red-500">*</span>
+                </label>
+                <p class="text-xs text-gray-500 mb-1">Give your imported project a name</p>
+                <input type="text" 
+                       name="project_name" 
+                       id="project_name" 
+                       required 
+                       placeholder="e.g., My Imported Project"
+                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+              </div>
+              
+              <!-- Description field (optional) -->
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">
+                  Description <span class="text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <textarea name="description" 
+                          id="description" 
+                          rows="3"
+                          placeholder="Add a description for this imported project..."
+                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"></textarea>
+              </div>
+
+              <!-- Info box -->
+              <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-xs text-blue-700">
+                      This will import features, tasks, and configurations from the GitHub MCP-generated JSON file.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Buttons -->
+              <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse -mx-4 -mb-4 mt-5">
+                <button type="submit" 
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                  <span id="import-spinner" class="htmx-indicator">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </span>
+                  Import Project
+                </button>
+                <button type="button" 
+                        onclick="document.getElementById('import-project-modal').remove()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

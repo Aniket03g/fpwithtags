@@ -61,6 +61,11 @@ func (h *ProjectHandler) ShowProjectCreateModal(c *gin.Context) {
 	c.HTML(http.StatusOK, "create_project.html", gin.H{})
 }
 
+// ShowProjectImportModal renders the import project modal for HTMX
+func (h *ProjectHandler) ShowProjectImportModal(c *gin.Context) {
+	c.HTML(http.StatusOK, "import_project.html", gin.H{})
+}
+
 // CreateProjectFromForm handles the project creation from the HTMX modal form
 func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 	var err error

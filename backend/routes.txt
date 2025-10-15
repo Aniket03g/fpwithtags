@@ -29,6 +29,7 @@ Method: GET, Path: /web/features/:id/tasks/new
 Method: GET, Path: /web/features/:id/edit-inline
 Method: GET, Path: /web/projects
 Method: GET, Path: /web/projects/create-modal
+Method: GET, Path: /web/projects/import-modal
 Method: GET, Path: /web/projects/:id
 Method: GET, Path: /web/projects/:id/features
 Method: GET, Path: /web/projects/:id/features/content
@@ -64,6 +65,7 @@ Method: GET, Path: /api/guidance/stack/:stack
 Method: GET, Path: /api/users
 Method: GET, Path: /api/features/project/:project_id
 Method: GET, Path: /api/releases
+Method: GET, Path: /api/imports
 Method: GET, Path: /api/health
 Method: GET, Path: /test-upload
 Method: GET, Path: /tasks/:id/pr-form
@@ -84,6 +86,8 @@ Method: POST, Path: /api/releases/
 Method: POST, Path: /api/releases/:id/finalize
 Method: POST, Path: /api/guidance/
 Method: POST, Path: /api/guidance/reload
+Method: POST, Path: /api/imports/import
+Method: POST, Path: /api/imports/save
 Method: POST, Path: /api/dependencies
 Method: POST, Path: /web/fragments/features/:id/tasks/:task_id/edit
 Method: POST, Path: /web/fragments/features/:id/edit-inline
@@ -101,4 +105,5 @@ Method: DELETE, Path: /api/comments/:comment_id
 Method: DELETE, Path: /api/dependencies/:id
 Method: DELETE, Path: /api/guidance/:stack/:task_type
 Method: DELETE, Path: /api/templates/:id
+Method: DELETE, Path: /api/imports/:id
 Method: PUT, Path: /api/comments/:comment_id

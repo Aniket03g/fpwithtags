@@ -1,0 +1,96 @@
+{
+  "id": "github_project_demo",
+  "name": "GitHub Demo Project",
+  "stack": "React + Node.js",
+  "description": "Sample project imported from GitHub MCP",
+  "tech_stack": "React",
+  "feature_categories": ["Auth", "API", "UI", "Database"],
+  "task_types": ["UI", "Backend", "DB", "Testing"],
+  "features": [
+    {
+      "name": "User Authentication",
+      "category": "Auth",
+      "description": "Implement user login and registration",
+      "context": "Development"
+    },
+    {
+      "name": "Dashboard UI",
+      "category": "UI",
+      "description": "Create main dashboard interface",
+      "context": "Development"
+    },
+    {
+      "name": "REST API",
+      "category": "API",
+      "description": "Build RESTful API endpoints",
+      "context": "Development"
+    },
+    {
+      "name": "Database Schema",
+      "category": "Database",
+      "description": "Design and implement database schema",
+      "context": "Development"
+    }
+  ],
+  "tasks": [
+    {
+      "name": "Setup authentication flow",
+      "type": "Backend",
+      "description": "Implement JWT-based authentication",
+      "priority": "high",
+      "context": "Development"
+    },
+    {
+      "name": "Create login form",
+      "type": "UI",
+      "description": "Build responsive login form with validation",
+      "priority": "high",
+      "context": "Development"
+    },
+    {
+      "name": "Design database tables",
+      "type": "DB",
+      "description": "Create users, sessions, and related tables",
+      "priority": "high",
+      "context": "Development"
+    },
+    {
+      "name": "Build API endpoints",
+      "type": "Backend",
+      "description": "Create CRUD endpoints for main entities",
+      "priority": "medium",
+      "context": "Development"
+    },
+    {
+      "name": "Create dashboard components",
+      "type": "UI",
+      "description": "Build reusable React components for dashboard",
+      "priority": "medium",
+      "context": "Development"
+    },
+    {
+      "name": "Write unit tests",
+      "type": "Testing",
+      "description": "Add test coverage for API endpoints",
+      "priority": "medium",
+      "context": "Development"
+    }
+  ],
+  "dependencies": [],
+  "setup_steps": [
+    "Clone repository",
+    "Install dependencies",
+    "Configure environment variables",
+    "Run database migrations",
+    "Start development server"
+  ],
+  "environment_variables": [
+    "DATABASE_URL",
+    "JWT_SECRET",
+    "API_PORT"
+  ],
+  "starter_repo": "https://github.com/example/demo-project",
+  "docs_links": [
+    "https://docs.example.com/getting-started"
+  ]
+}
