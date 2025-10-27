@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeaturePlus - Ship Features with Confidence</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Authentication Utilities -->
+    <script src="/static/js/auth.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Git-flow inspired background pattern */
+        .git-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.15;
+            background-image: 
+                linear-gradient(90deg, #10b981 2px, transparent 2px),
+                linear-gradient(180deg, #10b981 2px, transparent 2px),
+                linear-gradient(45deg, #8b5cf6 1px, transparent 1px),
+                linear-gradient(-45deg, #3b82f6 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 50px 50px, 50px 50px;
+            background-position: 0 0, 0 0, 0 0, 25px 25px;
+            animation: gitFlow 20s linear infinite;
+        }
+        
+        @keyframes gitFlow {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        /* Glassmorphism effects */
+        .glass {
+            background: rgba(15, 15, 35, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-light {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.6s ease-out forwards;
+        }
+        
+        /* Custom input styles */
+        .input-glow:focus-within {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Role selector styles */
+        .role-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+        
+        .role-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Terminal-like elements */
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        /* PR status indicators */
+        .pr-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .pr-open { background: #10b981; }
+        .pr-merged { background: #8b5cf6; }
+        .pr-closed { background: #ef4444; }
+        
+        /* Animation delays */
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-600 { animation-delay: 600ms; }
+        .delay-700 { animation-delay: 700ms; }
+        .delay-800 { animation-delay: 800ms; }
+    </style>
+</head>
+<body>
+    <!-- Git-flow background pattern -->
+    <div class="git-pattern"></div>
+    
+    <!-- Main container -->
+    <div class="relative min-h-screen flex flex-col lg:flex-row">
+        <!-- Left side - Login Form -->
+        <section class="flex-1 flex items-center justify-center p-6 lg:p-12">
+            <div class="w-full max-w-md">
+                <!-- Logo and branding -->
+                <div class="mb-8 animate-fade-in">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"/>
+                                <line x1="12" y1="1" x2="12" y2="3"/>
+                                <line x1="12" y1="21" x2="12" y2="23"/>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                <line x1="1" y1="12" x2="3" y2="12"/>
+                                <line x1="21" y1="12" x2="23" y2="12"/>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                            </svg>
+                        </div>
+                        <span class="text-2xl font-bold">FeaturePlus</span>
+                    </div>
+                    <h1 id="form-title" class="text-3xl lg:text-4xl font-bold mb-2">
+                        <span class="gradient-text">Ship Features</span>
+                        <br>with Confidence
+                    </h1>
+                    <p id="form-desc" class="text-gray-400">Streamline your PR workflow and release management</p>
+                </div>
+                <!-- Login Form -->
+                <form class="space-y-5" id="auth-form" onsubmit="return handleAuthFormSubmit(event)">
+                    <!-- Email Input -->
+                    <div class="animate-fade-in delay-200">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <span class="font-mono text-xs text-green-400">$</span> Email Address
+                        </label>
+                        <div class="relative">
+                            <div class="glass rounded-lg input-glow transition-all">
+                                <input 
+                                    name="email" 
+                                    type="email" 
+                                    placeholder="developer@company.com" 
+                                    class="w-full bg-transparent text-white placeholder-gray-500 p-4 rounded-lg focus:outline-none font-mono text-sm" 
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Username Input (for signup) -->
+                    <div id="username-field" class="animate-fade-in delay-250" style="display:none;">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <span class="font-mono text-xs text-green-400">$</span> Username
+                        </label>
+                        <div class="glass rounded-lg input-glow transition-all">
+                            <input 
+                                name="username" 
+                                type="text" 
+                                placeholder="johndoe" 
+                                class="w-full bg-transparent text-white placeholder-gray-500 p-4 rounded-lg focus:outline-none font-mono text-sm">
+                        </div>
+                    </div>
+                    
+                    <!-- Password Input -->
+                    <div class="animate-fade-in delay-300" x-data="{ showPassword: false }">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">
+                            <span class="font-mono text-xs text-green-400">$</span> Password
+                        </label>
+                        <div class="glass rounded-lg input-glow transition-all">
+                            <div class="relative">
+                                <input 
+                                    name="password" 
+                                    :type="showPassword ? 'text' : 'password'" 
+                                    placeholder="••••••••" 
+                                    class="w-full bg-transparent text-white placeholder-gray-500 p-4 pr-12 rounded-lg focus:outline-none font-mono text-sm" 
+                                    required>
+                                <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-4 text-gray-400 hover:text-white transition-colors">
+                                    <svg x-show="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <svg x-show="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Role Selection (for signup) -->
+                    <div id="role-toggle-row" class="animate-fade-in delay-350" style="display:none;">
+                        <label class="block text-sm font-medium text-gray-300 mb-3">Select Your Role</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="role-card glass rounded-lg p-4 border-2 border-transparent" onclick="selectRole('developer')">
+                                <input type="radio" name="role" value="developer" checked class="hidden" id="role-developer">
+                                <div class="flex flex-col items-center text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 text-blue-400">
+                                        <polyline points="16 18 22 12 16 6"/>
+                                        <polyline points="8 6 2 12 8 18"/>
+                                    </svg>
+                                    <span class="font-semibold text-white">Developer</span>
+                                    <span class="text-xs text-gray-400 mt-1">Write code & create PRs</span>
+                                </div>
+                            </div>
+                            <div class="role-card glass rounded-lg p-4 border-2 border-transparent" onclick="selectRole('manager')">
+                                <input type="radio" name="role" value="manager" class="hidden" id="role-manager">
+                                <div class="flex flex-col items-center text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 text-purple-400">
+                                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                    </svg>
+                                    <span class="font-semibold text-white">Manager</span>
+                                    <span class="text-xs text-gray-400 mt-1">Manage releases</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Remember me & Reset password -->
+                    <div class="animate-fade-in delay-400 flex items-center justify-between text-sm">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="rememberMe" class="w-4 h-4 rounded border-gray-600 bg-transparent text-blue-500 focus:ring-blue-500 focus:ring-offset-0">
+                            <span class="text-gray-300">Remember me</span>
+                        </label>
+                        <a href="#" class="text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</a>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn" class="animate-fade-in delay-500 w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
+                        <span class="flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                            <span id="submit-text">Sign In</span>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- Right side - Feature showcase -->
+        <section class="hidden lg:flex flex-1 items-center justify-center p-12 relative">
+            <div class="w-full max-w-2xl">
+                <!-- Terminal-like display -->
+                <div class="glass rounded-lg overflow-hidden animate-slide-in delay-300">
+                    <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-700">
+                        <div class="terminal-dot bg-red-500"></div>
+                        <div class="terminal-dot bg-yellow-500"></div>
+                        <div class="terminal-dot bg-green-500"></div>
+                        <span class="ml-2 text-xs text-gray-400 font-mono">feature-workflow.sh</span>
+                    </div>
+                    <div class="p-6 font-mono text-sm">
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-400">$</span>
+                                <span class="text-gray-300">git checkout -b feature/awesome-feature</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-400">$</span>
+                                <span class="text-gray-300">git add .</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-400">$</span>
+                                <span class="text-gray-300">git commit -m "feat: Add amazing new feature"</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="text-green-400">$</span>
+                                <span class="text-gray-300">git push origin feature/awesome-feature</span>
+                            </div>
+                            <div class="text-gray-500 mt-2">
+                                <span class="text-yellow-400">→</span> Creating pull request...
+                            </div>
+                            <div class="text-gray-500">
+                                <span class="text-green-400">✓</span> PR #42 created successfully
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="hidden md:block flex-1 relative p-4">
+            <div class="animate-slide-right animation-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center" style="background-image: url(https://images.unsplash.com/photo-1642615835477-d303d7dc9ee9?w=2160&q=80)"></div>
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 px-8 w-full justify-center">
+                <div class="animate-testimonial animation-delay-1000 flex items-start gap-3 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 w-64">
+                    <img src="https://randomuser.me/api/portraits/women/57.jpg" class="h-10 w-10 object-cover rounded-2xl" alt="avatar">
+                    <div class="text-sm leading-snug">
+                        <p class="flex items-center gap-1 font-medium">Sarah Chen</p>
+                        <p class="text-slate-400">@sarahdigital</p>
+                        <p class="mt-1 text-slate-300">Amazing platform! The user experience is seamless and the features are exactly what I needed.</p>
+                    </div>
+                </div>
+                <div class="animate-testimonial animation-delay-1200 hidden xl:flex items-start gap-3 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 w-64">
+                    <img src="https://randomuser.me/api/portraits/men/64.jpg" class="h-10 w-10 object-cover rounded-2xl" alt="avatar">
+                    <div class="text-sm leading-snug">
+                        <p class="flex items-center gap-1 font-medium">Marcus Johnson</p>
+                        <p class="text-slate-400">@marcustech</p>
+                        <p class="mt-1 text-slate-300">This service has transformed how I work. Clean design, powerful features, and excellent support.</p>
+                    </div>
+                </div>
+                <div class="animate-testimonial animation-delay-1400 hidden 2xl:flex items-start gap-3 rounded-3xl bg-slate-900/40 backdrop-blur-xl border border-white/10 p-5 w-64">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" class="h-10 w-10 object-cover rounded-2xl" alt="avatar">
+                    <div class="text-sm leading-snug">
+                        <p class="flex items-center gap-1 font-medium">David Martinez</p>
+                        <p class="text-slate-400">@davidcreates</p>
+                        <p class="mt-1 text-slate-300">I've tried many platforms, but this one stands out. Intuitive, reliable, and genuinely helpful for productivity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html> 

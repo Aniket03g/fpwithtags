@@ -55,13 +55,14 @@
   // Close the modal when the project list is updated
   document.getElementById('create-project-modal')?.remove();
   document.getElementById('import-project-modal')?.remove();
+  document.getElementById('import-github-modal')?.remove();
   
   // Show success toast if a new project was created/imported
   {{ if .NewProject }}
   const toast = document.createElement('div');
   toast.id = 'success-toast';
   toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
-  toast.innerHTML = '✅ Project "{{ .NewProject.Name }}" {{ if .NewProject.Config.imported_from }}imported{{ else }}created{{ end }} successfully!';
+  toast.innerHTML = '✅ Project "{{ .NewProject.Name }}" {{ if .NewProject.Config.mcp_generated }}imported via GitHub MCP{{ else if .NewProject.Config.imported_from }}imported{{ else }}created{{ end }} successfully!';
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
   {{ end }}

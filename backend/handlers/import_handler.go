@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/FeaturePlus/backend/internal/mcpbridge"
 	"github.com/FeaturePlus/backend/models"
 	"github.com/FeaturePlus/backend/repositories"
 	"github.com/FeaturePlus/backend/services"
@@ -20,6 +23,7 @@ type ImportHandler struct {
 	projectRepo *repositories.ProjectRepository
 	featureRepo *repositories.FeatureRepository
 	taskRepo    repositories.TaskRepository
+	mcpService  *services.GitHubMCPService
 }
 
 // NewImportHandler creates a new import handler
@@ -30,6 +34,7 @@ func NewImportHandler(db *gorm.DB, dataPath string) *ImportHandler {
 		projectRepo: repositories.NewProjectRepository(db),
 		featureRepo: repositories.NewFeatureRepository(db),
 		taskRepo:    repositories.NewTaskRepository(db),
+		mcpService:  services.NewGitHubMCPService(),
 	}
 }
 
@@ -449,5 +454,224 @@ func (h *ImportHandler) DeleteImportTemplate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "Import template deleted successfully",
+	})
+}
+
+// ImportFromGitHub handles automatic import from GitHub repository using MCP
+// POST /api/imports/github
+func (h *ImportHandler) ImportFromGitHub(c *gin.Context) {
+	// Step 1: Parse the request body to get the GitHub repository URL
+	var request struct {
+		RepoURL     string `json:"repo_url" form:"repo_url" binding:"required"`
+		ProjectName string `json:"project_name" form:"project_name"` // Optional: override auto-generated name
+	}
+
+	// Try to bind as form data first (HTMX), then JSON (API)
+	contentType := c.GetHeader("Content-Type")
+	var err error
+	
+	if contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data" || c.GetHeader("HX-Request") == "true" {
+		// HTMX form submission
+		err = c.ShouldBind(&request)
+	} else {
+		// JSON API request
+		err = c.ShouldBindJSON(&request)
+	}
+	
+	if err != nil {
+		log.Printf("ERROR: Invalid request body for GitHub import: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": "Invalid request body. Please provide a valid GitHub repository URL",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	log.Printf("INFO: Starting GitHub MCP import for repository: %s", request.RepoURL)
+
+	// Step 2: Validate the repository URL format
+	if !strings.Contains(request.RepoURL, "github.com") {
+		log.Printf("ERROR: Invalid GitHub URL: %s", request.RepoURL)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": "Invalid GitHub URL. Must be a github.com repository",
+		})
+		return
+	}
+
+	// Step 3: Call local MCP Bridge to analyze the repository
+	// REMOVED: direct call to GitHubMCPService.AnalyzeRepository — replaced with local MCP Bridge call
+	log.Printf("INFO: Calling local MCP Bridge to analyze repository...")
+	
+	// Call the MCP Bridge
+	responseJSON, err := mcpbridge.CallLocalMCPBridge(request.RepoURL)
+	if err != nil {
+		log.Printf("ERROR: MCP Bridge analysis failed: %v", err)
+		
+		// Determine appropriate error response
+		statusCode := http.StatusInternalServerError
+		message := "Failed to analyze GitHub repository"
+		
+		// Check for specific error types
+		if strings.Contains(err.Error(), "unavailable") {
+			statusCode = http.StatusBadGateway
+			message = "MCP Bridge unavailable. Please ensure the bridge service is running."
+		} else if strings.Contains(err.Error(), "rate limited") {
+			statusCode = http.StatusTooManyRequests
+			message = "Analysis already in progress. Please try again later."
+		} else if strings.Contains(err.Error(), "timeout") {
+			statusCode = http.StatusGatewayTimeout
+			message = "Repository analysis timed out. Please try again."
+		}
+		
+		c.JSON(statusCode, gin.H{
+			"status":  "error",
+			"message": message,
+			"error":   err.Error(),
+		})
+		return
+	}
+	
+	// Parse the response JSON into a Template
+	var template repositories.Template
+	if err := json.Unmarshal(responseJSON, &template); err != nil {
+		log.Printf("ERROR: Failed to parse MCP Bridge response: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "Failed to parse analysis results",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	log.Printf("INFO: MCP Bridge analysis successful - Template ID: %s, Features: %d, Tasks: %d", 
+		template.ID, len(template.Features), len(template.Tasks))
+
+	// Step 4: Generate a unique project ID from the template
+	projectID := template.ID
+	if projectID == "" {
+		// Fallback: extract from URL
+		parts := strings.Split(strings.TrimSuffix(request.RepoURL, "/"), "/")
+		projectID = parts[len(parts)-1]
+	}
+	
+	// Make it unique by adding timestamp suffix
+	projectID = fmt.Sprintf("%s_%d", projectID, time.Now().Unix())
+	log.Printf("INFO: Generated project ID: %s", projectID)
+
+	// Step 5: Save the MCP-generated template to the imports directory
+	// This allows for inspection and reuse of the generated template
+	log.Printf("INFO: Saving MCP template to imports directory...")
+	if err := h.importRepo.SaveImportTemplate(projectID, &template); err != nil {
+		log.Printf("ERROR: Failed to save MCP template: %v", err)
+		// Continue anyway - we can still import without saving
+	} else {
+		log.Printf("INFO: MCP template saved successfully: %s.json", projectID)
+	}
+
+	// Step 6: Get user ID from authentication context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		log.Printf("ERROR: User not authenticated")
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"message": "Authentication required",
+		})
+		return
+	}
+
+	userIDUint, ok := userID.(uint)
+	if !ok {
+		log.Printf("ERROR: Invalid user ID type")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "Invalid user ID type",
+		})
+		return
+	}
+
+	// Step 7: Determine the project name (use provided name or template name)
+	finalProjectName := request.ProjectName
+	if finalProjectName == "" {
+		finalProjectName = template.Name
+	}
+	log.Printf("INFO: Creating project with name: %s", finalProjectName)
+
+	// Step 8: Create the project in the database
+	project := models.Project{
+		Name:        finalProjectName,
+		Description: template.Description,
+		OwnerID:     int(userIDUint),
+		Config: models.JSONB{
+			"tech_stack":       template.TechStack,
+			"feature_category": template.FeatureCategories,
+			"task_types":       template.TaskTypes,
+			"imported_from":    request.RepoURL,
+			"import_source":    "github_mcp",
+			"template_id":      template.ID,
+			"mcp_generated":    true,
+		},
+	}
+
+	if err := h.projectRepo.CreateProject(&project); err != nil {
+		log.Printf("ERROR: Failed to create project: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "Failed to create project from GitHub repository",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	log.Printf("INFO: Project created successfully with ID: %d", project.ID)
+
+	// Step 9: Apply the template to create features and tasks
+	// Reuse existing logic from ImportProject
+	featuresCreated, tasksCreated, err := h.applyImportedTemplate(&project, &template)
+	if err != nil {
+		log.Printf("ERROR: Failed to apply MCP template: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "Project created but failed to apply template",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	log.Printf("INFO: Successfully imported GitHub project %d: %d features, %d tasks", 
+		project.ID, featuresCreated, tasksCreated)
+
+	// Step 10: Return response based on request type (HTMX or API)
+	// Check if this is an HTMX request (from web UI)
+	if c.GetHeader("HX-Request") == "true" {
+		// Return updated project list for HTMX
+		projectList, err := h.projectRepo.GetAllProjects()
+		if err != nil {
+			log.Printf("ERROR: Failed to get updated project list: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status":  "error",
+				"message": "Project imported but failed to refresh list",
+			})
+			return
+		}
+
+		c.HTML(http.StatusOK, "project-list-fragment.html", gin.H{
+			"Projects":   projectList,
+			"NewProject": project,
+		})
+		return
+	}
+
+	// Return JSON for API requests
+	c.JSON(http.StatusOK, gin.H{
+		"status":           "success",
+		"message":          "GitHub repository imported successfully via MCP",
+		"project_id":       project.ID,
+		"project_name":     project.Name,
+		"features_created": featuresCreated,
+		"tasks_created":    tasksCreated,
+		"repo_url":         request.RepoURL,
+		"template_saved":   projectID,
 	})
 }

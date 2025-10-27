@@ -60,6 +60,12 @@ func RegisterImportRoutes(r *gin.Engine, db *gorm.DB) {
 		// DELETE /api/imports/:id
 		api.DELETE("/:id", importHandler.DeleteImportTemplate)
 		log.Printf("INFO: Registered route DELETE /api/imports/:id")
+
+		// Import directly from GitHub repository using MCP
+		// POST /api/imports/github
+		// Body: { "repo_url": "https://github.com/user/repo", "project_name": "Optional Name" }
+		api.POST("/github", importHandler.ImportFromGitHub)
+		log.Printf("INFO: Registered route POST /api/imports/github")
 	}
 
 	log.Printf("INFO: Successfully registered all import routes")

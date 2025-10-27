@@ -401,9 +401,12 @@ func main() {
 		"templates/project-list-fragment.html",
 		"templates/create_project.html",
 		"templates/import_project.html",
+		"templates/import_github.html",
 		"templates/template-details-fragment.html",
 		"templates/_project_create_success.html",
 		"templates/_pr_row.html",
+		"templates/pr-modal.html",
+		"templates/release-modal.html",
 		"templates/_pr_table.html",
 		"templates/task-comments-section.html",
 		"templates/task-comments-list.html",
@@ -565,6 +568,7 @@ func main() {
 			authWeb.GET("/projects/:id/features", appHandler.RenderAppShell)
 			authWeb.GET("/projects/create-modal", projectHandler.ShowProjectCreateModal)
 			authWeb.GET("/projects/import-modal", projectHandler.ShowProjectImportModal)
+			authWeb.GET("/projects/import-github-modal", projectHandler.ShowGitHubImportModal)
 			authWeb.POST("/projects/create", projectHandler.CreateProjectFromForm)
 			authWeb.GET("/projects/:id/features/:featureid", featureHandler.GetFeature)
 			authWeb.GET("/projects/:id/features/content", featureHandler.FeaturesContentHandler)

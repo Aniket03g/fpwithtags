@@ -66,6 +66,11 @@ func (h *ProjectHandler) ShowProjectImportModal(c *gin.Context) {
 	c.HTML(http.StatusOK, "import_project.html", gin.H{})
 }
 
+// ShowGitHubImportModal renders the GitHub MCP import modal for HTMX
+func (h *ProjectHandler) ShowGitHubImportModal(c *gin.Context) {
+	c.HTML(http.StatusOK, "import_github.html", gin.H{})
+}
+
 // CreateProjectFromForm handles the project creation from the HTMX modal form
 func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 	var err error
