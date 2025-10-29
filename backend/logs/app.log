@@ -1,0 +1,6 @@
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-10-29 17:24:59"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-10-29 17:24:59"}
+{"level":"info","msg":"Initializing database...","time":"2025-10-29 17:24:59"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-10-29 17:24:59"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-10-29 17:24:59"}
+{"error":"listen tcp 0.0.0.0:8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.","level":"fatal","msg":"Failed to start server","time":"2025-10-29 17:24:59"}

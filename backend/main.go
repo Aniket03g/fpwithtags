@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/handlers"
+	"github.com/FeaturePlus/backend/internal/log"
 	"github.com/FeaturePlus/backend/middleware"
 	"github.com/FeaturePlus/backend/migrations"
 	"github.com/FeaturePlus/backend/models"
@@ -21,13 +21,14 @@ import (
 	"github.com/FeaturePlus/backend/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/jilio/sqlitefs"
-	"github.com/joho/godotenv" // For loading .env files
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 // Debug helper function
 func debug(msg string, args ...interface{}) {
 	if os.Getenv("DEBUG") != "" {
-		log.Printf("[DEBUG] "+msg, args...)
+		log.Debugf("[DEBUG] "+msg, args...)
 	}
 }
 
@@ -40,23 +41,24 @@ func LoggingMiddleware() gin.HandlerFunc {
 
 		c.Next()
 
-		end := time.Now()
-		latency := end.Sub(start)
+		latency := time.Since(start)
 		clientIP := c.ClientIP()
 		method := c.Request.Method
 		statusCode := c.Writer.Status()
 
-		log.Printf("[GIN] %v | %3d | %13v | %15s | %-7s %s",
-			end.Format("2006/01/02 - 15:04:05"),
-			statusCode,
-			latency,
-			clientIP,
-			method,
-			path,
-		)
-		if raw != "" {
-			log.Printf("       Raw query: %s", raw)
+		// Structured logging with fields
+		logFields := logrus.Fields{
+			"method":      method,
+			"path":        path,
+			"status":      statusCode,
+			"duration_ms": latency.Milliseconds(),
+			"ip":          clientIP,
 		}
+		if raw != "" {
+			logFields["query"] = raw
+		}
+
+		log.WithFields(logFields).Info("HTTP request")
 	}
 }
 
@@ -253,19 +255,20 @@ func main() {
 
 	for _, envFile := range possibleEnvFiles {
 		if err := godotenv.Load(envFile); err == nil {
-			log.Printf("Loaded environment variables from %s", envFile)
+			log.WithField("file", envFile).Info("Loaded environment variables")
 			envLoaded = true
 			break
 		}
 	}
 
 	if !envLoaded {
-		log.Println("Warning: No .env file found in any checked location (this is OK in production if env vars are set)")
+		log.Warn("No .env file found in any checked location (this is OK in production if env vars are set)")
 	}
 
 	// Check if debug mode is enabled
 	if os.Getenv("DEBUG") == "1" {
-		log.Println("DEBUG mode enabled - detailed logging will be shown")
+		log.SetLevel(logrus.DebugLevel)
+		log.Info("DEBUG mode enabled - detailed logging will be shown")
 	}
 
 	// --- Set required environment variables if not already set ---
@@ -274,23 +277,25 @@ func main() {
 	if dataPath == "" {
 		dataPath = "./data"
 		os.Setenv("DATA_PATH", dataPath)
-		log.Printf("Set DATA_PATH to %s directly in the code", dataPath)
+		log.WithField("path", dataPath).Info("Set DATA_PATH")
 	}
 
 	// Check for GITHUB_TOKEN
 	githubToken := os.Getenv("GITHUB_TOKEN")
 	if githubToken == "" {
-		log.Println("ERROR: GITHUB_TOKEN environment variable is not set")
-		log.Println("Please set it in your .env file or directly in your environment")
-		log.Println("Example: GITHUB_TOKEN=your_token_here")
+		log.Error("GITHUB_TOKEN environment variable is not set")
+		log.Error("Please set it in your .env file or directly in your environment")
+		log.Error("Example: GITHUB_TOKEN=your_token_here")
 		os.Exit(1)
 	}
 
 	// Initialize DB
+	log.Info("Initializing database...")
 	db, err := database.InitDB()
 	if err != nil {
-		panic("failed to connect database")
+		log.WithError(err).Fatal("Failed to connect database")
 	}
+	log.Info("Database initialized successfully")
 
 	// Run project config migrations to ensure tech_stack field exists
 	migrations.RegisterMigrations(db.DB)
@@ -657,10 +662,10 @@ func main() {
 	}
 
 	// Debug: List all registered routes
-	log.Println("Listing all registered routes:")
+	log.Debug("Listing all registered routes")
 	routesFile, err := os.Create("routes.txt")
 	if err != nil {
-		log.Printf("Error creating routes file: %v\n", err)
+		log.WithError(err).Warn("Error creating routes file")
 	} else {
 		defer routesFile.Close()
 		fmt.Fprintln(routesFile, "Registered Routes:")
@@ -670,9 +675,12 @@ func main() {
 	}
 
 	// Start server
-	log.Println("Server starting on :8080...")
+	log.WithFields(logrus.Fields{
+		"port": 8080,
+		"host": "0.0.0.0",
+	}).Info("Server starting...")
 	if err := router.Run("0.0.0.0:8080"); err != nil {
-		panic("failed to start server: " + err.Error())
+		log.WithError(err).Fatal("Failed to start server")
 	}
 }
 
@@ -682,9 +690,9 @@ func BodyLoggingMiddleware() gin.HandlerFunc {
 		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
 			bodyBytes, err := io.ReadAll(c.Request.Body)
 			if err != nil {
-				log.Printf("Error reading request body: %v", err)
+				log.WithError(err).Error("Error reading request body")
 			} else {
-				log.Printf("Request Body: %s", string(bodyBytes))
+				log.WithField("body", string(bodyBytes)).Debug("Request Body")
 			}
 			// Restore the body for subsequent handlers
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))

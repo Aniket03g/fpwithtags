@@ -12,4 +12,9 @@ services:
     volumes:
       # Mount host data directory instead of using a volume
       - ./backend/data:/app/data
+      - ./backend/test.db:/app/test.db
+      - ./backend/static:/app/static
+      - ./backend/.env:/app/.env
+      - ./backups:/app/backups
+      - ./logs:/var/log/featureplus
     restart: unless-stopped
