@@ -31,6 +31,11 @@ func RegisterReleaseRoutes(router *gin.Engine, db *gorm.DB) {
 		{
 			managerRoutes.POST("", releaseHandler.CreateRelease)
 			// managerRoutes.POST("/:id/finalize", releaseHandler.FinalizeRelease)
+			
+			// Release-first workflow endpoints
+			managerRoutes.POST("/:id/features", releaseHandler.AddFeaturesToRelease)
+			managerRoutes.POST("/:id/features/create", releaseHandler.CreateFeatureUnderRelease)
+			managerRoutes.PUT("/:id/notes", releaseHandler.UpdateReleaseNotes)
 		}
 		
 		// Temporarily disable authentication for finalize endpoint

@@ -160,10 +160,16 @@ func (h *WebReleaseHandler) RenderReleaseDetailFragment(c *gin.Context) {
 		"IsManager": userRole == "manager",
 	}
 
+	// Fetch planned features for this release
+	db := h.releaseRepo.(interface{ DB() *gorm.DB }).DB()
+	var plannedFeatures []models.Feature
+	db.Where("release_id = ?", releaseID).Find(&plannedFeatures)
+
 	// Render the release detail template
 	c.HTML(http.StatusOK, "release-detail.html", gin.H{
-		"Release":     release,
-		"CurrentUser": currentUser,
+		"Release":          release,
+		"CurrentUser":      currentUser,
+		"PlannedFeatures":  plannedFeatures,
 	})
 }
 
@@ -191,9 +197,19 @@ func (h *WebReleaseHandler) NewReleaseModal(c *gin.Context) {
 		}
 	}
 
-	// Render the release modal template with PR IDs
+	// Fetch all projects for the dropdown
+	var projects []models.Project
+	if err := h.releaseRepo.DB().Find(&projects).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"error": "Failed to load projects",
+		})
+		return
+	}
+
+	// Render the release modal template with PR IDs and Projects
 	c.HTML(http.StatusOK, "release-modal.html", gin.H{
 		"PRIDs":       prIDs,
+		"Projects":    projects,
 		"CurrentUser": c.GetUint("user_id"),
 	})
 }
@@ -251,10 +267,11 @@ func (h *WebReleaseHandler) CreateRelease(c *gin.Context) {
 	// Extract form values
 	tag := c.PostForm("version")
 	notes := c.PostForm("notes")
+	projectIDStr := c.PostForm("project_id")
 	prIDsStr := c.PostFormArray("prs[]")
 	
-	log.Printf("%s Extracted form data - Tag: %s, Notes length: %d, Notes content: %s", 
-		logPrefix, tag, len(notes), notes)
+	log.Printf("%s Extracted form data - Tag: %s, ProjectID: %s, Notes length: %d, Notes content: %s", 
+		logPrefix, tag, projectIDStr, len(notes), notes)
 	log.Printf("%s PR IDs from form (raw): %v", logPrefix, prIDsStr)
 	
 	// Validate required fields
@@ -283,20 +300,40 @@ func (h *WebReleaseHandler) CreateRelease(c *gin.Context) {
 		log.Printf("%s Converted PR ID[%d]: %s -> %d", logPrefix, i, idStr, id)
 	}
 	
-	// Validate we have at least one PR ID
+	// Parse project_id if provided (for release-first workflow)
+	var projectID int
+	if projectIDStr != "" {
+		parsedID, err := strconv.Atoi(projectIDStr)
+		if err != nil {
+			log.Printf("%s [ERROR] Invalid project ID: %s - %v", logPrefix, projectIDStr, err)
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"error": fmt.Sprintf("Invalid project ID: %s", projectIDStr),
+			})
+			return
+		}
+		projectID = parsedID
+		log.Printf("%s Parsed project ID: %d", logPrefix, projectID)
+	}
+	
+	// Log if no PR IDs provided (release-first workflow)
 	if len(prIDs) == 0 {
-		log.Printf("%s [ERROR] No PR IDs provided", logPrefix)
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"error": "At least one PR must be selected for a release",
-		})
-		return
+		log.Printf("%s No PR IDs provided — continuing with release-first workflow", logPrefix)
+		// Validate project_id is provided when no PRs
+		if projectID == 0 {
+			log.Printf("%s [ERROR] No PRs and no project_id provided", logPrefix)
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"error": "Project must be selected when creating a release without PRs",
+			})
+			return
+		}
 	}
 	
 	// Create the release request
 	req := &featureplus.CreateReleaseRequest{
-		Tag:   tag,
-		Notes: notes,
-		PRIDs: prIDs,
+		Tag:       tag,
+		Notes:     notes,
+		PRIDs:     prIDs,
+		ProjectID: projectID,
 	}
 	
 	log.Printf("%s Creating release request object: %+v", logPrefix, req)
@@ -328,5 +365,122 @@ func (h *WebReleaseHandler) CreateRelease(c *gin.Context) {
 	log.Printf("%s Rendering success template with Tag: %s", logPrefix, release.Tag)
 	c.HTML(http.StatusOK, "_release_success.html", gin.H{
 		"Tag": release.Tag,
+	})
+}
+
+// EditNotesFragment renders the edit notes fragment for a release
+func (h *WebReleaseHandler) EditNotesFragment(c *gin.Context) {
+	// Parse release ID from URL
+	releaseID, err := parseUintParam(c, "id")
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"error": "Invalid release ID",
+		})
+		return
+	}
+
+	// Get release by ID
+	release, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{
+			"error": "Release not found",
+		})
+		return
+	}
+
+	// Only allow editing draft releases
+	if release.Status != models.ReleaseStatusDraft {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"error": "Only draft releases can be edited",
+		})
+		return
+	}
+
+	// Render the edit notes fragment
+	c.HTML(http.StatusOK, "release-edit-notes.html", gin.H{
+		"Release": release,
+	})
+}
+
+// NewFeatureFragment renders the new feature creation fragment for a release
+func (h *WebReleaseHandler) NewFeatureFragment(c *gin.Context) {
+	// Parse release ID from URL
+	releaseID, err := parseUintParam(c, "id")
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"error": "Invalid release ID",
+		})
+		return
+	}
+
+	// Get release by ID
+	release, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{
+			"error": "Release not found",
+		})
+		return
+	}
+
+	// Only allow adding features to draft releases
+	if release.Status != models.ReleaseStatusDraft {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"error": "Only draft releases can have features added",
+		})
+		return
+	}
+
+	// Render the new feature fragment (same as release-feature-form.html)
+	c.HTML(http.StatusOK, "release-feature-form.html", gin.H{
+		"ReleaseID": releaseID,
+	})
+}
+
+// AssignFeaturesFragment renders the assign features fragment for a release
+func (h *WebReleaseHandler) AssignFeaturesFragment(c *gin.Context) {
+	// Parse release ID from URL
+	releaseID, err := parseUintParam(c, "id")
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"error": "Invalid release ID",
+		})
+		return
+	}
+
+	// Get release by ID
+	release, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{
+			"error": "Release not found",
+		})
+		return
+	}
+
+	// Only allow assigning features to draft releases
+	if release.Status != models.ReleaseStatusDraft {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"error": "Only draft releases can have features assigned",
+		})
+		return
+	}
+
+	// Get database connection
+	db := h.releaseRepo.(interface{ DB() *gorm.DB }).DB()
+
+	// Fetch available features (features from the same project that don't have a release assigned)
+	var availableFeatures []models.Feature
+	if err := db.Where("project_id = ? AND (release_id IS NULL OR release_id = 0)", release.ProjectID).
+		Find(&availableFeatures).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"error": "Failed to load available features",
+		})
+		return
+	}
+
+	// Render the assign features fragment
+	c.HTML(http.StatusOK, "release-assign-features.html", gin.H{
+		"ReleaseID":          releaseID,
+		"ReleaseTag":         release.Tag,
+		"AvailableFeatures":  availableFeatures,
 	})
 }

@@ -1,0 +1,55 @@
+<!-- Edit Release Notes Fragment -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+  <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 w-full max-w-2xl border border-gray-200 dark:border-gray-800">
+    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+      Edit Release Notes
+    </h2>
+    
+    <form 
+      hx-put="/api/releases/{{ .Release.ID }}/notes"
+      hx-on::after-request="if(event.detail.successful) { this.closest('.fixed').remove(); window.location.reload(); }"
+      class="space-y-5">
+      
+      <div>
+        <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-200">
+          Release Tag
+        </label>
+        <input 
+          type="text" 
+          value="{{ .Release.Tag }}" 
+          disabled
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+      </div>
+      
+      <div>
+        <label for="notes" class="block mb-2 font-semibold text-gray-700 dark:text-gray-200">
+          Release Notes
+        </label>
+        <textarea 
+          id="notes"
+          name="notes" 
+          rows="10"
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition font-mono text-sm"
+          placeholder="Enter release notes, changelog, or any relevant information...">{{ .Release.Notes }}</textarea>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Markdown formatting is supported
+        </p>
+      </div>
+      
+      <div class="flex justify-end gap-3 pt-2">
+        <button 
+          type="button" 
+          class="px-5 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+          onclick="this.closest('.fixed').remove()">
+          Cancel
+        </button>
+        
+        <button 
+          type="submit" 
+          class="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 transition">
+          Save Notes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

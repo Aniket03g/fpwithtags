@@ -423,6 +423,10 @@ func main() {
 		"templates/dashboard-status.html",
 		"templates/release-list.html",
 		"templates/release-detail.html",
+		"templates/release-edit-notes.html",
+		"templates/release-feature-form.html",
+		"templates/release-assign-features.html",
+		"templates/release-planned-features-oob.html",
 		"templates/feature-list.html",
 		"templates/feature-list-inner.html",
 		"templates/feature-card.html",
@@ -592,6 +596,7 @@ func main() {
 			authWeb.GET("/releases", webReleaseHandler.RenderReleasesList)
 			authWeb.GET("/releases/:id", webReleaseHandler.RenderReleaseDetail)
 			authWeb.GET("/releases/:id/row", webReleaseHandler.RenderReleaseRow)
+			authWeb.GET("/releases/:id/notes/edit", webReleaseHandler.EditNotesFragment)
 		}
 	}
 
@@ -629,6 +634,8 @@ func main() {
 			authFragments.GET("/releases", webReleaseHandler.RenderReleasesListFragment)
 			authFragments.GET("/releases/:id", webReleaseHandler.RenderReleaseDetailFragment)
 			authFragments.GET("/release-modal", webReleaseHandler.NewReleaseModal)
+			authFragments.GET("/releases/:id/features/new", webReleaseHandler.NewFeatureFragment)
+			authFragments.GET("/releases/:id/features/assign", webReleaseHandler.AssignFeaturesFragment)
 			authFragments.POST("/api/releases", webReleaseHandler.CreateRelease)
 		}
 	}

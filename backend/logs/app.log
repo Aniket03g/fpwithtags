@@ -4,3 +4,308 @@
 {"level":"info","msg":"Database initialized successfully","time":"2025-10-29 17:24:59"}
 {"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-10-29 17:24:59"}
 {"error":"listen tcp 0.0.0.0:8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.","level":"fatal","msg":"Failed to start server","time":"2025-10-29 17:24:59"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 18:33:27"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 18:33:27"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 18:33:27"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 18:33:27"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 18:34:27"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 18:34:27"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 18:34:27"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 18:34:27"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 19:44:38"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 19:44:38"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 19:44:38"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 19:44:38"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 21:04:04"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 21:04:04"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 21:04:04"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 21:04:04"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 21:17:28"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 21:17:28"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 21:17:28"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 21:17:28"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 21:17:42"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 21:17:42"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 21:17:42"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 21:17:42"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 21:49:45"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 21:49:45"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 21:49:45"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 21:49:45"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-01 21:49:45"}
+{"duration_ms":28,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-01 21:51:52"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-01 21:51:53"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-01 21:51:53"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/favicon.ico","status":404,"time":"2025-11-01 21:51:53"}
+{"duration_ms":477,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/auth/login","status":200,"time":"2025-11-01 21:52:00"}
+{"duration_ms":29,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-01 21:52:00"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-01 21:52:00"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/39/features","status":200,"time":"2025-11-01 21:52:26"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/39/features/content","status":200,"time":"2025-11-01 21:52:26"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-01 21:52:37"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/3","status":200,"time":"2025-11-01 21:52:41"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/3","status":200,"time":"2025-11-01 21:52:41"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/release-modal","query":"pr_ids=","status":200,"time":"2025-11-01 21:52:45"}
+{"duration_ms":7,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":400,"time":"2025-11-01 21:52:53"}
+{"duration_ms":5,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":400,"time":"2025-11-01 21:52:59"}
+{"duration_ms":3,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":400,"time":"2025-11-01 21:53:00"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-01 21:53:34"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-01 21:53:34"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-01 21:53:34"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-01 21:53:34"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-01 21:53:34"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-01 21:53:56"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-01 21:53:57"}
+{"duration_ms":5,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-01 21:53:57"}
+{"duration_ms":40,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-01 21:53:57"}
+{"duration_ms":32,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-01 21:53:57"}
+{"duration_ms":36,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-01 21:53:57"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-01 21:54:00"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-01 21:54:04"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-01 21:54:04"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-01 21:54:05"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-01 21:54:05"}
+{"duration_ms":28,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-01 21:54:05"}
+{"duration_ms":37,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-01 21:54:05"}
+{"duration_ms":39,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-01 21:54:05"}
+{"duration_ms":40,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-01 21:54:07"}
+{"duration_ms":25,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/release-modal","query":"pr_ids=","status":200,"time":"2025-11-01 21:54:09"}
+{"duration_ms":54,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":400,"time":"2025-11-01 21:54:17"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-02 10:30:58"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-02 10:30:58"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-02 10:30:58"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-02 10:30:58"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-02 10:30:58"}
+{"duration_ms":46,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 10:31:57"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 10:31:58"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 10:31:58"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 10:31:58"}
+{"duration_ms":28,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 10:31:58"}
+{"duration_ms":32,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 10:31:58"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":401,"time":"2025-11-02 10:32:01"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-02 10:32:03"}
+{"duration_ms":479,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/auth/login","status":200,"time":"2025-11-02 10:33:37"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-02 10:33:37"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-02 10:33:38"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/39/features","status":200,"time":"2025-11-02 10:33:42"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/39/features/content","status":200,"time":"2025-11-02 10:33:43"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/web/projects/39/suggest","status":400,"time":"2025-11-02 10:33:49"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/web/projects/39/suggest","status":400,"time":"2025-11-02 10:33:50"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 10:34:03"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/release-modal","query":"pr_ids=","status":200,"time":"2025-11-02 10:34:05"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 10:34:24"}
+{"duration_ms":53,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":400,"time":"2025-11-02 10:34:31"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-02 10:39:29"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-02 10:39:29"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-02 10:39:29"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-02 10:39:29"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-02 10:39:29"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 10:39:51"}
+{"duration_ms":8,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 10:39:51"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 10:39:51"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 10:39:51"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 10:39:51"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 10:39:51"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-02 10:39:54"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-02 10:39:54"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 10:39:55"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/release-modal","query":"pr_ids=","status":200,"time":"2025-11-02 10:39:58"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 10:40:19"}
+{"duration_ms":9,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":400,"time":"2025-11-02 10:40:23"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-02 10:50:02"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-02 10:50:02"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-02 10:50:02"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-02 10:50:02"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-02 10:50:02"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 10:50:22"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 10:50:22"}
+{"duration_ms":5,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 10:50:22"}
+{"duration_ms":35,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 10:50:22"}
+{"duration_ms":37,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 10:50:22"}
+{"duration_ms":34,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 10:50:22"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 10:50:25"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/release-modal","query":"pr_ids=","status":200,"time":"2025-11-02 10:50:26"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 10:50:40"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/","status":200,"time":"2025-11-02 10:50:43"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":302,"time":"2025-11-02 10:53:53"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 10:53:53"}
+{"duration_ms":8,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 10:53:53"}
+{"duration_ms":2,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 10:53:53"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 10:53:53"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 10:53:53"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 10:53:53"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 10:53:56"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 10:54:03"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 10:54:03"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":404,"time":"2025-11-02 10:54:12"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":404,"time":"2025-11-02 10:54:13"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":404,"time":"2025-11-02 10:54:21"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":404,"time":"2025-11-02 10:54:23"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-02 17:45:53"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-02 17:45:53"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-02 17:45:53"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-02 17:45:53"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-02 17:45:53"}
+{"duration_ms":49,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 17:54:47"}
+{"duration_ms":9,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 17:54:48"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 17:54:48"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 17:54:48"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 17:54:48"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 17:54:48"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 17:54:51"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":401,"time":"2025-11-02 17:54:55"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":401,"time":"2025-11-02 17:54:59"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 17:55:01"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 17:55:01"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 17:55:01"}
+{"duration_ms":25,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 17:55:01"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 17:55:01"}
+{"duration_ms":26,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 17:55:01"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-02 17:55:02"}
+{"duration_ms":482,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/auth/login","status":200,"time":"2025-11-02 17:55:11"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-02 17:55:11"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-02 17:55:11"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 17:55:16"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 17:55:19"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 17:55:19"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 17:55:26"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":404,"time":"2025-11-02 17:55:35"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":404,"time":"2025-11-02 17:55:38"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/prs/add","status":404,"time":"2025-11-02 17:55:43"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-02 18:03:49"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-02 18:03:49"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-02 18:03:49"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-02 18:03:49"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-02 18:03:50"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 18:04:06"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 18:04:06"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 18:04:09"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 18:04:09"}
+{"duration_ms":4,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 18:04:10"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 18:04:10"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 18:04:10"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 18:04:10"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-02 18:04:13"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-02 18:04:13"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 18:04:15"}
+{"duration_ms":27,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 18:04:17"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 18:04:17"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 18:04:19"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 18:04:20"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":200,"time":"2025-11-02 18:04:27"}
+{"duration_ms":4,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features/create","status":400,"time":"2025-11-02 18:04:47"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":200,"time":"2025-11-02 18:04:55"}
+{"duration_ms":2,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features","status":400,"time":"2025-11-02 18:05:04"}
+{"duration_ms":48,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 18:05:13"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 18:05:14"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 18:06:09"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":200,"time":"2025-11-02 18:06:34"}
+{"duration_ms":31,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-02 18:08:21"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-02 18:08:21"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/8/features","status":200,"time":"2025-11-02 18:08:23"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/8/features/content","status":200,"time":"2025-11-02 18:08:23"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/8/features/new","status":200,"time":"2025-11-02 18:08:25"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 18:08:51"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 18:08:53"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 18:08:53"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-02 21:02:23"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-02 21:02:23"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-02 21:02:23"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-02 21:02:23"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-02 21:02:23"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-02 21:04:04"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-02 21:04:04"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-02 21:04:04"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-02 21:04:04"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-02 21:04:04"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-02 21:04:04"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":401,"time":"2025-11-02 21:04:07"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-02 21:04:09"}
+{"duration_ms":489,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/auth/login","status":200,"time":"2025-11-02 21:04:21"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-02 21:04:21"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-02 21:04:21"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-02 21:04:25"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 21:04:28"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 21:04:28"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 21:04:30"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 21:04:48"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 21:04:51"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 21:04:51"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 21:04:52"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 21:04:54"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":200,"time":"2025-11-02 21:05:01"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":200,"time":"2025-11-02 21:05:06"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features/create","status":200,"time":"2025-11-02 21:05:27"}
+{"duration_ms":44,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 21:05:27"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 21:05:27"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 21:05:27"}
+{"duration_ms":25,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":200,"time":"2025-11-02 21:05:35"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features","status":200,"time":"2025-11-02 21:05:39"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 21:05:39"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 21:05:39"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 21:05:39"}
+{"duration_ms":28,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 21:05:47"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-02 21:05:47"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 21:05:47"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-02 21:05:54"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-02 21:05:57"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-02 21:05:57"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-03 00:31:37"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-03 00:31:37"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-03 00:31:37"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-03 00:31:37"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-03 00:31:37"}
+{"duration_ms":32,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-03 00:33:01"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-03 00:33:02"}
+{"duration_ms":5,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-03 00:33:02"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/favicon.ico","status":404,"time":"2025-11-03 00:33:02"}
+{"duration_ms":36,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-03 00:33:02"}
+{"duration_ms":35,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-03 00:33:02"}
+{"duration_ms":38,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-03 00:33:02"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":401,"time":"2025-11-03 00:33:03"}
+{"duration_ms":11,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-03 00:33:06"}
+{"duration_ms":481,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/auth/login","status":200,"time":"2025-11-03 00:33:40"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-03 00:33:40"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-03 00:33:40"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-03 00:33:44"}
+{"duration_ms":26,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-03 00:33:46"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-03 00:33:46"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/notes/edit","status":404,"time":"2025-11-03 00:33:49"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/releases/15/edit","status":404,"time":"2025-11-03 00:33:51"}
+{"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":200,"time":"2025-11-03 00:33:59"}
+{"duration_ms":9,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features/create","status":200,"time":"2025-11-03 00:34:12"}
+{"duration_ms":36,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-03 00:34:12"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-03 00:34:12"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-03 00:34:17"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-03 00:34:18"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":200,"time":"2025-11-03 00:34:19"}
+{"duration_ms":9,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features","status":200,"time":"2025-11-03 00:34:22"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-03 00:34:22"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-03 00:34:22"}
+{"level":"info","log_file":"D:\\featureplus-markers\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-03 00:45:00"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-03 00:45:00"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-03 00:45:00"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-03 00:45:00"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-03 00:45:00"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-03 00:45:35"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-03 00:45:35"}
+{"duration_ms":2,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/auth/me","status":200,"time":"2025-11-03 00:45:36"}
+{"duration_ms":30,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":200,"time":"2025-11-03 00:45:36"}
+{"duration_ms":32,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":200,"time":"2025-11-03 00:45:36"}
+{"duration_ms":29,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":200,"time":"2025-11-03 00:45:36"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases","status":200,"time":"2025-11-03 00:45:48"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-03 00:48:47"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-03 00:48:48"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/features/140/unassign-release","status":404,"time":"2025-11-03 00:49:00"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/features/139/unassign-release","status":404,"time":"2025-11-03 00:49:03"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/features/145/unassign-release","status":404,"time":"2025-11-03 00:49:06"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/releases/15","status":200,"time":"2025-11-03 00:49:08"}
+{"duration_ms":14,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15","status":200,"time":"2025-11-03 00:49:08"}
+{"duration_ms":10,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/new","status":200,"time":"2025-11-03 00:49:11"}
+{"duration_ms":32,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features/create","status":200,"time":"2025-11-03 00:49:23"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/releases/15/features/assign","status":200,"time":"2025-11-03 00:49:26"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/releases/15/features","status":200,"time":"2025-11-03 00:49:30"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-03 00:49:37"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-03 00:49:37"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/39/features","status":200,"time":"2025-11-03 00:49:39"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/39/features/content","status":200,"time":"2025-11-03 00:49:39"}

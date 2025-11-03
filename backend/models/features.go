@@ -25,6 +25,7 @@ type Feature struct {
 	ID              uint            `gorm:"primaryKey" json:"id"`
 	ProjectID       int             `gorm:"not null;index" json:"project_id"`
 	ParentFeatureID *uint           `gorm:"index" json:"parent_feature_id"`
+	ReleaseID       *uint           `gorm:"index" json:"release_id"` // Optional: feature can be planned for a release
 	Title           string          `gorm:"type:varchar(255);not null" json:"title"`
 	Description     string          `gorm:"type:text" json:"description"`
 	Category        string          `gorm:"type:varchar(50);not null;default:'general'" json:"category"`
@@ -38,6 +39,7 @@ type Feature struct {
 	// Associations
 	Project       Project      `gorm:"foreignKey:ProjectID" json:"-"`
 	ParentFeature *Feature     `gorm:"foreignKey:ParentFeatureID" json:"parent_feature,omitempty"`
+	Release       *Release     `gorm:"foreignKey:ReleaseID" json:"release,omitempty"`
 	Assignee      User         `gorm:"foreignKey:AssigneeID" json:"assignee"`
 	Tags          []FeatureTag `json:"tags"`
 }

@@ -17,12 +17,14 @@ Method: GET, Path: /web/fragments/dependencies/panels
 Method: GET, Path: /web/fragments/dependencies/modal
 Method: GET, Path: /web/fragments/dependencies/type_selector
 Method: GET, Path: /web/fragments/dashboard-status
+Method: GET, Path: /web/fragments/releases
+Method: GET, Path: /web/fragments/releases/:id
+Method: GET, Path: /web/fragments/releases/:id/features/new
+Method: GET, Path: /web/fragments/releases/:id/features/assign
+Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/fragments/tasks
 Method: GET, Path: /web/fragments/tasks/assigned
 Method: GET, Path: /web/fragments/tags/autocomplete
-Method: GET, Path: /web/fragments/releases
-Method: GET, Path: /web/fragments/releases/:id
-Method: GET, Path: /web/fragments/release-modal
 Method: GET, Path: /web/features/cancel
 Method: GET, Path: /web/features/:id/tasks
 Method: GET, Path: /web/features/:id/tasks/new
@@ -44,6 +46,7 @@ Method: GET, Path: /web/tasks/:id/guidance
 Method: GET, Path: /web/releases
 Method: GET, Path: /web/releases/:id
 Method: GET, Path: /web/releases/:id/row
+Method: GET, Path: /web/releases/:id/notes/edit
 Method: GET, Path: /web/dependencies
 Method: GET, Path: /web/dashboard
 Method: GET, Path: /web/login
@@ -78,6 +81,10 @@ Method: POST, Path: /api/templates/apply
 Method: POST, Path: /api/templates/reload
 Method: POST, Path: /api/tasks/:task_id/attachments
 Method: POST, Path: /api/tasks/:task_id/comments
+Method: POST, Path: /api/releases/
+Method: POST, Path: /api/releases/:id/features
+Method: POST, Path: /api/releases/:id/features/create
+Method: POST, Path: /api/releases/:id/finalize
 Method: POST, Path: /api/pr
 Method: POST, Path: /api/projects/:id/suggest
 Method: POST, Path: /api/pr/:id/review
@@ -86,8 +93,6 @@ Method: POST, Path: /api/imports/save
 Method: POST, Path: /api/imports/github
 Method: POST, Path: /api/auth/signup
 Method: POST, Path: /api/auth/login
-Method: POST, Path: /api/releases/
-Method: POST, Path: /api/releases/:id/finalize
 Method: POST, Path: /api/guidance/
 Method: POST, Path: /api/guidance/reload
 Method: POST, Path: /api/dependencies
@@ -109,3 +114,4 @@ Method: DELETE, Path: /api/guidance/:stack/:task_type
 Method: DELETE, Path: /api/templates/:id
 Method: DELETE, Path: /api/imports/:id
 Method: PUT, Path: /api/comments/:comment_id
+Method: PUT, Path: /api/releases/:id/notes

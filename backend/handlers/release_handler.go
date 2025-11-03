@@ -64,9 +64,47 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 	}
 
 	// Extract PR IDs and GitHub PR numbers from the release
+	// Support release-first workflow: collect PRs from both direct association and via features
 	var prIDs []int
 	var githubPRNumbers []int
+	var allPRs []models.PullRequest
+	
+	// Get database connection to fetch PRs from features
+	db := getDB(h.releaseRepo)
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
+		return
+	}
+	
+	// First, add PRs directly associated with the release
 	for _, pr := range release.PRs {
+		allPRs = append(allPRs, pr)
+	}
+	log.Printf("%s [%s] Found %d PRs directly associated with release", logPrefix, time.Now().Format(time.RFC3339), len(release.PRs))
+	
+	// Then, fetch PRs from features that are assigned to this release
+	var featurePRs []models.PullRequest
+	if err := db.Joins("JOIN features ON features.id = pull_requests.feature_id").
+		Where("features.release_id = ?", releaseID).
+		Find(&featurePRs).Error; err != nil {
+		log.Printf("%s [%s] Warning: Failed to fetch PRs from features: %v", logPrefix, time.Now().Format(time.RFC3339), err)
+	} else {
+		log.Printf("%s [%s] Found %d PRs from features assigned to release", logPrefix, time.Now().Format(time.RFC3339), len(featurePRs))
+		// Merge PRs from features, avoiding duplicates
+		prIDSet := make(map[uint]bool)
+		for _, pr := range allPRs {
+			prIDSet[pr.ID] = true
+		}
+		for _, pr := range featurePRs {
+			if !prIDSet[pr.ID] {
+				allPRs = append(allPRs, pr)
+				prIDSet[pr.ID] = true
+			}
+		}
+	}
+	
+	// Extract IDs and GitHub PR numbers from all collected PRs
+	for _, pr := range allPRs {
 		prIDs = append(prIDs, int(pr.ID))
 		
 		// Extract GitHub PR number from URL
@@ -77,10 +115,18 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 		}
 		githubPRNumbers = append(githubPRNumbers, githubPRNumber)
 	}
+	log.Printf("%s [%s] Total PRs to finalize: %d", logPrefix, time.Now().Format(time.RFC3339), len(allPRs))
 	log.Printf("%s [%s] Extracted PR DB IDs: %v", logPrefix, time.Now().Format(time.RFC3339), prIDs)
 	log.Printf("%s [%s] Extracted GitHub PR numbers: %v", logPrefix, time.Now().Format(time.RFC3339), githubPRNumbers)
 
-	// Validate that all PRs belong to the same project
+	// Check if there are any PRs to finalize
+	if len(allPRs) == 0 {
+		log.Printf("%s [%s] No PRs found for release (neither directly nor via features)", logPrefix, time.Now().Format(time.RFC3339))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No PRs found for release. Please add features with PRs or directly associate PRs before finalizing."})
+		return
+	}
+	
+	// Validate that all PRs belong to the same project (only if we have PRs)
 	log.Printf("%s [%s] Validating all PRs are from the same project", logPrefix, time.Now().Format(time.RFC3339))
 	sameProject, err := h.releaseRepo.CheckPRsSameProject(prIDs)
 	if err != nil {
@@ -109,7 +155,7 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 	// Validate that no PR has unresolved dependencies
 	log.Printf("%s [%s] Checking for PRs with unresolved dependencies", logPrefix, time.Now().Format(time.RFC3339))
 	validator := services.NewReleaseValidator(h.releaseRepo.DB())
-	if err := validator.ValidatePRsNotBlocked(release.PRs); err != nil {
+	if err := validator.ValidatePRsNotBlocked(allPRs); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot finalize release: " + err.Error()})
 		return
 	}
@@ -125,18 +171,11 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 	// Define repository settings
 	baseBranch := "main" // Default base branch, could be configurable
 	
-	// Check if there are PRs linked to the release
-	if len(release.PRs) == 0 {
-		log.Printf("%s [%s] No PRs found for release", logPrefix, time.Now().Format(time.RFC3339))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No PRs found for release"})
-		return
-	}
-	
 	// Extract repository URL from the first PR with a valid URL
 	var repoURL string
 	var validPRFound bool
 	
-	for _, pr := range release.PRs {
+	for _, pr := range allPRs {
 		if pr.URL == "" {
 			continue // Skip PRs with empty URLs
 		}
@@ -161,7 +200,7 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 	log.Printf("%s [%s] Using repo URL: %s", logPrefix, time.Now().Format(time.RFC3339), repoURL)
 	
 	// Verify all PRs belong to the same repository
-	for _, pr := range release.PRs {
+	for _, pr := range allPRs {
 		if pr.URL == "" {
 			continue // Skip PRs with empty URLs
 		}
@@ -268,9 +307,9 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 	}
 	
 	// 4. For each PR, fetch and cherry-pick its merge commit
-	log.Printf("%s [%s] Processing %d PRs for cherry-picking", logPrefix, time.Now().Format(time.RFC3339), len(release.PRs))
+	log.Printf("%s [%s] Processing %d PRs for cherry-picking", logPrefix, time.Now().Format(time.RFC3339), len(allPRs))
 	
-	for i, pr := range release.PRs {
+	for i, pr := range allPRs {
 		// Extract GitHub PR number from URL
 		githubPRNumber, err := extractPRNumberFromURL(pr.URL)
 		if err != nil {
@@ -282,7 +321,7 @@ func (h *ReleaseHandler) FinalizeRelease(c *gin.Context) {
 		
 		// Log both DB ID and GitHub PR number
 		log.Printf("%s [%s] Processing PR db_id=%d, github_pr=%d (%d/%d): %s", logPrefix, time.Now().Format(time.RFC3339), 
-			pr.ID, githubPRNumber, i+1, len(release.PRs), pr.Title)
+			pr.ID, githubPRNumber, i+1, len(allPRs), pr.Title)
 		
 		// Get PR details to find the merge commit SHA
 		// For this example, we'll assume the PR URL contains the necessary info
@@ -601,10 +640,11 @@ func extractPRNumberFromURL(url string) (int, error) {
 }
 
 type CreateReleaseRequest struct {
-	Tag   string `json:"tag" binding:"required"`
-	PRs   []int  `json:"prs,omitempty"`
-	PRIDs []uint `json:"pr_ids,omitempty" binding:"omitempty"`
-	Notes string `json:"notes"`
+	Tag       string `form:"tag" json:"tag" binding:"required"`
+	PRs       []int  `form:"prs" json:"prs,omitempty"`
+	PRIDs     []uint `form:"pr_ids" json:"pr_ids,omitempty" binding:"omitempty"`
+	ProjectID int    `form:"project_id" json:"project_id,omitempty"` // Required when creating release without PRs
+	Notes     string `form:"notes" json:"notes"`
 }
 
 // GetReleases handles retrieving all releases or releases for a specific project
@@ -696,6 +736,11 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		// Parse as form data
 		log.Printf("%s Parsing as form data", logPrefix)
 		
+		// Debug: Log all form values
+		if err := c.Request.ParseForm(); err == nil {
+			log.Printf("%s [DEBUG] Form values: %+v", logPrefix, c.Request.PostForm)
+		}
+		
 		// First bind the form data
 		if err = c.ShouldBind(&req); err != nil {
 			log.Printf("%s Form binding error: %v", logPrefix, err)
@@ -707,6 +752,18 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 				req.Tag = c.PostForm("version") // Try alternate field name
 			}
 			req.Notes = c.PostForm("notes")
+			
+			// Extract project_id
+			projectIDStr := c.PostForm("project_id")
+			if projectIDStr != "" {
+				projectID, convErr := strconv.Atoi(projectIDStr)
+				if convErr == nil {
+					req.ProjectID = projectID
+					log.Printf("%s Manually extracted project_id: %d", logPrefix, projectID)
+				} else {
+					log.Printf("%s Failed to parse project_id '%s': %v", logPrefix, projectIDStr, convErr)
+				}
+			}
 			
 			// Try to extract PR IDs
 			prIdsStr := c.PostFormArray("prs[]")
@@ -722,9 +779,9 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 			}
 			
 			// Check if we have the minimum required data
-			if req.Tag == "" || len(req.PRs) == 0 {
-				log.Printf("%s Manual extraction failed to get required fields", logPrefix)
-				err = errors.New("missing required fields: tag and prs")
+			if req.Tag == "" {
+				log.Printf("%s Manual extraction failed to get required field: tag", logPrefix)
+				err = errors.New("missing required field: tag")
 			} else {
 				// We successfully extracted the data manually
 				err = nil
@@ -743,9 +800,10 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 	}
 	
 	// Log the parsed request
-	log.Printf("%s Parsed request: Tag=%s, Notes=%s", logPrefix, req.Tag, req.Notes)
+	log.Printf("%s Parsed request: Tag=%s, ProjectID=%d, Notes=%s, PRs=%v", logPrefix, req.Tag, req.ProjectID, req.Notes, req.PRs)
 	
 	// Handle both PR field formats (prs from UI, pr_ids from CLI)
+	// PRs are now optional for release-first workflow
 	prIDs := make([]int, 0)
 	if len(req.PRs) > 0 {
 		log.Printf("%s Using PRs field: %v", logPrefix, req.PRs)
@@ -757,52 +815,57 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 			prIDs = append(prIDs, int(id))
 		}
 	} else {
-		log.Printf("%s No PR IDs provided in request", logPrefix)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No PR IDs provided"})
-		return
+		log.Printf("%s No PR IDs provided - creating release without PRs (release-first workflow)", logPrefix)
 	}
 	
 	// Perform validations using the repository directly
 	// Derive ProjectID from PRs' features to scope the release per project
-	sameProject, err := h.releaseRepo.CheckPRsSameProject(prIDs)
-	if err != nil {
-		log.Printf("%s Failed to validate PRs: %v", logPrefix, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate PRs: " + err.Error()})
-		return
-	}
-	if !sameProject {
-		log.Printf("%s PRs belong to different projects", logPrefix)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "All PRs in a release must belong to the same project"})
-		return
-	}
-
-	// Fetch one PR to compute the ProjectID via its Feature
-	if len(prIDs) == 0 {
-		log.Printf("%s No PR IDs available for validation", logPrefix)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid PR IDs provided"})
-		return
-	}
+	// Skip validation if no PRs provided (release-first workflow)
+	var projectID int
 	
-	var firstPRID = prIDs[0]
-	log.Printf("%s Using first PR ID for project validation: %d", logPrefix, firstPRID)
+	if len(prIDs) > 0 {
+		sameProject, err := h.releaseRepo.CheckPRsSameProject(prIDs)
+		if err != nil {
+			log.Printf("%s Failed to validate PRs: %v", logPrefix, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate PRs: " + err.Error()})
+			return
+		}
+		if !sameProject {
+			log.Printf("%s PRs belong to different projects", logPrefix)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "All PRs in a release must belong to the same project"})
+			return
+		}
 	
-	var pr models.PullRequest
-	db := getDB(h.releaseRepo)
-	if db == nil {
-		log.Printf("%s Failed to get database connection", logPrefix)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
-		return
+		var firstPRID = prIDs[0]
+		log.Printf("%s Using first PR ID for project validation: %d", logPrefix, firstPRID)
+		
+		var pr models.PullRequest
+		db := getDB(h.releaseRepo)
+		if db == nil {
+			log.Printf("%s Failed to get database connection", logPrefix)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
+			return
+		}
+		if err := db.Where("id = ?", firstPRID).First(&pr).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load PR: " + err.Error()})
+			return
+		}
+		var feature models.Feature
+		if err := db.Where("id = ?", pr.FeatureID).First(&feature).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load Feature: " + err.Error()})
+			return
+		}
+		projectID = feature.ProjectID
+	} else {
+		// Release-first workflow: require project_id in request
+		if req.ProjectID == 0 {
+			log.Printf("%s No PRs provided and no project_id specified", logPrefix)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "project_id is required when creating a release without PRs"})
+			return
+		}
+		projectID = req.ProjectID
+		log.Printf("%s Using project_id from request: %d", logPrefix, projectID)
 	}
-	if err := db.Where("id = ?", firstPRID).First(&pr).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load PR: " + err.Error()})
-		return
-	}
-	var feature models.Feature
-	if err := db.Where("id = ?", pr.FeatureID).First(&feature).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load Feature: " + err.Error()})
-		return
-	}
-	projectID := feature.ProjectID
 
 	// Check if tag already exists within this project
 	existingRelease, err := h.releaseRepo.GetByTag(uint(projectID), req.Tag)
@@ -815,24 +878,26 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		return
 	}
 
-	// Verify all PRs exist
-	prsExist, err := h.releaseRepo.PRsExist(prIDs)
-	if err != nil {
-		log.Printf("%s Failed to check if PRs exist: %v", logPrefix, err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate PRs"})
-		return
-	}
-	if !prsExist {
-		log.Printf("%s One or more PRs do not exist", logPrefix)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "One or more PRs do not exist"})
-		return
-	}
+	// Verify all PRs exist and validate them (only if PRs provided)
+	if len(prIDs) > 0 {
+		prsExist, err := h.releaseRepo.PRsExist(prIDs)
+		if err != nil {
+			log.Printf("%s Failed to check if PRs exist: %v", logPrefix, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate PRs"})
+			return
+		}
+		if !prsExist {
+			log.Printf("%s One or more PRs do not exist", logPrefix)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "One or more PRs do not exist"})
+			return
+		}
 
-	// Validate the PRs before creating the release
-	if err := h.releaseValidator.ValidatePRsForRelease(prIDs); err != nil {
-		log.Printf("%s PR validation failed: %v", logPrefix, err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		// Validate the PRs before creating the release
+		if err := h.releaseValidator.ValidatePRsForRelease(prIDs); err != nil {
+			log.Printf("%s PR validation failed: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	// Create the release directly in our database
@@ -860,4 +925,394 @@ func (h *ReleaseHandler) CreateRelease(c *gin.Context) {
 		"tag":        release.Tag,
 		"prs":        prIDs,
 	})
+}
+
+// AddFeaturesToReleaseRequest represents the request to add features to a release
+type AddFeaturesToReleaseRequest struct {
+	FeatureIDs []uint `form:"feature_ids" json:"feature_ids" binding:"required"`
+}
+
+// AddFeaturesToRelease handles adding existing features to a release
+// @Summary Add features to a release
+// @Description Assign existing features to a release for release-first planning
+// @Tags releases
+// @Accept json
+// @Produce json
+// @Param id path int true "Release ID"
+// @Param request body AddFeaturesToReleaseRequest true "Feature IDs to add"
+// @Success 200 {object} map[string]interface{} "Success response"
+// @Failure 400 {object} map[string]string "Invalid input"
+// @Failure 404 {object} map[string]string "Release not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/releases/{id}/features [post]
+func (h *ReleaseHandler) AddFeaturesToRelease(c *gin.Context) {
+	logPrefix := "[AddFeaturesToRelease]"
+	log.Printf("%s Start adding features to release", logPrefix)
+	
+	// Parse release ID from URL
+	releaseID, err := parseUintParam(c, "id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid release ID"})
+		return
+	}
+	
+	// Get release by ID
+	release, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Release not found"})
+		return
+	}
+	
+	// Verify release is in draft state
+	if release.Status != models.ReleaseStatusDraft {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only draft releases can have features added"})
+		return
+	}
+	
+	// Parse request body (support both JSON and form data)
+	var req AddFeaturesToReleaseRequest
+	
+	// Log content type for debugging
+	log.Printf("%s Content-Type: %s", logPrefix, c.ContentType())
+	
+	if strings.Contains(c.ContentType(), "application/json") {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			log.Printf("%s JSON binding error: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+			return
+		}
+	} else {
+		// Try form binding
+		if err := c.ShouldBind(&req); err != nil {
+			log.Printf("%s Form binding error: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+			return
+		}
+	}
+	
+	log.Printf("%s Received feature IDs: %v", logPrefix, req.FeatureIDs)
+	
+	if len(req.FeatureIDs) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "At least one feature ID is required"})
+		return
+	}
+	
+	log.Printf("%s Adding %d features to release %d", logPrefix, len(req.FeatureIDs), releaseID)
+	
+	// Get database connection
+	db := getDB(h.releaseRepo)
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
+		return
+	}
+	
+	// Fetch all features and validate they belong to the same project as the release
+	var features []models.Feature
+	if err := db.Where("id IN ?", req.FeatureIDs).Find(&features).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch features: " + err.Error()})
+		return
+	}
+	
+	if len(features) != len(req.FeatureIDs) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "One or more features not found"})
+		return
+	}
+	
+	// Validate all features belong to the same project as the release
+	for _, feature := range features {
+		if feature.ProjectID != release.ProjectID {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": fmt.Sprintf("Feature %d belongs to project %d, but release belongs to project %d", 
+					feature.ID, feature.ProjectID, release.ProjectID),
+			})
+			return
+		}
+	}
+	
+	// Update all features to set their ReleaseID
+	if err := db.Model(&models.Feature{}).Where("id IN ?", req.FeatureIDs).Update("release_id", releaseID).Error; err != nil {
+		log.Printf("%s Failed to update features: %v", logPrefix, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add features to release: " + err.Error()})
+		return
+	}
+	
+	log.Printf("%s Successfully added %d features to release %d", logPrefix, len(req.FeatureIDs), releaseID)
+	
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Fetch updated release
+		updatedRelease, err := h.releaseRepo.GetByID(releaseID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated release"})
+			return
+		}
+		
+		// Fetch all features for this release
+		var plannedFeatures []models.Feature
+		if err := db.Where("release_id = ?", releaseID).Find(&plannedFeatures).Error; err != nil {
+			log.Printf("%s Failed to fetch planned features: %v", logPrefix, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch planned features"})
+			return
+		}
+		
+		// Get user context
+		userRole, _ := c.Get("user_role")
+		currentUser := map[string]interface{}{
+			"Role":      userRole,
+			"IsManager": userRole == "manager",
+		}
+		
+		// Render the planned features list and close modal
+		c.HTML(http.StatusOK, "release-planned-features-oob.html", gin.H{
+			"PlannedFeatures": plannedFeatures,
+			"Release":         updatedRelease,
+			"CurrentUser":     currentUser,
+		})
+		return
+	}
+	
+	// For non-HTMX requests, return JSON
+	c.JSON(http.StatusOK, gin.H{
+		"status":      "success",
+		"release_id":  releaseID,
+		"feature_ids": req.FeatureIDs,
+		"message":     fmt.Sprintf("Added %d features to release", len(req.FeatureIDs)),
+	})
+}
+
+// CreateFeatureUnderReleaseRequest represents the request to create a feature under a release
+type CreateFeatureUnderReleaseRequest struct {
+	Title       string `form:"title" json:"title" binding:"required"`
+	Description string `form:"description" json:"description"`
+	Category    string `form:"category" json:"category"`
+	Priority    string `form:"priority" json:"priority"`
+	AssigneeID  uint   `form:"assignee_id" json:"assignee_id"`
+}
+
+// CreateFeatureUnderRelease handles creating a new feature directly under a release
+// @Summary Create a feature under a release
+// @Description Create a new feature and automatically assign it to a release
+// @Tags releases
+// @Accept json
+// @Produce json
+// @Param id path int true "Release ID"
+// @Param request body CreateFeatureUnderReleaseRequest true "Feature data"
+// @Success 200 {object} models.Feature "Created feature"
+// @Failure 400 {object} map[string]string "Invalid input"
+// @Failure 404 {object} map[string]string "Release not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/releases/{id}/features/create [post]
+func (h *ReleaseHandler) CreateFeatureUnderRelease(c *gin.Context) {
+	logPrefix := "[CreateFeatureUnderRelease]"
+	log.Printf("%s Start creating feature under release", logPrefix)
+	
+	// Parse release ID from URL
+	releaseID, err := parseUintParam(c, "id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid release ID"})
+		return
+	}
+	
+	// Get release by ID
+	release, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Release not found"})
+		return
+	}
+	
+	// Verify release is in draft state
+	if release.Status != models.ReleaseStatusDraft {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only draft releases can have features created"})
+		return
+	}
+	
+	// Parse request body (support both JSON and form data)
+	var req CreateFeatureUnderReleaseRequest
+	
+	// Log content type for debugging
+	log.Printf("%s Content-Type: %s", logPrefix, c.ContentType())
+	
+	if strings.Contains(c.ContentType(), "application/json") {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			log.Printf("%s JSON binding error: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+			return
+		}
+	} else {
+		// Try form binding
+		if err := c.ShouldBind(&req); err != nil {
+			log.Printf("%s Form binding error: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+			return
+		}
+	}
+	
+	log.Printf("%s Creating feature '%s' under release %d", logPrefix, req.Title, releaseID)
+	
+	// Get database connection
+	db := getDB(h.releaseRepo)
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
+		return
+	}
+	
+	// Set default values
+	category := req.Category
+	if category == "" {
+		category = "general"
+	}
+	
+	priority := req.Priority
+	if priority == "" {
+		priority = "medium"
+	}
+	
+	// Create the feature
+	feature := models.Feature{
+		ProjectID:   release.ProjectID,
+		ReleaseID:   &releaseID,
+		Title:       req.Title,
+		Description: req.Description,
+		Category:    category,
+		Status:      models.StatusTodo,
+		Priority:    models.FeaturePriority(priority),
+		AssigneeID:  req.AssigneeID,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	
+	if err := db.Create(&feature).Error; err != nil {
+		log.Printf("%s Failed to create feature: %v", logPrefix, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create feature: " + err.Error()})
+		return
+	}
+	
+	log.Printf("%s Successfully created feature %d under release %d", logPrefix, feature.ID, releaseID)
+	
+	// Check if this is an HTMX request
+	if c.GetHeader("HX-Request") == "true" {
+		// Fetch updated release
+		updatedRelease, err := h.releaseRepo.GetByID(releaseID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated release"})
+			return
+		}
+		
+		// Fetch all features for this release
+		var plannedFeatures []models.Feature
+		if err := db.Where("release_id = ?", releaseID).Find(&plannedFeatures).Error; err != nil {
+			log.Printf("%s Failed to fetch planned features: %v", logPrefix, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch planned features"})
+			return
+		}
+		
+		// Get user context
+		userRole, _ := c.Get("user_role")
+		currentUser := map[string]interface{}{
+			"Role":      userRole,
+			"IsManager": userRole == "manager",
+		}
+		
+		// Render the planned features list and clear the form
+		c.HTML(http.StatusOK, "release-planned-features-oob.html", gin.H{
+			"PlannedFeatures": plannedFeatures,
+			"Release":         updatedRelease,
+			"CurrentUser":     currentUser,
+		})
+		return
+	}
+	
+	// For non-HTMX requests, return JSON
+	c.JSON(http.StatusOK, feature)
+}
+
+// UpdateNotesRequest represents the request to update release notes
+type UpdateNotesRequest struct {
+	Notes string `form:"notes" json:"notes"`
+}
+
+// UpdateReleaseNotes handles updating the notes for a release
+// @Summary Update release notes
+// @Description Update the notes/description for a draft release
+// @Tags releases
+// @Accept json
+// @Produce json
+// @Param id path int true "Release ID"
+// @Param request body UpdateNotesRequest true "Notes data"
+// @Success 200 {object} models.Release "Updated release"
+// @Failure 400 {object} map[string]string "Invalid input"
+// @Failure 404 {object} map[string]string "Release not found"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /api/releases/{id}/notes [put]
+func (h *ReleaseHandler) UpdateReleaseNotes(c *gin.Context) {
+	logPrefix := "[UpdateReleaseNotes]"
+	log.Printf("%s Start updating release notes", logPrefix)
+	
+	// Parse release ID from URL
+	releaseID, err := parseUintParam(c, "id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid release ID"})
+		return
+	}
+	
+	// Get release by ID
+	release, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Release not found"})
+		return
+	}
+	
+	// Verify release is in draft state
+	if release.Status != models.ReleaseStatusDraft {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only draft releases can have notes updated"})
+		return
+	}
+	
+	// Parse request body (support both JSON and form data)
+	var req UpdateNotesRequest
+	
+	// Log content type for debugging
+	log.Printf("%s Content-Type: %s", logPrefix, c.ContentType())
+	
+	if strings.Contains(c.ContentType(), "application/json") {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			log.Printf("%s JSON binding error: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+			return
+		}
+	} else {
+		// Try form binding
+		if err := c.ShouldBind(&req); err != nil {
+			log.Printf("%s Form binding error: %v", logPrefix, err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+			return
+		}
+	}
+	
+	log.Printf("%s Updating notes for release %d", logPrefix, releaseID)
+	
+	// Get database connection
+	db := getDB(h.releaseRepo)
+	if db == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal repository error"})
+		return
+	}
+	
+	// Update the notes
+	if err := db.Model(&models.Release{}).Where("id = ?", releaseID).Update("notes", req.Notes).Error; err != nil {
+		log.Printf("%s Failed to update notes: %v", logPrefix, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update notes: " + err.Error()})
+		return
+	}
+	
+	// Fetch updated release
+	updatedRelease, err := h.releaseRepo.GetByID(releaseID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated release"})
+		return
+	}
+	
+	log.Printf("%s Successfully updated notes for release %d", logPrefix, releaseID)
+	
+	c.JSON(http.StatusOK, updatedRelease)
 }

@@ -15,6 +15,28 @@
       hx-swap="outerHTML"
       class="space-y-5"
     >
+      <!-- Project Selection (Required for release-first workflow) -->
+      <div>
+        <label for="project" class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Project</label>
+        <select 
+          id="project" 
+          name="project_id" 
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition"
+          {{ if not .Release }}required{{ end }}>
+          <option value="">Select a project...</option>
+          {{ if .Projects }}
+            {{ range .Projects }}
+              <option value="{{ .ID }}" {{ if $.Release }}{{ if eq $.Release.ProjectID .ID }}selected{{ end }}{{ end }}>
+                {{ .Name }}
+              </option>
+            {{ end }}
+          {{ end }}
+        </select>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Required when creating a release without PRs
+        </p>
+      </div>
+      
       <div>
         <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Version</label>
         <input 
@@ -37,9 +59,14 @@
         >{{ if .Release }}{{ .Release.Notes }}{{ end }}</textarea>
       </div>
       
-      <!-- PR Selection Section -->
+      <!-- PR Selection Section (Optional) -->
       <div>
-        <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Pull Requests</label>
+        <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">
+          Pull Requests <span class="text-gray-500 font-normal text-sm">(Optional)</span>
+        </label>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+          You can attach features and PRs later. Leave empty to create a release-first plan.
+        </p>
         <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-4 max-h-60 overflow-y-auto">
           {{ if .PRs }}
             <div class="space-y-2">
@@ -68,7 +95,7 @@
               {{ end }}
             </div>
           {{ else }}
-            <p class="text-gray-500 dark:text-gray-400 text-sm italic">No pull requests available</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm italic">No pull requests available. You can add features to this release after creation.</p>
           {{ end }}
         </div>
       </div>

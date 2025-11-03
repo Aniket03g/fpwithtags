@@ -23,9 +23,10 @@ type Release struct {
 
 // CreateReleaseRequest represents a request to create a release
 type CreateReleaseRequest struct {
-	Tag   string `json:"tag"`
-	Notes string `json:"notes"`
-	PRIDs []uint `json:"pr_ids"`
+	Tag       string `json:"tag"`
+	Notes     string `json:"notes,omitempty"`
+	PRIDs     []uint `json:"pr_ids,omitempty"`
+	ProjectID int    `json:"project_id,omitempty"`
 }
 
 // isDebugEnabled checks if DEBUG environment variable is set to 1

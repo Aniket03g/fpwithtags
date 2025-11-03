@@ -1,0 +1,77 @@
+<!-- OOB template for updating planned features list -->
+<div id="planned-features-list">
+  {{ if .PlannedFeatures }}
+    <div class="space-y-4">
+      {{ range .PlannedFeatures }}
+        <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition" id="planned-feature-{{ .ID }}">
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <h3 class="text-lg font-medium text-gray-900">{{ .Title }}</h3>
+                <span class="inline-block px-2 py-1 rounded {{ if eq .Status "done" }}bg-green-100 text-green-700{{ else if eq .Status "in_progress" }}bg-blue-100 text-blue-700{{ else }}bg-yellow-100 text-yellow-700{{ end }} text-xs font-medium">
+                  {{ .Status }}
+                </span>
+                <span class="inline-block px-2 py-1 rounded {{ if eq .Priority "high" }}bg-red-100 text-red-700{{ else if eq .Priority "medium" }}bg-orange-100 text-orange-700{{ else }}bg-green-100 text-green-700{{ end }} text-xs font-medium">
+                  {{ .Priority }}
+                </span>
+              </div>
+              <p class="text-gray-600 text-sm mb-2">{{ .Description }}</p>
+              <div class="text-sm text-gray-500">
+                <span class="font-medium">Category:</span> {{ .Category }}
+              </div>
+            </div>
+            {{ if and $.CurrentUser.IsManager (eq $.Release.Status "draft") }}
+              <button 
+                class="text-red-600 hover:text-red-900 text-sm"
+                hx-post="/api/features/{{ .ID }}/unassign-release"
+                hx-confirm="Remove this feature from the release?"
+                hx-target="#planned-feature-{{ .ID }}"
+                hx-swap="outerHTML">
+                Remove
+              </button>
+            {{ end }}
+          </div>
+        </div>
+      {{ end }}
+    </div>
+  {{ else }}
+    <div class="bg-gray-50 p-8 rounded-lg border border-gray-200 text-center">
+      <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No features planned yet</h3>
+      <p class="text-gray-500 mb-4">Start planning this release by adding features</p>
+      
+      {{ if and (eq $.CurrentUser.Role "manager") (eq $.Release.Status "draft") }}
+        <div class="flex gap-2 justify-center">
+          <button 
+            class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition inline-flex items-center gap-2"
+            hx-get="/web/fragments/releases/{{ $.Release.ID }}/features/new"
+            hx-target="#new-feature-form-container"
+            hx-swap="innerHTML">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create New Feature
+          </button>
+          <button 
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition inline-flex items-center gap-2"
+            hx-get="/web/fragments/releases/{{ $.Release.ID }}/features/assign"
+            hx-target="#modal-container"
+            hx-swap="innerHTML">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Assign Existing Features
+          </button>
+        </div>
+      {{ end }}
+    </div>
+  {{ end }}
+</div>
+
+<!-- Clear the form container using OOB swap -->
+<div id="new-feature-form-container" hx-swap-oob="true"></div>
+
+<!-- Close modal using OOB swap -->
+<div id="modal-container" hx-swap-oob="true"></div>
