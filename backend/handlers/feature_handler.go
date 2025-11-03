@@ -823,12 +823,45 @@ func getFeatureCategories(project *models.Project) []string {
 		}
 	}
 
-	// If still empty, provide defaults
-	if len(categories) == 0 {
-		categories = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
-		// Update the config with defaults
-		project.Config["feature_category"] = categories
-	}
-
+	// Don't force defaults - allow empty categories
+	// If user hasn't set any, return empty slice
 	return categories
+}
+
+// UnassignFeatureFromRelease removes a feature from its assigned release
+func (h *FeatureHandler) UnassignFeatureFromRelease(c *gin.Context) {
+	logPrefix := "[UnassignFeatureFromRelease]"
+	log.Printf("%s Start unassigning feature from release", logPrefix)
+	
+	// Parse feature ID from URL
+	featureIDStr := c.Param("id")
+	featureID, err := strconv.ParseUint(featureIDStr, 10, 32)
+	if err != nil {
+		log.Printf("%s Invalid feature ID: %v", logPrefix, err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid feature ID"})
+		return
+	}
+	
+	log.Printf("%s Unassigning feature %d from release", logPrefix, featureID)
+	
+	// Update the feature to set release_id to NULL
+	if err := h.DB.Model(&models.Feature{}).Where("id = ?", featureID).Update("release_id", nil).Error; err != nil {
+		log.Printf("%s Failed to unassign feature: %v", logPrefix, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unassign feature from release"})
+		return
+	}
+	
+	log.Printf("%s Successfully unassigned feature %d from release", logPrefix, featureID)
+	
+	// For HTMX requests, return empty content to remove the element
+	if c.GetHeader("HX-Request") == "true" {
+		c.Status(http.StatusOK)
+		return
+	}
+	
+	// For non-HTMX requests, return JSON
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Feature unassigned from release",
+	})
 }

@@ -11,13 +11,11 @@ func ensureTaskProjectConfig(project *models.Project) {
 		project.Config = models.JSONB{}
 	}
 
-	// Ensure required fields exist with defaults
+	// Ensure only truly required fields exist with defaults
 	if _, exists := project.Config["task_types"]; !exists {
 		project.Config["task_types"] = []string{"UI", "Dev", "DB", "Backend"}
 	}
-	if _, exists := project.Config["feature_category"]; !exists {
-		project.Config["feature_category"] = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
-	}
+	// Don't force default feature_category - allow it to be empty
 	if _, exists := project.Config["tech_stack"]; !exists {
 		project.Config["tech_stack"] = "Other"
 	}

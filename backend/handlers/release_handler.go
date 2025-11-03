@@ -1047,9 +1047,9 @@ func (h *ReleaseHandler) AddFeaturesToRelease(c *gin.Context) {
 			return
 		}
 		
-		// Fetch all features for this release
+		// Fetch all features for this release with tags
 		var plannedFeatures []models.Feature
-		if err := db.Where("release_id = ?", releaseID).Find(&plannedFeatures).Error; err != nil {
+		if err := db.Preload("Tags").Where("release_id = ?", releaseID).Find(&plannedFeatures).Error; err != nil {
 			log.Printf("%s Failed to fetch planned features: %v", logPrefix, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch planned features"})
 			return
@@ -1187,6 +1187,24 @@ func (h *ReleaseHandler) CreateFeatureUnderRelease(c *gin.Context) {
 		return
 	}
 	
+	// Handle tags if present
+	tagsInput := c.PostForm("tags_input")
+	if tagsInput != "" {
+		var createdByUser uint = 1 // Default to admin if not available
+		if userID, exists := c.Get("user_id"); exists {
+			createdByUser = userID.(uint)
+		}
+		
+		// Get tag repository
+		tagRepo := repositories.NewTagRepository(db)
+		
+		// Save tags (handles single/multiple, any separator)
+		if err := tagRepo.UpdateFeatureTags(feature.ID, createdByUser, tagsInput); err != nil {
+			log.Printf("%s Warning: Failed to save tags: %v", logPrefix, err)
+			// Don't fail the request if tags fail
+		}
+	}
+	
 	log.Printf("%s Successfully created feature %d under release %d", logPrefix, feature.ID, releaseID)
 	
 	// Check if this is an HTMX request
@@ -1198,9 +1216,9 @@ func (h *ReleaseHandler) CreateFeatureUnderRelease(c *gin.Context) {
 			return
 		}
 		
-		// Fetch all features for this release
+		// Fetch all features for this release with tags
 		var plannedFeatures []models.Feature
-		if err := db.Where("release_id = ?", releaseID).Find(&plannedFeatures).Error; err != nil {
+		if err := db.Preload("Tags").Where("release_id = ?", releaseID).Find(&plannedFeatures).Error; err != nil {
 			log.Printf("%s Failed to fetch planned features: %v", logPrefix, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch planned features"})
 			return

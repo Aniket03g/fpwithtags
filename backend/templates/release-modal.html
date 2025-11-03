@@ -12,6 +12,7 @@
       hx-post="/api/releases"
       hx-target="#modal-container"
       hx-swap="outerHTML"
+      hx-on::after-request="if(event.detail.successful) { htmx.ajax('GET', window.location.pathname, {target: '#main-content', swap: 'innerHTML'}); }"
     >
       <!-- Project Selection (Required for release-first workflow) -->
 <!-- Project Selection (Required only when no PRs are linked) -->
@@ -27,7 +28,7 @@
     <option value="">Select a project...</option>
     {{ if .Projects }}
       {{ range .Projects }}
-        <option value="{{ .ID }}">{{ .Name }}</option>
+        <option value="{{ .ID }}" {{ if eq .ID $.SelectedProjectID }}selected{{ end }}>{{ .Name }}</option>
       {{ end }}
     {{ end }}
   </select>
@@ -50,12 +51,12 @@
       </div>
       
       <div>
-        <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Release Notes</label>
+        <label class="block mb-1 font-semibold text-gray-700 dark:text-gray-200">Release Objective</label>
         <textarea 
           name="notes" 
           rows="5" 
           class="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white transition"
-          placeholder="Release notes and changelog information..."
+          placeholder="Describe the objective and goals of this release..."
         ></textarea>
       </div>
       

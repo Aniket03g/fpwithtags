@@ -19,6 +19,13 @@
               <div class="text-sm text-gray-500">
                 <span class="font-medium">Category:</span> {{ .Category }}
               </div>
+              {{ if .Tags }}
+                <div class="flex flex-wrap gap-2 mt-2">
+                  {{ range .Tags }}
+                    <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{{ .TagName }}</span>
+                  {{ end }}
+                </div>
+              {{ end }}
             </div>
             {{ if and $.CurrentUser.IsManager (eq $.Release.Status "draft") }}
               <button 

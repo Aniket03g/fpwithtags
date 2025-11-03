@@ -160,10 +160,10 @@ func (h *WebReleaseHandler) RenderReleaseDetailFragment(c *gin.Context) {
 		"IsManager": userRole == "manager",
 	}
 
-	// Fetch planned features for this release
+	// Fetch planned features for this release with tags
 	db := h.releaseRepo.(interface{ DB() *gorm.DB }).DB()
 	var plannedFeatures []models.Feature
-	db.Where("release_id = ?", releaseID).Find(&plannedFeatures)
+	db.Preload("Tags").Where("release_id = ?", releaseID).Find(&plannedFeatures)
 
 	// Render the release detail template
 	c.HTML(http.StatusOK, "release-detail.html", gin.H{
@@ -197,6 +197,15 @@ func (h *WebReleaseHandler) NewReleaseModal(c *gin.Context) {
 		}
 	}
 
+	// Get project_id from query parameter (optional, for pre-selecting project)
+	projectIDStr := c.Query("project_id")
+	var selectedProjectID int
+	if projectIDStr != "" {
+		if id, err := strconv.Atoi(projectIDStr); err == nil {
+			selectedProjectID = id
+		}
+	}
+
 	// Fetch all projects for the dropdown
 	var projects []models.Project
 	if err := h.releaseRepo.DB().Find(&projects).Error; err != nil {
@@ -208,9 +217,10 @@ func (h *WebReleaseHandler) NewReleaseModal(c *gin.Context) {
 
 	// Render the release modal template with PR IDs and Projects
 	c.HTML(http.StatusOK, "release-modal.html", gin.H{
-		"PRIDs":       prIDs,
-		"Projects":    projects,
-		"CurrentUser": c.GetUint("user_id"),
+		"PRIDs":             prIDs,
+		"Projects":          projects,
+		"SelectedProjectID": selectedProjectID,
+		"CurrentUser":       c.GetUint("user_id"),
 	})
 }
 

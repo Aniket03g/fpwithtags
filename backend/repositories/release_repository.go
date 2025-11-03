@@ -12,6 +12,7 @@ type ReleaseRepository interface {
 	Create(release *models.Release, prIDs []int) error
 	GetByID(id uint) (*models.Release, error)
 	GetByTag(projectID uint, tag string) (*models.Release, error)
+	GetByProjectID(projectID int) ([]models.Release, error)
 	PRsExist(prIDs []int) (bool, error)
 	GetAll() ([]models.Release, error)
 	UpdateStatus(id uint, status models.ReleaseStatus) error
@@ -105,6 +106,24 @@ func (r *releaseRepository) GetByTag(projectID uint, tag string) (*models.Releas
 		return nil, err
 	}
 	return &release, nil
+}
+
+func (r *releaseRepository) GetByProjectID(projectID int) ([]models.Release, error) {
+	var releases []models.Release
+	if err := r.db.Where("project_id = ?", projectID).Order("created_at DESC").Find(&releases).Error; err != nil {
+		return nil, err
+	}
+	
+	// For each release, fetch its associated PRs
+	for i := range releases {
+		var prs []models.PullRequest
+		if err := r.db.Joins("JOIN release_prs ON release_prs.pull_request_id = pull_requests.id").Where("release_prs.release_id = ?", releases[i].ID).Find(&prs).Error; err != nil {
+			return nil, err
+		}
+		releases[i].PRs = prs
+	}
+	
+	return releases, nil
 }
 
 func (r *releaseRepository) PRsExist(prIDs []int) (bool, error) {

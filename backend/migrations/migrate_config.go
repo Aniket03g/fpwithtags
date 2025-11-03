@@ -48,11 +48,8 @@ func MigrateProjectConfig(db *gorm.DB) error {
 			updated = true
 		}
 		
-		// Ensure feature_category exists
-		if _, exists := project.Config["feature_category"]; !exists {
-			project.Config["feature_category"] = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
-			updated = true
-		}
+		// Don't force default feature_category in migration
+		// Allow it to be empty if user hasn't set it
 		
 		// Save if updated
 		if updated {

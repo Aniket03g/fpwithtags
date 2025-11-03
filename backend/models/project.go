@@ -47,22 +47,24 @@ type Project struct {
 }
 
 func (p *Project) BeforeCreate(tx *gorm.DB) (err error) {
-	// Initialize Config if nil or empty
-	if p.Config == nil || len(p.Config) == 0 {
-		p.Config = JSONB{
-			"task_types":       []string{"UI", "Dev", "DB", "Backend"},
-			"feature_category": []string{"Auth", "Payment", "Tags", "Tasks", "Features"},
-			"tech_stack":       "Other",
-			"tags_enabled":     true,
-			"context":          "Development",
-		}
+	// Initialize Config if nil
+	if p.Config == nil {
+		p.Config = JSONB{}
+	}
+	
+	// Only set defaults for fields that don't exist and are truly required
+	// Don't force default values if Config is partially populated
+	if len(p.Config) == 0 {
+		// Only set minimal defaults when Config is completely empty
+		p.Config["task_types"] = []string{"UI", "Dev", "DB", "Backend"}
+		p.Config["tech_stack"] = "Other"
+		p.Config["tags_enabled"] = true
+		p.Config["context"] = "Development"
+		// Don't set default feature_category - let it be empty if user doesn't provide
 	} else {
-		// Ensure required fields exist with defaults if Config is partially populated
+		// Ensure only truly required fields exist
 		if _, exists := p.Config["task_types"]; !exists {
 			p.Config["task_types"] = []string{"UI", "Dev", "DB", "Backend"}
-		}
-		if _, exists := p.Config["feature_category"]; !exists {
-			p.Config["feature_category"] = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
 		}
 		if _, exists := p.Config["tech_stack"]; !exists {
 			p.Config["tech_stack"] = "Other"

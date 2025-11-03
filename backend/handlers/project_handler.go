@@ -156,12 +156,13 @@ func (h *ProjectHandler) CreateProjectFromForm(c *gin.Context) {
 	if featureCategories != "" {
 		// Split by comma and trim spaces
 		for _, c := range strings.Split(featureCategories, ",") {
-			featureCategoriesList = append(featureCategoriesList, strings.TrimSpace(c))
+			trimmed := strings.TrimSpace(c)
+			if trimmed != "" {
+				featureCategoriesList = append(featureCategoriesList, trimmed)
+			}
 		}
-	} else {
-		// Default feature categories
-		featureCategoriesList = []string{"Auth", "Payment", "Tags", "Tasks", "Features"}
 	}
+	// Don't set default feature categories - let it be empty if user doesn't provide any
 
 	// Validate tech stack and default to "Other" if empty
 	if techStack == "" {

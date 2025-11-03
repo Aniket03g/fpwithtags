@@ -10,6 +10,7 @@ Method: GET, Path: /web/fragments/projects
 Method: GET, Path: /web/fragments/projects/:id
 Method: GET, Path: /web/fragments/projects/:id/features
 Method: GET, Path: /web/fragments/projects/:id/features/new
+Method: GET, Path: /web/fragments/projects/:id/settings
 Method: GET, Path: /web/fragments/prs
 Method: GET, Path: /web/fragments/prs/my-prs
 Method: GET, Path: /web/fragments/dependencies
@@ -50,6 +51,11 @@ Method: GET, Path: /web/releases/:id/notes/edit
 Method: GET, Path: /web/dependencies
 Method: GET, Path: /web/dashboard
 Method: GET, Path: /web/login
+Method: GET, Path: /api/pr
+Method: GET, Path: /api/projects
+Method: GET, Path: /api/projects/:id/progress
+Method: GET, Path: /api/projects/:id/releases
+Method: GET, Path: /api/prs/:id
 Method: GET, Path: /api/templates/
 Method: GET, Path: /api/templates/stack/:stack
 Method: GET, Path: /api/templates/stacks
@@ -58,9 +64,6 @@ Method: GET, Path: /api/tasks/:task_id/comments
 Method: GET, Path: /api/attachments/file/:filename
 Method: GET, Path: /api/attachments/:attachment_id/comments
 Method: GET, Path: /api/auth/me
-Method: GET, Path: /api/pr
-Method: GET, Path: /api/projects
-Method: GET, Path: /api/prs/:id
 Method: GET, Path: /api/dependencies
 Method: GET, Path: /api/dependencies/panels
 Method: GET, Path: /api/dependencies/modal
@@ -81,13 +84,14 @@ Method: POST, Path: /api/templates/apply
 Method: POST, Path: /api/templates/reload
 Method: POST, Path: /api/tasks/:task_id/attachments
 Method: POST, Path: /api/tasks/:task_id/comments
+Method: POST, Path: /api/pr
+Method: POST, Path: /api/projects/:id/settings
+Method: POST, Path: /api/projects/:id/suggest
+Method: POST, Path: /api/pr/:id/review
 Method: POST, Path: /api/releases/
 Method: POST, Path: /api/releases/:id/features
 Method: POST, Path: /api/releases/:id/features/create
 Method: POST, Path: /api/releases/:id/finalize
-Method: POST, Path: /api/pr
-Method: POST, Path: /api/projects/:id/suggest
-Method: POST, Path: /api/pr/:id/review
 Method: POST, Path: /api/imports/import
 Method: POST, Path: /api/imports/save
 Method: POST, Path: /api/imports/github
@@ -95,6 +99,7 @@ Method: POST, Path: /api/auth/signup
 Method: POST, Path: /api/auth/login
 Method: POST, Path: /api/guidance/
 Method: POST, Path: /api/guidance/reload
+Method: POST, Path: /api/features/:id/unassign-release
 Method: POST, Path: /api/dependencies
 Method: POST, Path: /web/fragments/features/:id/tasks/:task_id/edit
 Method: POST, Path: /web/fragments/features/:id/edit-inline

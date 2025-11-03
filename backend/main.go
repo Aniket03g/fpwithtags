@@ -429,6 +429,7 @@ func main() {
 		"templates/release-planned-features-oob.html",
 		"templates/feature-list.html",
 		"templates/feature-list-inner.html",
+		"templates/feature-list-oob.html",
 		"templates/feature-card.html",
 		"templates/feature-edit-form.html",
 		"templates/task-list.html",
@@ -440,6 +441,10 @@ func main() {
 		"templates/suggestions-error.html",
 		"templates/feature-form.html",
 		"templates/task-form.html",
+		"templates/project-detail.html",
+		"templates/project-list.html",
+		"templates/project-settings-modal.html",
+		"templates/success-message.html",
 		"templates/dependencies/dependency_type_selector.html",
 	)
 
@@ -520,12 +525,16 @@ func main() {
 		{
 			projectRoutes.GET("", projectHandler.GetAllProjects)
 			projectRoutes.DELETE("/:id", projectHandler.DeleteProject)
+			projectRoutes.GET("/:id/progress", projectHandler.GetProjectProgress)
+			projectRoutes.GET("/:id/releases", projectHandler.GetProjectReleases)
+			projectRoutes.POST("/:id/settings", projectHandler.UpdateProjectSettings)
 			// STAGE 4a: LLM-based feature suggestions
 			projectRoutes.POST("/:id/suggest", llmSuggestHandler.SuggestFeatures)
 		}
 
 		// Regular authenticated routes
 		authApi.GET("/features/project/:project_id", featureHandler.GetProjectFeatures)
+		authApi.POST("/features/:id/unassign-release", featureHandler.UnassignFeatureFromRelease)
 		authApi.POST("/tasks/:task_id/attachments", attachmentHandler.UploadAttachment)
 		authApi.GET("/attachments/file/:filename", attachmentHandler.ServeAttachment)
 		authApi.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)
@@ -614,6 +623,7 @@ func main() {
 			// THIS IS THE NEWLY ADDED ROUTE
 			authFragments.GET("/projects", projectHandler.GetAllProjectsFragment)
 			authFragments.GET("/projects/:id", projectHandler.GetProject)
+			authFragments.GET("/projects/:id/settings", projectHandler.GetProjectSettingsModal)
 
 			authFragments.GET("/projects/:id/features", featureHandler.GetProjectFeatures)
 			authFragments.GET("/projects/:id/features/new", featureHandler.NewFeatureForm)
