@@ -348,7 +348,7 @@ func main() {
 	commentHandler := handlers.NewCommentHandler(commentRepo, attachmentRepo)
 	prHandler := handlers.NewPullRequestHandler(prRepo)
 	webPRHandler := handlers.NewWebPRHandler(prRepo)
-	webReleaseHandler := handlers.NewWebReleaseHandler(releaseRepo, prRepo)
+	webReleaseHandler := handlers.NewWebReleaseHandler(releaseRepo, prRepo, projectRepo)
 	llmSuggestHandler := handlers.NewLLMSuggestHandler(db.DB) // STAGE 4a: LLM feature suggestions
 
 	// MARKER:ROUTER_INIT Initialize the main router

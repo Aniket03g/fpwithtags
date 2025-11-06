@@ -18,12 +18,14 @@ import (
 type WebReleaseHandler struct {
 	releaseRepo repositories.ReleaseRepository
 	prRepo      repositories.PullRequestRepository
+	projectRepo *repositories.ProjectRepository
 }
 
-func NewWebReleaseHandler(releaseRepo repositories.ReleaseRepository, prRepo repositories.PullRequestRepository) *WebReleaseHandler {
+func NewWebReleaseHandler(releaseRepo repositories.ReleaseRepository, prRepo repositories.PullRequestRepository, projectRepo *repositories.ProjectRepository) *WebReleaseHandler {
 	return &WebReleaseHandler{
 		releaseRepo: releaseRepo,
 		prRepo:      prRepo,
+		projectRepo: projectRepo,
 	}
 }
 
@@ -440,9 +442,31 @@ func (h *WebReleaseHandler) NewFeatureFragment(c *gin.Context) {
 		return
 	}
 
+	// Get project to fetch feature categories
+	project, err := h.projectRepo.GetProjectByID(int(release.ProjectID))
+	if err != nil {
+		c.HTML(http.StatusNotFound, "error.html", gin.H{
+			"error": "Project not found",
+		})
+		return
+	}
+
+	// Extract feature categories from project config
+	var featureCategories []string
+	if categories, ok := project.Config["feature_category"].([]interface{}); ok {
+		for _, cat := range categories {
+			if catStr, ok := cat.(string); ok {
+				featureCategories = append(featureCategories, catStr)
+			}
+		}
+	} else if categories, ok := project.Config["feature_category"].([]string); ok {
+		featureCategories = categories
+	}
+
 	// Render the new feature fragment (same as release-feature-form.html)
 	c.HTML(http.StatusOK, "release-feature-form.html", gin.H{
-		"ReleaseID": releaseID,
+		"ReleaseID":         releaseID,
+		"FeatureCategories": featureCategories,
 	})
 }
 
