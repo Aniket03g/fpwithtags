@@ -2,9 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
 	"time"
 )
 
@@ -34,21 +32,14 @@ func LoadConfig() error {
 	// Try to read config.json from current working directory
 	configData, err := ioutil.ReadFile("config.json")
 	if err != nil {
-		// Config file not found or unreadable, use default
-		return fmt.Errorf("config file not found: %w", err)
+		// Config file not found or unreadable, use default (silently)
+		return nil // Don't return error, just use defaults
 	}
 
 	// Parse the config file
 	if err := json.Unmarshal(configData, &appConfig); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Invalid config.json format, using default API URL\n")
-		return fmt.Errorf("invalid config format: %w", err)
-	}
-
-	// Debug output
-	fmt.Printf("DEBUG CONFIG: Loaded config with API URL: %s\n", appConfig.APIURL)
-	fmt.Printf("DEBUG CONFIG: Auth token present: %v\n", appConfig.Auth.Token != "")
-	if appConfig.Auth.Token != "" {
-		fmt.Printf("DEBUG CONFIG: Token starts with: %s...\n", appConfig.Auth.Token[:10])
+		// Invalid format, use defaults
+		return nil
 	}
 
 	return nil

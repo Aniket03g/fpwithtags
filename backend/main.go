@@ -14,6 +14,7 @@ import (
 	"github.com/FeaturePlus/backend/database"
 	"github.com/FeaturePlus/backend/handlers"
 	"github.com/FeaturePlus/backend/internal/log"
+	internalModels "github.com/FeaturePlus/backend/internal/models"
 	"github.com/FeaturePlus/backend/middleware"
 	"github.com/FeaturePlus/backend/migrations"
 	"github.com/FeaturePlus/backend/models"
@@ -324,6 +325,8 @@ func main() {
 		&models.Task{}, &models.FeatureTag{}, &models.TaskAttachment{}, &models.Comment{},
 		&models.PullRequest{}, &models.Dependency{},
 		&models.ApprovedPR{},
+		&models.FeatureFile{}, &models.FeatureCommit{}, // New: File and commit mappings
+		&internalModels.ProjectConnection{},
 	); err != nil {
 		panic("failed to migrate database: " + err.Error())
 	}
@@ -516,6 +519,17 @@ func main() {
 		{
 			userRoutes.GET("", userHandler.GetAllUsers)
 		}
+
+		// Public project connection routes (no auth required for CLI)
+		publicProjectRoutes := api.Group("/projects")
+		{
+			publicProjectRoutes.POST("/:id/connect", handlers.ConnectProjectHandler(db.DB))
+			publicProjectRoutes.GET("/:id/status", handlers.GetProjectConnectionStatus(db.DB))
+		}
+
+		// Public feature routes (no auth required for CLI)
+		api.GET("/features/:id", featureHandler.GetFeatureAPI)
+		api.POST("/features/sync", featureHandler.SyncFeatureData)
 
 		// Protected routes (auth required)
 		authApi := api.Group("/", middleware.AuthMiddleware())

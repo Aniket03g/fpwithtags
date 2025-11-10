@@ -986,3 +986,123 @@
 {"duration_ms":30,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects/39","status":200,"time":"2025-11-06 09:58:29"}
 {"duration_ms":12,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/projects/39/progress","status":200,"time":"2025-11-06 09:58:29"}
 {"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-06 09:58:30"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-09 23:55:37"}
+{"level":"warning","msg":"No .env file found in any checked location (this is OK in production if env vars are set)","time":"2025-11-09 23:55:37"}
+{"level":"info","msg":"Set DATA_PATH","path":"./data","time":"2025-11-09 23:55:37"}
+{"level":"error","msg":"GITHUB_TOKEN environment variable is not set","time":"2025-11-09 23:55:37"}
+{"level":"error","msg":"Please set it in your .env file or directly in your environment","time":"2025-11-09 23:55:37"}
+{"level":"error","msg":"Example: GITHUB_TOKEN=your_token_here","time":"2025-11-09 23:55:37"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-09 23:57:06"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-09 23:57:06"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-09 23:57:06"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-09 23:57:06"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-09 23:57:06"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/projects/39/connect","status":401,"time":"2025-11-10 00:00:03"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/projects/39/connect","status":401,"time":"2025-11-10 00:07:27"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 00:07:42"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 00:07:42"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 00:07:42"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 00:07:42"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 00:07:42"}
+{"duration_ms":6,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/projects/39/connect","status":200,"time":"2025-11-10 00:08:01"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/projects/39/status","status":200,"time":"2025-11-10 00:08:23"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/projects/39/status","status":200,"time":"2025-11-10 00:12:43"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 01:33:18"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 01:33:18"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 01:33:18"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 01:33:18"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 01:33:18"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":404,"time":"2025-11-10 01:33:51"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 01:37:20"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 01:37:20"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 01:37:20"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 01:37:20"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 01:37:20"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":401,"time":"2025-11-10 01:37:39"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 01:40:04"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 01:40:04"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 01:40:04"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 01:40:04"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 01:40:04"}
+{"duration_ms":40,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 01:40:39"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 01:42:49"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 01:42:49"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 01:42:49"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 01:42:49"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 01:42:49"}
+{"duration_ms":2,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 01:43:06"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 01:45:46"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 01:45:46"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 01:45:46"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 01:45:46"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 01:45:46"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 01:45:59"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 09:29:22"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 09:29:22"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 09:29:22"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 09:29:22"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 09:29:22"}
+{"duration_ms":48,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-10 10:41:11"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/","status":404,"time":"2025-11-10 10:41:11"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-10 11:05:34"}
+{"duration_ms":24,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-10 11:05:35"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-10 11:05:35"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/","status":404,"time":"2025-11-10 11:05:39"}
+{"duration_ms":15,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-10 11:19:48"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/","status":404,"time":"2025-11-10 11:19:48"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 12:09:21"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 12:09:21"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 12:09:21"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 12:09:21"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 12:09:21"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/projects/39/status","status":200,"time":"2025-11-10 12:10:35"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 12:10:56"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 12:11:53"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 12:12:56"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 12:14:57"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 12:14:57"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 12:14:57"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 12:14:57"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 12:14:57"}
+{"duration_ms":1,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 12:15:19"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 12:17:33"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 12:17:33"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 12:17:33"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 12:17:33"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 12:17:33"}
+{"duration_ms":2,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/features/35","status":200,"time":"2025-11-10 12:18:12"}
+{"level":"info","log_file":"D:\\FeaturePlus_Code_MAPPING\\FeaturePlus\\backend\\logs\\app.log","log_level":"info","msg":"Logger initialized successfully","time":"2025-11-10 12:37:35"}
+{"file":".env","level":"info","msg":"Loaded environment variables","time":"2025-11-10 12:37:35"}
+{"level":"info","msg":"Initializing database...","time":"2025-11-10 12:37:35"}
+{"level":"info","msg":"Database initialized successfully","time":"2025-11-10 12:37:35"}
+{"host":"0.0.0.0","level":"info","msg":"Server starting...","port":8080,"time":"2025-11-10 12:37:35"}
+{"duration_ms":27,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/features/sync","status":200,"time":"2025-11-10 12:40:28"}
+{"duration_ms":47,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-10 12:41:46"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-10 12:41:47"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/","status":404,"time":"2025-11-10 12:41:47"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/favicon.ico","status":404,"time":"2025-11-10 12:41:47"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-10 12:41:51"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/","status":404,"time":"2025-11-10 12:41:51"}
+{"duration_ms":23,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/dashboard","status":200,"time":"2025-11-10 12:41:52"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dashboard-status","status":200,"time":"2025-11-10 12:41:52"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/tasks/assigned","status":401,"time":"2025-11-10 12:41:52"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/prs/my-prs","status":401,"time":"2025-11-10 12:41:52"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/progress","status":401,"time":"2025-11-10 12:41:52"}
+{"duration_ms":13,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-10 12:41:52"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-10 12:41:52"}
+{"duration_ms":16,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/login","status":200,"time":"2025-11-10 12:41:52"}
+{"duration_ms":498,"ip":"::1","level":"info","method":"POST","msg":"HTTP request","path":"/api/auth/login","status":200,"time":"2025-11-10 12:42:01"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects","status":200,"time":"2025-11-10 12:42:01"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects","status":200,"time":"2025-11-10 12:42:01"}
+{"duration_ms":49,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/projects/8","status":200,"time":"2025-11-10 12:42:05"}
+{"duration_ms":28,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/projects/8/progress","status":200,"time":"2025-11-10 12:42:05"}
+{"duration_ms":22,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/8/features/content","status":200,"time":"2025-11-10 12:42:07"}
+{"duration_ms":21,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/projects/8/features/35","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":20,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/features/35","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":18,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/fragments/dependencies/panels","query":"entity_type=feature\u0026entity_id=35","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":25,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/web/features/35/tasks","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":5,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/attachments/file/task_41_Screenshot 2025-06-03 000008.png","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":30,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/attachments/file/task_40_Screenshot 2025-04-17 220517.png","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":17,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/dependencies/panels","query":"entity_type=task\u0026entity_id=41","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":19,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/api/dependencies/panels","query":"entity_type=task\u0026entity_id=40","status":200,"time":"2025-11-10 12:42:10"}
+{"duration_ms":0,"ip":"::1","level":"info","method":"GET","msg":"HTTP request","path":"/.well-known/appspecific/com.chrome.devtools.json","status":404,"time":"2025-11-10 12:42:30"}

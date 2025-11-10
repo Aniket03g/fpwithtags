@@ -148,6 +148,25 @@ func (h *FeatureHandler) GetFeature(c *gin.Context) {
 	})
 }
 
+// GetFeatureAPI returns feature data as JSON for API clients
+func (h *FeatureHandler) GetFeatureAPI(c *gin.Context) {
+	featureIDStr := c.Param("id")
+	featureID, err := strconv.Atoi(featureIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid feature ID"})
+		return
+	}
+
+	feature, err := h.repo.GetFeatureByID(featureID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "feature not found"})
+		return
+	}
+
+	// Return JSON response
+	c.JSON(http.StatusOK, feature)
+}
+
 func (h *FeatureHandler) GetProjectFeatures(c *gin.Context) {
 	projectIDStr := c.Param("id")
 	projectID, err := strconv.Atoi(projectIDStr)
@@ -863,5 +882,74 @@ func (h *FeatureHandler) UnassignFeatureFromRelease(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "Feature unassigned from release",
+	})
+}
+
+// SyncFeatureData handles syncing file and commit data from CLI
+func (h *FeatureHandler) SyncFeatureData(c *gin.Context) {
+	var payload struct {
+		FeatureID string   `json:"feature_id" binding:"required"`
+		Files     []string `json:"files"`
+		Commits   []string `json:"commits"`
+		Status    string   `json:"status"`
+	}
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Extract numeric ID from FTR-XXX format
+	var featureID int
+	if _, err := fmt.Sscanf(payload.FeatureID, "FTR-%d", &featureID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid feature ID format"})
+		return
+	}
+
+	// Check if feature exists
+	feature, err := h.repo.GetFeatureByID(featureID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Feature not found"})
+		return
+	}
+
+	// Store files in database
+	for _, filePath := range payload.Files {
+		featureFile := models.FeatureFile{
+			FeatureID: feature.ID,
+			FilePath:  filePath,
+		}
+		// Use FirstOrCreate to avoid duplicates
+		h.DB.Where("feature_id = ? AND file_path = ?", feature.ID, filePath).FirstOrCreate(&featureFile)
+	}
+
+	// Store commits in database
+	for _, commitHash := range payload.Commits {
+		featureCommit := models.FeatureCommit{
+			FeatureID:  feature.ID,
+			CommitHash: commitHash,
+		}
+		// Use FirstOrCreate to avoid duplicates
+		h.DB.Where("feature_id = ? AND commit_hash = ?", feature.ID, commitHash).FirstOrCreate(&featureCommit)
+	}
+
+	log.Printf("Synced feature %d: %d files, %d commits stored in database", 
+		featureID, len(payload.Files), len(payload.Commits))
+
+	// Update feature status if provided
+	if payload.Status != "" {
+		feature.Status = models.FeatureStatus(payload.Status)
+		if err := h.DB.Save(feature).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update feature"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Feature synced successfully",
+		"feature_id": payload.FeatureID,
+		"files_count": len(payload.Files),
+		"commits_count": len(payload.Commits),
 	})
 }

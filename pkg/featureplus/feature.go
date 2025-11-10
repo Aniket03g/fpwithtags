@@ -11,9 +11,14 @@ import (
 type Feature struct {
 	ID          uint   `json:"id"`
 	ProjectID   uint   `json:"project_id"`
-	Name        string `json:"name"`
+	Title       string `json:"title"`       // Primary field from backend
 	Description string `json:"description"`
 	Status      string `json:"status"`
+}
+
+// GetName returns the feature name (using Title field)
+func (f *Feature) GetName() string {
+	return f.Title
 }
 
 // GetFeatures retrieves all features from the FeaturePlus API

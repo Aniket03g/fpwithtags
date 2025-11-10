@@ -18,25 +18,14 @@ var rootCmd = &cobra.Command{
 
 // MARKER:EXECUTE_FUNC CLI execution entry point
 func Execute() {
-	// Always print version info
-	fmt.Printf("FeaturePlus CLI v%s\n", rootCmd.Version)
+	// Load configuration silently (for auth-based commands)
+	config.LoadConfig()
 
-	// Load configuration before executing any command
-	fmt.Println("Loading configuration...")
-	err := config.LoadConfig()
-	if err != nil {
-		// Just log the error but continue, as we can still use default values
-		fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
-	} else {
-		fmt.Println("Configuration loaded successfully")
-	}
-
-	// Always show basic config info
-	fmt.Printf("API URL: %s\n", config.GetAPIURL())
-	fmt.Printf("Auth token present: %v\n", config.GetAuthToken() != "")
-
-	// More detailed debug output
+	// Only show detailed info in DEBUG mode
 	if os.Getenv("DEBUG") == "1" {
+		fmt.Printf("FeaturePlus CLI v%s\n", rootCmd.Version)
+		fmt.Printf("API URL: %s\n", config.GetAPIURL())
+		fmt.Printf("Auth token present: %v\n", config.GetAuthToken() != "")
 		token := config.GetAuthToken()
 		if token != "" && len(token) > 10 {
 			fmt.Printf("Token starts with: %s...\n", token[:10])
