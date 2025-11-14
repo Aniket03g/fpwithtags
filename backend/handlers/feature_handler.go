@@ -953,3 +953,89 @@ func (h *FeatureHandler) SyncFeatureData(c *gin.Context) {
 		"commits_count": len(payload.Commits),
 	})
 }
+
+// GetLinkedCode renders the linked code section for a feature
+func (h *FeatureHandler) GetLinkedCode(c *gin.Context) {
+	featureIDStr := c.Param("id")
+	log.Printf("[GetLinkedCode] Called for feature ID: %s", featureIDStr)
+	
+	featureID, err := strconv.Atoi(featureIDStr)
+	if err != nil {
+		log.Printf("[GetLinkedCode] Error parsing feature ID: %v", err)
+		c.HTML(http.StatusBadRequest, "linked-code.html", gin.H{
+			"Feature": gin.H{"ID": featureIDStr},
+			"Files": []interface{}{},
+			"Commits": []interface{}{},
+		})
+		return
+	}
+	
+	log.Printf("[GetLinkedCode] Fetching data for feature ID: %d", featureID)
+
+	// Fetch files from database
+	var files []models.FeatureFile
+	h.DB.Where("feature_id = ?", featureID).Find(&files)
+
+	// Fetch commits from database
+	var commits []models.FeatureCommit
+	h.DB.Where("feature_id = ?", featureID).Order("created_at DESC").Find(&commits)
+
+	// Format files for template
+	type FileDisplay struct {
+		FilePath       string
+		LastSeenCommit string
+	}
+	fileDisplays := make([]FileDisplay, 0, len(files))
+	for _, file := range files {
+		// Get the last commit that touched this file (if any)
+		lastCommit := ""
+		if len(commits) > 0 {
+			lastCommit = commits[0].CommitHash
+		}
+		fileDisplays = append(fileDisplays, FileDisplay{
+			FilePath:       file.FilePath,
+			LastSeenCommit: lastCommit,
+		})
+	}
+
+	// Format commits for template
+	type CommitDisplay struct {
+		CommitHash string
+		Message    string
+		Author     string
+	}
+	commitDisplays := make([]CommitDisplay, 0, len(commits))
+	for _, commit := range commits {
+		// Extract message from commit hash (in real scenario, you'd fetch from git)
+		// For now, just show the hash
+		commitDisplays = append(commitDisplays, CommitDisplay{
+			CommitHash: commit.CommitHash,
+			Message:    "Commit " + commit.CommitHash,
+			Author:     "",
+		})
+	}
+
+	// Get last synced time from the most recent file or commit
+	var lastSynced string
+	if len(files) > 0 {
+		lastSynced = files[0].UpdatedAt.Format("Jan 02, 2006 at 3:04 PM")
+	} else if len(commits) > 0 {
+		lastSynced = commits[0].UpdatedAt.Format("Jan 02, 2006 at 3:04 PM")
+	}
+
+	log.Printf("[GetLinkedCode] Rendering template with %d files, %d commits", len(fileDisplays), len(commitDisplays))
+	
+	// TODO: Get RepoURL from project settings or feature metadata
+	// For now, you can configure this per project in the database
+	repoURL := "" // e.g., "https://github.com/username/repo"
+	
+	c.HTML(http.StatusOK, "linked-code.html", gin.H{
+		"Feature":    gin.H{"ID": featureIDStr},
+		"Files":      fileDisplays,
+		"Commits":    commitDisplays,
+		"LastSynced": lastSynced,
+		"RepoURL":    repoURL,
+	})
+	
+	log.Printf("[GetLinkedCode] Template rendered successfully")
+}

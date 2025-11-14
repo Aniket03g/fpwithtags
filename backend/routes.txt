@@ -30,6 +30,7 @@ Method: GET, Path: /web/features/cancel
 Method: GET, Path: /web/features/:id/tasks
 Method: GET, Path: /web/features/:id/tasks/new
 Method: GET, Path: /web/features/:id/edit-inline
+Method: GET, Path: /web/features/:id/linked-code
 Method: GET, Path: /web/projects
 Method: GET, Path: /web/projects/import-modal
 Method: GET, Path: /web/projects/import-github-modal

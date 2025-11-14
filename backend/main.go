@@ -393,6 +393,18 @@ func main() {
 		"add": func(a, b int) int {
 			return a + b
 		},
+		"shortHash": func(hash string) string {
+			if len(hash) > 7 {
+				return hash[:7]
+			}
+			return hash
+		},
+		"truncate": func(s string, max int) string {
+			if len(s) > max {
+				return s[:max] + "…"
+			}
+			return s
+		},
 	})
 
 	// First load the main templates
@@ -438,6 +450,7 @@ func main() {
 		"templates/task-list.html",
 		"templates/task-edit-form.html",
 		"templates/task-guidance-fragment.html",
+		"templates/linked-code.html",
 		"templates/feature-progress.html",
 		"templates/dependencies/dependencies-list.html",
 		"templates/dependencies/dependency_panels.html",
@@ -610,6 +623,7 @@ func main() {
 			authWeb.POST("/projects/:id/suggest", llmSuggestHandler.SuggestFeaturesWeb)
 			authWeb.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
 			authWeb.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
+			authWeb.GET("/features/:id/linked-code", featureHandler.GetLinkedCode)
 			authWeb.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
 			authWeb.POST("/features/:id/tasks", taskHandler.CreateTaskForFeature)
 			authWeb.GET("/tasks/cancel", taskHandler.CancelTaskForm)

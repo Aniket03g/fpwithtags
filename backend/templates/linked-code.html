@@ -1,0 +1,125 @@
+<div id="linked-code-container" class="bg-white rounded-lg shadow-sm p-8 mb-6">
+  
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-xl font-semibold text-gray-900">Linked Code</h3>
+    <button 
+      hx-get="/web/features/{{ .Feature.ID }}/linked-code" 
+      hx-target="#linked-code-container" 
+      hx-swap="outerHTML"
+      class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition-colors text-sm font-medium">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Refresh Mapping
+    </button>
+  </div>
+
+  {{ if or .Files .Commits }}
+    <!-- Files Section -->
+    {{ if .Files }}
+    <div class="mb-6">
+      <h4 class="font-semibold text-gray-800 text-base mb-3 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+        </svg>
+        Files ({{ len .Files }})
+      </h4>
+      <div class="bg-gray-50 rounded-lg border border-gray-200 p-4">
+        <div class="space-y-2">
+          {{ range .Files }}
+          <div class="flex items-start gap-3 p-2 hover:bg-white rounded transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <div class="flex-1 min-w-0">
+              {{ if $.RepoURL }}
+              <a href="{{ $.RepoURL }}/blob/main/{{ .FilePath }}" 
+                 target="_blank" 
+                 class="font-mono text-sm text-blue-600 hover:underline break-all">
+                {{ .FilePath }}
+              </a>
+              {{ else }}
+              <code class="text-sm text-gray-900 font-mono break-all">{{ .FilePath }}</code>
+              {{ end }}
+              {{ if .LastSeenCommit }}
+              <p class="text-gray-500 text-xs mt-1">
+                Last seen in <span class="font-mono text-gray-700">{{ shortHash .LastSeenCommit }}</span>
+              </p>
+              {{ end }}
+            </div>
+          </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+    {{ end }}
+
+    <!-- Divider -->
+    {{ if and .Files .Commits }}
+    <hr class="my-4 border-t border-gray-200">
+    {{ end }}
+
+    <!-- Commits Section -->
+    {{ if .Commits }}
+    <div class="mb-6">
+      <h4 class="font-semibold text-gray-800 text-base mb-3 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Commits ({{ len .Commits }})
+      </h4>
+      <div class="space-y-3">
+        {{ range .Commits }}
+        <div class="p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition">
+          <div class="flex items-start gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500 mt-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1 min-w-0">
+              {{ if $.RepoURL }}
+              <a href="{{ $.RepoURL }}/commit/{{ .CommitHash }}" 
+                 target="_blank" 
+                 class="font-mono font-semibold text-sm text-blue-600 hover:underline">
+                {{ shortHash .CommitHash }}
+              </a>
+              {{ else }}
+              <code class="font-mono font-semibold text-sm text-gray-700">{{ shortHash .CommitHash }}</code>
+              {{ end }}
+              <p class="text-sm text-gray-900 mt-1">{{ truncate .Message 60 }}</p>
+              {{ if .Author }}
+              <p class="text-xs text-gray-500 mt-1">by {{ .Author }}</p>
+              {{ end }}
+            </div>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+    {{ end }}
+
+    <!-- Last Synced Info -->
+    {{ if .LastSynced }}
+    <div class="flex items-center gap-2 text-sm text-gray-500 mt-4 pt-4 border-t border-gray-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>Last synced: {{ .LastSynced }}</span>
+    </div>
+    {{ end }}
+
+  {{ else }}
+    <!-- Empty State -->
+    <div class="text-center p-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      </svg>
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">No code mappings found yet</h4>
+      <p class="text-gray-500 mb-4">Link your code to this feature by running the CLI command:</p>
+      <div class="bg-gray-900 text-gray-100 px-4 py-3 rounded-lg inline-block font-mono text-sm">
+        featureplus sync
+      </div>
+      <p class="text-xs text-gray-400 mt-4">Make sure to include <code class="bg-gray-200 px-2 py-1 rounded text-gray-700">FTR-{{ .Feature.ID }}</code> in your commit messages</p>
+    </div>
+  {{ end }}
+
+</div>
