@@ -10,9 +10,9 @@
   <!-- Filter Tabs -->
   <div class="flex gap-2 mb-6 border-b border-gray-200 pb-2">
     <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=All" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if or (not .FilterType) (eq .FilterType "All") }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">All</a>
-    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=UI" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq .FilterType "UI" }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">UI</a>
-    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=DB" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq .FilterType "DB" }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">DB</a>
-    <a hx-get="/web/features/{{ .Feature.ID }}/tasks?type=Dev" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq .FilterType "Dev" }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">Dev</a>
+    {{ range .TaskTypes }}
+    <a hx-get="/web/features/{{ $.Feature.ID }}/tasks?type={{ . }}" hx-target="#task-list-container" hx-swap="outerHTML" class="px-4 py-2 text-sm font-medium rounded-t-lg transition {{ if eq $.FilterType . }}bg-blue-600 text-white{{ else }}text-gray-600 hover:text-blue-600 hover:bg-gray-50{{ end }}">{{ . }}</a>
+    {{ end }}
   </div>
 
   <div id="new-task-form-container"></div>

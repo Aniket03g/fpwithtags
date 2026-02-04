@@ -12,7 +12,7 @@ import (
 type GuidanceEntry struct {
 	Stack       string   `json:"stack"`
 	TaskType    string   `json:"task_type"`
-	Context     string   `json:"context"`      // NEW: Project context (Development, Staging, Production, Testing)
+	Context     string   `json:"context"` // NEW: Project context (Development, Staging, Production, Testing)
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Snippet     string   `json:"snippet"`
@@ -41,12 +41,12 @@ func NewGuidanceRepository(dataPath string) (*GuidanceRepository, error) {
 	repo := &GuidanceRepository{
 		dataPath: dataPath,
 	}
-	
+
 	// Load initial data
 	if err := repo.LoadData(); err != nil {
 		return nil, err
 	}
-	
+
 	return repo, nil
 }
 
@@ -54,20 +54,20 @@ func NewGuidanceRepository(dataPath string) (*GuidanceRepository, error) {
 func (r *GuidanceRepository) LoadData() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	// Read the JSON file
 	fullPath := filepath.Join(r.dataPath, "guidance.json")
 	data, err := ioutil.ReadFile(fullPath)
 	if err != nil {
 		return fmt.Errorf("failed to read guidance file: %w", err)
 	}
-	
+
 	// Parse JSON
 	var guidanceData GuidanceData
 	if err := json.Unmarshal(data, &guidanceData); err != nil {
 		return fmt.Errorf("failed to parse guidance JSON: %w", err)
 	}
-	
+
 	// STAGE 2a: Set default context for backwards compatibility
 	// If guidance entries don't have a context field, default to "Development"
 	for i := range guidanceData.Guidances {
@@ -75,12 +75,12 @@ func (r *GuidanceRepository) LoadData() error {
 			guidanceData.Guidances[i].Context = "Development"
 		}
 	}
-	
+
 	// Set default context for default guidance if not specified
 	if guidanceData.DefaultGuidance.Context == "" {
 		guidanceData.DefaultGuidance.Context = "Development"
 	}
-	
+
 	r.data = &guidanceData
 	return nil
 }
@@ -97,19 +97,19 @@ func (r *GuidanceRepository) GetGuidance(stack, taskType string) GuidanceEntry {
 func (r *GuidanceRepository) GetGuidanceWithContext(stack, taskType, context string) GuidanceEntry {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	// Default context to "Development" if empty
 	if context == "" {
 		context = "Development"
 	}
-	
+
 	// Search for exact match (stack + task type + context)
 	for _, guidance := range r.data.Guidances {
 		if guidance.Stack == stack && guidance.TaskType == taskType && guidance.Context == context {
 			return guidance
 		}
 	}
-	
+
 	// Fallback: Try to find guidance with same stack and task type but Development context
 	if context != "Development" {
 		for _, guidance := range r.data.Guidances {
@@ -118,23 +118,23 @@ func (r *GuidanceRepository) GetGuidanceWithContext(stack, taskType, context str
 			}
 		}
 	}
-	
+
 	// Fallback: Try to find guidance with same stack and task type (any context)
 	for _, guidance := range r.data.Guidances {
 		if guidance.Stack == stack && guidance.TaskType == taskType {
 			return guidance
 		}
 	}
-	
-	// Return default guidance if no match found
-	return r.data.DefaultGuidance
+
+	// Return empty guidance if no match found (don't show default guidance)
+	return GuidanceEntry{}
 }
 
 // GetAllGuidances returns all available guidances
 func (r *GuidanceRepository) GetAllGuidances() []GuidanceEntry {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	return r.data.Guidances
 }
 
@@ -142,14 +142,14 @@ func (r *GuidanceRepository) GetAllGuidances() []GuidanceEntry {
 func (r *GuidanceRepository) GetGuidancesByStack(stack string) []GuidanceEntry {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	var result []GuidanceEntry
 	for _, guidance := range r.data.Guidances {
 		if guidance.Stack == stack {
 			result = append(result, guidance)
 		}
 	}
-	
+
 	return result
 }
 
@@ -157,17 +157,17 @@ func (r *GuidanceRepository) GetGuidancesByStack(stack string) []GuidanceEntry {
 func (r *GuidanceRepository) GetAvailableStacks() []string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	stackMap := make(map[string]bool)
 	for _, guidance := range r.data.Guidances {
 		stackMap[guidance.Stack] = true
 	}
-	
+
 	var stacks []string
 	for stack := range stackMap {
 		stacks = append(stacks, stack)
 	}
-	
+
 	return stacks
 }
 
@@ -175,12 +175,12 @@ func (r *GuidanceRepository) GetAvailableStacks() []string {
 func (r *GuidanceRepository) AddGuidance(guidance GuidanceEntry) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	// STAGE 2a: Set default context if not provided
 	if guidance.Context == "" {
 		guidance.Context = "Development"
 	}
-	
+
 	// Check if guidance already exists (stack + task type + context)
 	for i, existing := range r.data.Guidances {
 		if existing.Stack == guidance.Stack && existing.TaskType == guidance.TaskType && existing.Context == guidance.Context {
@@ -189,7 +189,7 @@ func (r *GuidanceRepository) AddGuidance(guidance GuidanceEntry) error {
 			return r.saveData()
 		}
 	}
-	
+
 	// Add new guidance
 	r.data.Guidances = append(r.data.Guidances, guidance)
 	return r.saveData()
@@ -200,7 +200,7 @@ func (r *GuidanceRepository) AddGuidance(guidance GuidanceEntry) error {
 func (r *GuidanceRepository) DeleteGuidance(stack, taskType string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	found := false
 	// Remove all guidances matching stack and task type (all contexts)
 	for i := len(r.data.Guidances) - 1; i >= 0; i-- {
@@ -210,11 +210,11 @@ func (r *GuidanceRepository) DeleteGuidance(stack, taskType string) error {
 			found = true
 		}
 	}
-	
+
 	if !found {
 		return fmt.Errorf("guidance not found for stack: %s, task type: %s", stack, taskType)
 	}
-	
+
 	return r.saveData()
 }
 
@@ -223,7 +223,7 @@ func (r *GuidanceRepository) DeleteGuidance(stack, taskType string) error {
 func (r *GuidanceRepository) DeleteGuidanceWithContext(stack, taskType, context string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	for i, guidance := range r.data.Guidances {
 		if guidance.Stack == stack && guidance.TaskType == taskType && guidance.Context == context {
 			// Remove the guidance
@@ -231,7 +231,7 @@ func (r *GuidanceRepository) DeleteGuidanceWithContext(stack, taskType, context 
 			return r.saveData()
 		}
 	}
-	
+
 	return fmt.Errorf("guidance not found for stack: %s, task type: %s, context: %s", stack, taskType, context)
 }
 
@@ -241,12 +241,12 @@ func (r *GuidanceRepository) saveData() error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal guidance data: %w", err)
 	}
-	
+
 	fullPath := filepath.Join(r.dataPath, "guidance.json")
 	if err := ioutil.WriteFile(fullPath, data, 0644); err != nil {
 		return fmt.Errorf("failed to write guidance file: %w", err)
 	}
-	
+
 	return nil
 }
 

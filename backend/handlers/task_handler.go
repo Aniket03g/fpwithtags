@@ -65,7 +65,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 			// Use helper function to safely get task types
 			ensureTaskProjectConfig(project)
 			taskTypes := getTaskTypes(project)
-			
+
 			// Validate task type
 			validType := false
 			for _, tStr := range taskTypes {
@@ -74,7 +74,7 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 					break
 				}
 			}
-			
+
 			if !validType {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "task_type must be one of the allowed task_types values in project config"})
 				return
@@ -137,8 +137,27 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 		filterType = "All"
 	}
 
+	// Get the feature to access its project ID
+	featureRepo := repositories.NewFeatureRepository(h.DB)
+	feature, err := featureRepo.GetFeatureByID(featureID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Feature not found"})
+		return
+	}
+
+	// Get the project to access its config for task types
+	projectRepo := repositories.NewProjectRepository(h.DB)
+	project, err := projectRepo.GetProjectByID(feature.ProjectID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch project configuration"})
+		return
+	}
+
+	// Extract task types from project config using helper function
+	ensureTaskProjectConfig(project)
+	taskTypes := getTaskTypes(project)
+
 	var tasks []models.Task
-	var err error
 
 	if filterType != "All" {
 		err = h.DB.Preload("Attachments").Where("feature_id = ? AND task_type = ?", featureID, filterType).Find(&tasks).Error
@@ -187,6 +206,7 @@ func (h *TaskHandler) GetTasksByFeature(c *gin.Context) {
 		"Tasks":       tasks,
 		"Feature":     gin.H{"ID": featureID},
 		"FilterType":  filterType,
+		"TaskTypes":   taskTypes,
 		"CurrentUser": gin.H{"Role": userRole, "IsManager": isManager},
 	})
 }
@@ -483,7 +503,7 @@ func (h *TaskHandler) EditTaskForm(c *gin.Context) {
 	feature, _ := featureRepo.GetFeatureByID(featureID)
 	projectRepo := repositories.NewProjectRepository(h.DB)
 	project, _ := projectRepo.GetProjectByID(feature.ProjectID)
-	
+
 	// Use helper function to safely get task types
 	ensureTaskProjectConfig(project)
 	taskTypes := getTaskTypes(project)
@@ -599,11 +619,11 @@ func (h *TaskHandler) NewPullRequestModal(c *gin.Context) {
 // GetAllTasksFragment renders all tasks as an HTMX fragment for the dashboard
 func (h *TaskHandler) GetAllTasksFragment(c *gin.Context) {
 	log.Println("DEBUG: Getting all tasks for fragment")
-	
+
 	// Get the user's role from the context (set by the AuthMiddleware)
 	userRole, _ := c.Get("user_role")
 	isManager := userRole == "manager"
-	
+
 	tasks, err := h.taskRepo.GetAllWithFeatureTitle()
 	if err != nil {
 		log.Printf("ERROR: Failed to get tasks for fragment: %v\n", err)
@@ -611,13 +631,13 @@ func (h *TaskHandler) GetAllTasksFragment(c *gin.Context) {
 		return
 	}
 	log.Printf("DEBUG: Retrieved %d tasks for fragment\n", len(tasks))
-	
+
 	// Pass both the Tasks and the CurrentUser's role to the template
 	c.HTML(http.StatusOK, "all-tasks-list.html", gin.H{
 		"Tasks": tasks,
 		"CurrentUser": gin.H{
 			"IsManager": isManager,
-			"Role": userRole,
+			"Role":      userRole,
 		},
 	})
 }
