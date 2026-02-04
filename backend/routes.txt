@@ -123,5 +123,6 @@ Method: DELETE, Path: /api/dependencies/:id
 Method: DELETE, Path: /api/guidance/:stack/:task_type
 Method: DELETE, Path: /api/templates/:id
 Method: DELETE, Path: /api/imports/:id
+Method: DELETE, Path: /web/features/:id
 Method: PUT, Path: /api/comments/:comment_id
 Method: PUT, Path: /api/releases/:id/notes

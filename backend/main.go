@@ -622,6 +622,7 @@ func main() {
 			// STAGE 4b: AI Suggestions web route
 			authWeb.POST("/projects/:id/suggest", llmSuggestHandler.SuggestFeaturesWeb)
 			authWeb.GET("/features/:id/edit-inline", featureHandler.EditFeatureInline)
+			authWeb.DELETE("/features/:id", featureHandler.DeleteFeature)
 			authWeb.GET("/features/:id/tasks", taskHandler.GetTasksByFeature)
 			authWeb.GET("/features/:id/linked-code", featureHandler.GetLinkedCode)
 			authWeb.GET("/features/:id/tasks/new", taskHandler.NewTaskForm)
